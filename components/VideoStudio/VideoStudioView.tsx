@@ -10,7 +10,7 @@ import {
   subscribeVoices,
   WARM_VOICE_PROFILES,
   VoiceProfile,
-  findBestVoiceForProfile,
+  findBestVoiceForLanguage,
 } from '@/lib/voiceoverTTS';
 import {
   ambientSoundEngine,
@@ -20,6 +20,11 @@ import {
 import { exportReelVideo, downloadVideoBlob, ExportProgress } from '@/lib/videoExporter';
 import { PRESET_QUOTES } from '@/lib/presets';
 import { TAMIL_PRESET_QUOTES, TamilQuoteItem } from '@/lib/tamilPresets';
+import {
+  CURATED_PASSAGES,
+  StoryPassageItem,
+  generateInfinitePassage,
+} from '@/lib/storyPassages';
 import {
   Play,
   Pause,
@@ -36,7 +41,13 @@ import {
   Sliders,
   Check,
   Headphones,
+  BookOpen,
+  MessageSquare,
+  Copy,
+  Layers,
+  ArrowRight,
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface VideoStudioViewProps {
   initialQuote?: string;
@@ -47,49 +58,41 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
   initialQuote,
   initialAuthor,
 }) => {
-  const isInitialTamil = initialQuote ? /[\u0B80-\u0BFF]/.test(initialQuote) : false;
+  const isInitialTamil = initialQuote ? /[\u0B80-\u0BFF]/.test(initialQuote) : true;
   const [quoteLanguage, setQuoteLanguage] = useState<'ta' | 'en'>(isInitialTamil ? 'ta' : 'en');
+  const [videoMode, setVideoMode] = useState<'passage' | 'quote'>('passage');
+
+  // Story Passages State (6-8 Slides)
+  const initialPassage = CURATED_PASSAGES.find((p) => p.language === (isInitialTamil ? 'ta' : 'en')) || CURATED_PASSAGES[0];
+  const [currentPassage, setCurrentPassage] = useState<StoryPassageItem>(initialPassage);
+  const [passageIndex, setPassageIndex] = useState(0);
+  const [copiedStory, setCopiedStory] = useState(false);
+
+  // Single Quote State
   const [tamilCategory, setTamilCategory] = useState<string>('all');
   const [englishCategory, setEnglishCategory] = useState<string>('all');
   const [tamilQuoteIndex, setTamilQuoteIndex] = useState(0);
   const [selectedQuoteIndex, setSelectedQuoteIndex] = useState(0);
-  const [quote, setQuote] = useState(initialQuote || (isInitialTamil ? TAMIL_PRESET_QUOTES[0].quote : PRESET_QUOTES[0].quote));
-  const [author, setAuthor] = useState(initialAuthor || (isInitialTamil ? TAMIL_PRESET_QUOTES[0].author : PRESET_QUOTES[0].author));
+  const [quote, setQuote] = useState(initialQuote || initialPassage.slides[0]);
+  const [author, setAuthor] = useState(initialAuthor || initialPassage.author);
+
+  // Visuals & Characters
   const [selectedCharacter, setSelectedCharacter] = useState<'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer'>('anime-warrior');
   const [particleType, setParticleType] = useState<'sparks' | 'mist' | 'stars' | 'rain'>('sparks');
   const [handle, setHandle] = useState('@_sparkwithin_hub_');
-
-  // Sync external quote when passed from TamilStudio, English Studio or AutoPilot
-  useEffect(() => {
-    if (initialQuote) {
-      setQuote(initialQuote);
-      if (initialAuthor) setAuthor(initialAuthor);
-      const isTam = /[\u0B80-\u0BFF]/.test(initialQuote);
-      if (isTam) {
-        setQuoteLanguage('ta');
-        setIsVoiceoverActive(false);
-        setIsMusicActive(true);
-      } else {
-        setQuoteLanguage('en');
-        setIsVoiceoverActive(true);
-      }
-      setIsPlaying(false);
-      setCurrentTime(0);
-    }
-  }, [initialQuote, initialAuthor]);
 
   // Voiceover & Warm Voice State
   const [voiceProfileId, setVoiceProfileId] = useState<'warm-sweet' | 'calm-storyteller' | 'sweet-angelic' | 'meditative-zen'>('warm-sweet');
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
   const [speechRate, setSpeechRate] = useState(0.88);
-  const [voicePitch, setVoicePitch] = useState(1.08);
-  const [isVoiceoverActive, setIsVoiceoverActive] = useState(true);
+  const [voicePitch, setVoicePitch] = useState(1.05);
+  const [isVoiceoverActive, setIsVoiceoverActive] = useState(false); // Default to instrumental BGM for story passages
   const [isTestingVoice, setIsTestingVoice] = useState(false);
 
-  // Ambient Music State
-  const [ambientType, setAmbientType] = useState<AmbientSoundscapeType>('warm-piano-pad');
-  const [ambientVolume, setAmbientVolume] = useState(0.22);
+  // Ambient Music State (Default loud & rich Tamil / Piano BGM)
+  const [ambientType, setAmbientType] = useState<AmbientSoundscapeType>(isInitialTamil ? 'tamil-melody-bgm' : 'warm-piano-pad');
+  const [ambientVolume, setAmbientVolume] = useState(0.70);
   const [isMusicActive, setIsMusicActive] = useState(true);
 
   // Playback state
@@ -104,7 +107,6 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
 
-  // Current active profile
   const currentProfile = WARM_VOICE_PROFILES.find((p) => p.id === voiceProfileId) || WARM_VOICE_PROFILES[0];
 
   // Subscribe to system voices
@@ -112,129 +114,206 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     const unsubscribe = subscribeVoices((voices) => {
       setAvailableVoices(voices);
       if (!selectedVoiceURI) {
-        const best = findBestVoiceForProfile(voices, voiceProfileId);
+        const best = findBestVoiceForLanguage(voices, quoteLanguage, voiceProfileId);
         if (best) setSelectedVoiceURI(best.voiceURI);
       }
     });
     return () => unsubscribe();
-  }, [voiceProfileId, selectedVoiceURI]);
+  }, [voiceProfileId, selectedVoiceURI, quoteLanguage]);
 
   // Update volume in ambient engine
   useEffect(() => {
     ambientSoundEngine.setVolume(isMusicActive ? ambientVolume : 0);
   }, [ambientVolume, isMusicActive]);
 
-  // Calculate word timings using current profile settings
-  const { words: wordTimings, totalDuration } = calculateWordTimings(
+  // Sync external quote when passed from outside
+  useEffect(() => {
+    if (initialQuote) {
+      const isTam = /[\u0B80-\u0BFF]/.test(initialQuote);
+      setQuoteLanguage(isTam ? 'ta' : 'en');
+      setQuote(initialQuote);
+      if (initialAuthor) setAuthor(initialAuthor);
+      setIsPlaying(false);
+      setCurrentTime(0);
+    }
+  }, [initialQuote, initialAuthor]);
+
+  // Calculate duration
+  const { words: wordTimings, totalDuration: calculatedQuoteDuration } = calculateWordTimings(
     quote,
     speechRate,
     currentProfile.pauseMultiplier
   );
 
-  // Switch voice profile
-  const handleSelectVoiceProfile = (profile: VoiceProfile) => {
-    setVoiceProfileId(profile.id);
-    setSpeechRate(profile.defaultRate);
-    setVoicePitch(profile.defaultPitch);
-    if (availableVoices.length > 0) {
-      const best = findBestVoiceForProfile(availableVoices, profile.id);
-      if (best) setSelectedVoiceURI(best.voiceURI);
-    }
-    stopPlaybackAndAudio();
-  };
+  // In Story Passage mode, give ~3.2s per slide
+  const passageDuration = Math.max(16, currentPassage.slides.length * 3.2);
+  const totalDuration = videoMode === 'passage' ? passageDuration : calculatedQuoteDuration;
 
-  // Filtered Tamil quotes pool
+  const currentSlideIndex = Math.min(
+    currentPassage.slides.length - 1,
+    Math.max(0, Math.floor(currentTime / (totalDuration / currentPassage.slides.length)))
+  );
+
+  // Filtered quotes pools
   const filteredTamilQuotes = tamilCategory === 'all'
     ? TAMIL_PRESET_QUOTES
     : TAMIL_PRESET_QUOTES.filter((q) => q.category === tamilCategory);
 
-  // Filtered English quotes pool
   const filteredEnglishQuotes = englishCategory === 'all'
     ? PRESET_QUOTES
     : PRESET_QUOTES.filter((q) => q.theme === englishCategory);
 
-  // Sync quote when preset index changes
-  const handleSelectQuote = (index: number) => {
-    setSelectedQuoteIndex(index);
-    const item = filteredEnglishQuotes[index] || PRESET_QUOTES[0];
-    setQuote(item.quote);
-    setAuthor(item.author);
-    stopPlaybackAndAudio();
-  };
+  const filteredPassages = CURATED_PASSAGES.filter((p) => p.language === quoteLanguage);
 
-  const handleSelectTamilQuote = (item: TamilQuoteItem, idx: number) => {
-    setTamilQuoteIndex(idx);
-    setQuote(item.quote);
-    setAuthor(item.author);
+  // Switch between Story Passage mode and Single Quote mode
+  const handleSwitchMode = (mode: 'passage' | 'quote') => {
     stopPlaybackAndAudio();
-  };
-
-  const handleShuffleQuote = () => {
-    if (quoteLanguage === 'ta') {
-      const nextIdx = (tamilQuoteIndex + 1) % filteredTamilQuotes.length;
-      handleSelectTamilQuote(filteredTamilQuotes[nextIdx], nextIdx);
+    setVideoMode(mode);
+    if (mode === 'passage') {
+      const match = CURATED_PASSAGES.find((p) => p.language === quoteLanguage) || CURATED_PASSAGES[0];
+      setCurrentPassage(match);
+      setQuote(match.slides[0]);
+      setAuthor(match.author);
+      setIsVoiceoverActive(false);
+      setIsMusicActive(true);
     } else {
-      const nextIdx = (selectedQuoteIndex + 1) % filteredEnglishQuotes.length;
-      handleSelectQuote(nextIdx);
+      if (quoteLanguage === 'ta') {
+        setQuote(TAMIL_PRESET_QUOTES[0].quote);
+        setAuthor(TAMIL_PRESET_QUOTES[0].author);
+      } else {
+        setQuote(PRESET_QUOTES[0].quote);
+        setAuthor(PRESET_QUOTES[0].author);
+      }
     }
   };
 
+  // Switch Language
   const handleSwitchLanguage = (lang: 'ta' | 'en') => {
     setQuoteLanguage(lang);
     stopPlaybackAndAudio();
-    if (lang === 'ta') {
-      const targetPool = tamilCategory === 'all' ? TAMIL_PRESET_QUOTES : TAMIL_PRESET_QUOTES.filter((q) => q.category === tamilCategory);
-      setQuote(targetPool[0]?.quote || TAMIL_PRESET_QUOTES[0].quote);
-      setAuthor(targetPool[0]?.author || TAMIL_PRESET_QUOTES[0].author);
-      setIsVoiceoverActive(false); // Default to cinematic ambient music for Tamil reels
+
+    if (videoMode === 'passage') {
+      const pool = CURATED_PASSAGES.filter((p) => p.language === lang);
+      const chosen = pool[0] || CURATED_PASSAGES[0];
+      setCurrentPassage(chosen);
+      setQuote(chosen.slides[0]);
+      setAuthor(chosen.author);
+      setAmbientType(lang === 'ta' ? 'tamil-melody-bgm' : 'warm-piano-pad');
       setIsMusicActive(true);
+      setIsVoiceoverActive(false);
     } else {
-      const targetPool = englishCategory === 'all' ? PRESET_QUOTES : PRESET_QUOTES.filter((q) => q.theme === englishCategory);
-      setQuote(targetPool[0]?.quote || PRESET_QUOTES[0].quote);
-      setAuthor(targetPool[0]?.author || PRESET_QUOTES[0].author);
-      setIsVoiceoverActive(true);
-      setIsMusicActive(true);
-    }
-  };
-
-  const stopPlaybackAndAudio = () => {
-    setIsPlaying(false);
-    setIsTestingVoice(false);
-    stopVoiceover();
-    ambientSoundEngine.stop();
-    setCurrentTime(0);
-  };
-
-  // Instant Warm Voice Test
-  const handleTestWarmVoice = () => {
-    if (isTestingVoice) {
-      stopVoiceover();
-      setIsTestingVoice(false);
-      return;
-    }
-
-    if (isPlaying) {
-      setIsPlaying(false);
-      ambientSoundEngine.stop();
-    }
-
-    setIsTestingVoice(true);
-    playVoiceover(
-      currentProfile.sampleQuote,
-      {
-        rate: speechRate,
-        pitch: voicePitch,
-        profileId: voiceProfileId,
-        voiceURI: selectedVoiceURI || undefined,
-      },
-      () => {
-        setIsTestingVoice(false);
+      if (lang === 'ta') {
+        const pool = tamilCategory === 'all' ? TAMIL_PRESET_QUOTES : TAMIL_PRESET_QUOTES.filter((q) => q.category === tamilCategory);
+        setQuote(pool[0]?.quote || TAMIL_PRESET_QUOTES[0].quote);
+        setAuthor(pool[0]?.author || TAMIL_PRESET_QUOTES[0].author);
+        setAmbientType('tamil-melody-bgm');
+      } else {
+        const pool = englishCategory === 'all' ? PRESET_QUOTES : PRESET_QUOTES.filter((q) => q.theme === englishCategory);
+        setQuote(pool[0]?.quote || PRESET_QUOTES[0].quote);
+        setAuthor(pool[0]?.author || PRESET_QUOTES[0].author);
+        setAmbientType('warm-piano-pad');
       }
-    );
+    }
+  };
+
+  // Select a Curated Story Passage
+  const handleSelectPassage = (item: StoryPassageItem, idx: number) => {
+    setPassageIndex(idx);
+    setCurrentPassage(item);
+    setQuote(item.slides[0]);
+    setAuthor(item.author);
+    stopPlaybackAndAudio();
+  };
+
+  // Shuffle Curated Story Passages
+  const handleShufflePassage = () => {
+    const nextIdx = (passageIndex + 1) % filteredPassages.length;
+    handleSelectPassage(filteredPassages[nextIdx], nextIdx);
+  };
+
+  // Generate Infinite Non-Repeating Story Passage (20-Year Guarantee)
+  const handleGenerateInfiniteStory = () => {
+    ambientSoundEngine.unlockAudio();
+    stopPlaybackAndAudio();
+    const newPassage = generateInfinitePassage(quoteLanguage);
+    setCurrentPassage(newPassage);
+    setQuote(newPassage.slides[0]);
+    setAuthor(newPassage.author);
+    setCurrentTime(0);
+
+    confetti({
+      particleCount: 60,
+      spread: 60,
+      origin: { y: 0.8 },
+      colors: ['#F59E0B', '#F43F5E', '#10B981'],
+    });
+
+    setTimeout(() => {
+      setIsPlaying(true);
+      ambientSoundEngine.play(quoteLanguage === 'ta' ? 'tamil-melody-bgm' : 'warm-piano-pad');
+    }, 100);
+  };
+
+  // 1-Click Tamil Story Reel
+  const handleAutoCreateTamilReel = () => {
+    ambientSoundEngine.unlockAudio();
+    stopPlaybackAndAudio();
+    setQuoteLanguage('ta');
+    setVideoMode('passage');
+
+    const tamilPool = CURATED_PASSAGES.filter((p) => p.language === 'ta');
+    const chosen = tamilPool[Math.floor(Math.random() * tamilPool.length)] || tamilPool[0];
+    setCurrentPassage(chosen);
+    setQuote(chosen.slides[0]);
+    setAuthor(chosen.author);
+
+    const characters: ('anime-warrior' | 'stoic-monk' | 'minimalist-doodle' | 'cosmic-wanderer')[] = [
+      'anime-warrior', 'stoic-monk', 'minimalist-doodle', 'cosmic-wanderer'
+    ];
+    setSelectedCharacter(characters[Math.floor(Math.random() * characters.length)]);
+    setAmbientType('tamil-melody-bgm');
+    setIsMusicActive(true);
+    setIsVoiceoverActive(false);
+    setCurrentTime(0);
+
+    setTimeout(() => {
+      setIsPlaying(true);
+      ambientSoundEngine.play('tamil-melody-bgm');
+    }, 120);
+  };
+
+  // 1-Click English Story Reel
+  const handleAutoCreateEnglishReel = () => {
+    ambientSoundEngine.unlockAudio();
+    stopPlaybackAndAudio();
+    setQuoteLanguage('en');
+    setVideoMode('passage');
+
+    const enPool = CURATED_PASSAGES.filter((p) => p.language === 'en');
+    const chosen = enPool[Math.floor(Math.random() * enPool.length)] || enPool[0];
+    setCurrentPassage(chosen);
+    setQuote(chosen.slides[0]);
+    setAuthor(chosen.author);
+
+    const characters: ('anime-warrior' | 'stoic-monk' | 'minimalist-doodle' | 'cosmic-wanderer')[] = [
+      'anime-warrior', 'stoic-monk', 'minimalist-doodle', 'cosmic-wanderer'
+    ];
+    setSelectedCharacter(characters[Math.floor(Math.random() * characters.length)]);
+    setAmbientType('warm-piano-pad');
+    setIsMusicActive(true);
+    setIsVoiceoverActive(false);
+    setCurrentTime(0);
+
+    setTimeout(() => {
+      setIsPlaying(true);
+      ambientSoundEngine.play('warm-piano-pad');
+    }, 120);
   };
 
   // Play / Pause toggle
   const togglePlay = () => {
+    ambientSoundEngine.unlockAudio();
+
     if (isPlaying) {
       setIsPlaying(false);
       stopVoiceover();
@@ -256,10 +335,11 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         ambientSoundEngine.play(ambientType);
       }
 
-      // Start voiceover
+      // Start voiceover if enabled
       if (isVoiceoverActive) {
+        const textToSpeak = videoMode === 'passage' ? currentPassage.slides.join('. ') : quote;
         playVoiceover(
-          quote,
+          textToSpeak,
           {
             rate: speechRate,
             pitch: voicePitch,
@@ -277,6 +357,20 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
 
   const handleReset = () => {
     stopPlaybackAndAudio();
+  };
+
+  const stopPlaybackAndAudio = () => {
+    setIsPlaying(false);
+    setIsTestingVoice(false);
+    stopVoiceover();
+    ambientSoundEngine.stop();
+    setCurrentTime(0);
+  };
+
+  // Jump directly to a slide time
+  const handleJumpToSlide = (idx: number) => {
+    const slideDuration = totalDuration / currentPassage.slides.length;
+    setCurrentTime(idx * slideDuration + 0.1);
   };
 
   // Animation Loop
@@ -317,6 +411,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         totalDuration,
         particleType,
         handle,
+        slides: videoMode === 'passage' ? currentPassage.slides : undefined,
+        passageCategory: videoMode === 'passage' ? currentPassage.categoryLabel : undefined,
       });
 
       animationFrameRef.current = requestAnimationFrame(loop);
@@ -328,99 +424,28 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
       localRunning = false;
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [isPlaying, quote, author, selectedCharacter, wordTimings, currentTime, totalDuration, particleType, handle]);
+  }, [
+    isPlaying,
+    quote,
+    author,
+    selectedCharacter,
+    wordTimings,
+    currentTime,
+    totalDuration,
+    particleType,
+    handle,
+    videoMode,
+    currentPassage,
+  ]);
 
-  // 1-Click Auto-Create Tamil Reel
-  const handleAutoCreateTamilReel = () => {
-    stopPlaybackAndAudio();
-    const characters: ('anime-warrior' | 'stoic-monk' | 'minimalist-doodle' | 'cosmic-wanderer')[] = [
-      'anime-warrior', 'stoic-monk', 'minimalist-doodle', 'cosmic-wanderer'
-    ];
-    const soundscapes: AmbientSoundscapeType[] = ['warm-piano-pad', 'cosmic-meditation', 'solitude-rain'];
-    const particles: ('sparks' | 'mist' | 'stars' | 'rain')[] = ['sparks', 'stars', 'mist'];
-
-    const chosenChar = characters[Math.floor(Math.random() * characters.length)];
-    const chosenSound = soundscapes[Math.floor(Math.random() * soundscapes.length)];
-    const chosenParticle = particles[Math.floor(Math.random() * particles.length)];
-    const chosenQuote = TAMIL_PRESET_QUOTES[Math.floor(Math.random() * TAMIL_PRESET_QUOTES.length)];
-
-    setQuoteLanguage('ta');
-    setSelectedCharacter(chosenChar);
-    setAmbientType(chosenSound);
-    setParticleType(chosenParticle);
-    setQuote(chosenQuote.quote);
-    setAuthor(chosenQuote.author);
-    setIsVoiceoverActive(false);
-    setIsMusicActive(true);
-    setCurrentTime(0);
-
-    setTimeout(() => {
-      setIsPlaying(true);
-      ambientSoundEngine.play(chosenSound);
-    }, 150);
-  };
-
-  // 1-Click Auto-Create English Reel
-  const handleAutoCreateEnglishReel = () => {
-    stopPlaybackAndAudio();
-    const characters: ('anime-warrior' | 'stoic-monk' | 'minimalist-doodle' | 'cosmic-wanderer')[] = [
-      'anime-warrior', 'stoic-monk', 'minimalist-doodle', 'cosmic-wanderer'
-    ];
-    const soundscapes: AmbientSoundscapeType[] = ['warm-piano-pad', 'cosmic-meditation', 'solitude-rain'];
-    const particles: ('sparks' | 'mist' | 'stars' | 'rain')[] = ['sparks', 'stars', 'mist'];
-    const voiceProfiles: ('warm-sweet' | 'calm-storyteller' | 'sweet-angelic' | 'meditative-zen')[] = [
-      'warm-sweet', 'calm-storyteller', 'sweet-angelic', 'meditative-zen'
-    ];
-
-    const chosenChar = characters[Math.floor(Math.random() * characters.length)];
-    const chosenSound = soundscapes[Math.floor(Math.random() * soundscapes.length)];
-    const chosenParticle = particles[Math.floor(Math.random() * particles.length)];
-    const chosenProfileId = voiceProfiles[Math.floor(Math.random() * voiceProfiles.length)];
-    const targetPool = englishCategory === 'all' ? PRESET_QUOTES : PRESET_QUOTES.filter((q) => q.theme === englishCategory);
-    const chosenQuote = targetPool[Math.floor(Math.random() * targetPool.length)] || PRESET_QUOTES[0];
-
-    setQuoteLanguage('en');
-    setSelectedCharacter(chosenChar);
-    setAmbientType(chosenSound);
-    setParticleType(chosenParticle);
-    setVoiceProfileId(chosenProfileId);
-    setQuote(chosenQuote.quote);
-    setAuthor(chosenQuote.author);
-    setIsVoiceoverActive(true);
-    setIsMusicActive(true);
-    setCurrentTime(0);
-
-    const profileObj = WARM_VOICE_PROFILES.find((p) => p.id === chosenProfileId) || WARM_VOICE_PROFILES[0];
-    setSpeechRate(profileObj.defaultRate);
-    setVoicePitch(profileObj.defaultPitch);
-
-    setTimeout(() => {
-      setIsPlaying(true);
-      ambientSoundEngine.play(chosenSound);
-      playVoiceover(
-        chosenQuote.quote,
-        {
-          rate: profileObj.defaultRate,
-          pitch: profileObj.defaultPitch,
-          profileId: chosenProfileId,
-          voiceURI: selectedVoiceURI || undefined,
-        },
-        () => {
-          setIsPlaying(false);
-          ambientSoundEngine.stop();
-        }
-      );
-    }, 150);
-  };
-
-  // Export 1080x1920 MP4 Video
+  // Export 1080x1920 MP4 Video with synchronized Audio Track
   const handleExportReel = async () => {
+    ambientSoundEngine.unlockAudio();
     stopPlaybackAndAudio();
     setIsExporting(true);
     setExportProgress({ percent: 0, currentFrame: 0, totalFrames: 100 });
 
     try {
-      // Optional audio track from ambient engine
       let audioTrack: MediaStreamTrack | null = null;
       if (isMusicActive && ambientType !== 'none') {
         ambientSoundEngine.play(ambientType);
@@ -436,6 +461,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           totalDuration,
           particleType,
           handle,
+          slides: videoMode === 'passage' ? currentPassage.slides : undefined,
+          passageCategory: videoMode === 'passage' ? currentPassage.categoryLabel : undefined,
         },
         (progress) => {
           setExportProgress(progress);
@@ -444,7 +471,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
       );
 
       ambientSoundEngine.stop();
-      downloadVideoBlob(blob, `sparkwithin-${selectedCharacter}-reel.mp4`);
+      downloadVideoBlob(blob, `sparkwithin-${videoMode}-${quoteLanguage}-reel.mp4`);
     } catch (err) {
       console.error('Reel export error:', err);
       ambientSoundEngine.stop();
@@ -455,10 +482,6 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     }
   };
 
-  // Find currently selected voice object for display
-  const activeVoiceObj = availableVoices.find((v) => v.voiceURI === selectedVoiceURI) ||
-    findBestVoiceForProfile(availableVoices, voiceProfileId);
-
   return (
     <div className="space-y-6">
       {/* Top Banner */}
@@ -467,20 +490,20 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold tracking-wider uppercase border border-purple-500/30 flex items-center gap-1">
               <Film className="w-3 h-3 text-purple-400" />
-              Reels & Animated Studio
+              Reels & Story Studio
             </span>
             <span className="text-xs text-white/50">• 9:16 Vertical (1080×1920)</span>
             <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-500/30 flex items-center gap-1">
-              <Heart className="w-2.5 h-2.5 text-rose-400 fill-rose-400" />
-              Warm Voiceover & Ambient Music
+              <Music className="w-2.5 h-2.5 text-rose-400" />
+              Tamil Piano BGM & Ambient Audio
             </span>
             <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
-              🇺🇸 English + 🌾 தமிழ்
+              6-8 Slide Story Passages 🌱
             </span>
           </div>
-          <h2 className="text-xl font-extrabold text-white tracking-tight">Animated Cartoon Motivational Reels</h2>
+          <h2 className="text-xl font-extrabold text-white tracking-tight">Viral Story Passage & Reel Creator</h2>
           <p className="text-xs text-white/60 mt-1 max-w-xl">
-            Create high-engagement vertical Reels in both English and Tamil with soothing warm voiceovers, procedural cartoon avatars, glowing kinetic typography, and 1-click MP4 export.
+            Create emotional 6-8 slide POV & reality passage video reels with rich Tamil cinematic piano music, cartoon avatars, and progressive story animations.
           </p>
         </div>
 
@@ -489,7 +512,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           <button
             onClick={handleAutoCreateEnglishReel}
             className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-300 text-xs font-bold shadow-lg transition-all cursor-pointer"
-            title="Automatically generate an English video reel with warm soothing voiceover, cartoon avatar, and music"
+            title="Automatically generate an English POV Story Reel with warm piano music"
           >
             <Sparkles className="w-4 h-4 text-rose-400" />
             <span>⚡ 1-Click English Reel</span>
@@ -498,10 +521,10 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           <button
             onClick={handleAutoCreateTamilReel}
             className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-lg transition-all cursor-pointer"
-            title="Automatically generate an aesthetic Tamil video reel with cartoon avatar and ambient music"
+            title="Automatically generate an aesthetic Tamil Story Reel with emotional piano BGM"
           >
             <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>⚡ 1-Click Tamil Reel (ஆட்டோ)</span>
+            <span>⚡ 1-Click Tamil Reel (BGM)</span>
           </button>
 
           <button
@@ -514,7 +537,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             ) : (
               <Download className="w-4 h-4" />
             )}
-            <span>{isExporting ? `Rendering Reel (${exportProgress?.percent || 0}%)...` : 'Export 1080×1920 MP4 Reel'}</span>
+            <span>{isExporting ? `Rendering Reel (${exportProgress?.percent || 0}%)...` : 'Export 1080×1920 MP4'}</span>
           </button>
         </div>
       </div>
@@ -549,10 +572,12 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 <span>{isPlaying ? 'PLAYING PREVIEW' : '9:16 REEL PREVIEW'}</span>
               </div>
 
-              {/* Voice Indicator Badge */}
-              <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[10px] font-medium text-rose-300 flex items-center gap-1">
-                <span>{currentProfile.name.split(' ')[0]} {currentProfile.badge}</span>
-              </div>
+              {/* Slide Counter Indicator */}
+              {videoMode === 'passage' && (
+                <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[10px] font-bold text-amber-300 flex items-center gap-1">
+                  <span>Slide {currentSlideIndex + 1} / {currentPassage.slides.length}</span>
+                </div>
+              )}
             </div>
 
             {/* Timeline Controls */}
@@ -580,7 +605,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 />
               </div>
 
-              {/* Playback Buttons */}
+              {/* Playback Buttons & Audio Toggles */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <button
@@ -602,6 +627,21 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 {/* Audio Toggles */}
                 <div className="flex items-center gap-1.5">
                   <button
+                    onClick={() => {
+                      ambientSoundEngine.unlockAudio();
+                      setIsMusicActive(!isMusicActive);
+                    }}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
+                      isMusicActive && ambientType !== 'none'
+                        ? 'bg-purple-500/20 border-purple-400/40 text-purple-300'
+                        : 'bg-white/5 border-white/10 text-white/40'
+                    }`}
+                  >
+                    <Music className="w-3.5 h-3.5" />
+                    <span>BGM Music</span>
+                  </button>
+
+                  <button
                     onClick={() => setIsVoiceoverActive(!isVoiceoverActive)}
                     className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
                       isVoiceoverActive
@@ -612,47 +652,66 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                     {isVoiceoverActive ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                     <span>Voice</span>
                   </button>
-
-                  <button
-                    onClick={() => setIsMusicActive(!isMusicActive)}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
-                      isMusicActive && ambientType !== 'none'
-                        ? 'bg-purple-500/20 border-purple-400/40 text-purple-300'
-                        : 'bg-white/5 border-white/10 text-white/40'
-                    }`}
-                  >
-                    <Music className="w-3.5 h-3.5" />
-                    <span>Music</span>
-                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Studio Customization Panel */}
+        {/* Right: Customization Panel */}
         <div className="lg:w-[58%] w-full space-y-5">
-          {/* Quote & Author Input */}
+          {/* Format Mode Switcher: 6-8 Slide Story vs Single Quote */}
+          <div className="p-4 rounded-2xl bg-studio-900 border border-white/10 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">வடிவம் (Format):</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleSwitchMode('passage')}
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  videoMode === 'passage'
+                    ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-amber-400 shadow-md'
+                    : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>📖 6-8 Slide Story Passage (POV)</span>
+              </button>
+
+              <button
+                onClick={() => handleSwitchMode('quote')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  videoMode === 'quote'
+                    ? 'bg-gradient-to-r from-purple-500 to-rose-500 text-white border-purple-400 shadow-md'
+                    : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>💬 Classic Single Quote</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Language Switcher */}
           <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            {/* Language Switcher */}
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <span className="text-[11px] font-bold text-white/70 uppercase tracking-wider">மொழி (Language):</span>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleSwitchLanguage('ta')}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     quoteLanguage === 'ta'
                       ? 'bg-amber-500 text-black border-amber-400 shadow-sm'
                       : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                   }`}
                 >
-                  🌾 தமிழ் ரீல்ஸ் (Tamil)
+                  🌾 தமிழ் (Tamil)
                 </button>
                 <button
                   type="button"
                   onClick={() => handleSwitchLanguage('en')}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     quoteLanguage === 'en'
                       ? 'bg-rose-500 text-white border-rose-400 shadow-sm'
                       : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
@@ -663,384 +722,261 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
               </div>
             </div>
 
-            {/* Tamil Category Filter Pills */}
-            {quoteLanguage === 'ta' && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {[
-                  { id: 'all', label: '🌟 அனைத்தும்' },
-                  { id: 'thirukkural', label: '📜 திருக்குறள்' },
-                  { id: 'bharathiyar', label: '🔥 பாரதியார்' },
-                  { id: 'kalam', label: '🚀 கலாம்' },
-                  { id: 'vivekananda', label: '🧘 விவேகானந்தர்' },
-                  { id: 'wisdom', label: '💎 தத்துவம்' },
-                  { id: 'cinema', label: '🎬 சினிமா' },
-                ].map((cat) => (
+            {/* If in Story Passage Mode */}
+            {videoMode === 'passage' && (
+              <div className="space-y-4 pt-1">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                      {currentPassage.categoryLabel} ({currentPassage.slides.length} Slides)
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Infinite Non-Repeating Story Generator */}
+                    <button
+                      onClick={handleGenerateInfiniteStory}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 text-white text-xs font-bold shadow-md shadow-amber-500/20 cursor-pointer"
+                      title="Generate an infinite, never-repeating 7-slide story (20-year guarantee)"
+                    >
+                      <Dices className="w-3.5 h-3.5" />
+                      <span>🎲 புது கதை (Infinite Generator)</span>
+                    </button>
+
+                    <button
+                      onClick={handleShufflePassage}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-semibold cursor-pointer"
+                    >
+                      <span>அடுத்த கதை (Shuffle)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Slides Interactive Card List */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">ஸ்லைடுகள் (Click any slide to jump):</span>
+                  <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-none">
+                    {currentPassage.slides.map((slide, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => handleJumpToSlide(idx)}
+                        className={`p-2.5 rounded-xl border text-xs transition-all cursor-pointer flex items-start gap-2.5 ${
+                          currentSlideIndex === idx
+                            ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-sm'
+                            : 'bg-black/30 border-white/10 text-white/70 hover:bg-white/5'
+                        }`}
+                      >
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
+                          currentSlideIndex === idx ? 'bg-amber-500 text-black' : 'bg-white/10 text-white/50'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <span className="line-clamp-2 leading-relaxed">{slide}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Copy Full Story Caption */}
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+                  <span className="text-[11px] text-white/50">முழு கதை உரை (Full Passage Text):</span>
                   <button
-                    key={cat.id}
-                    type="button"
                     onClick={() => {
-                      setTamilCategory(cat.id);
-                      const pool = cat.id === 'all'
-                        ? TAMIL_PRESET_QUOTES
-                        : TAMIL_PRESET_QUOTES.filter((q) => q.category === cat.id);
-                      if (pool.length > 0) {
-                        handleSelectTamilQuote(pool[0], 0);
-                      }
+                      navigator.clipboard.writeText(currentPassage.fullText);
+                      setCopiedStory(true);
+                      setTimeout(() => setCopiedStory(false), 2000);
                     }}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all cursor-pointer ${
-                      tamilCategory === cat.id
-                        ? 'bg-amber-500/20 border-amber-400 text-amber-300'
-                        : 'bg-white/[0.02] border-white/10 text-white/50 hover:text-white'
-                    }`}
+                    className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-bold cursor-pointer"
                   >
-                    {cat.label}
+                    {copiedStory ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedStory ? 'நகலெடுக்கப்பட்டது!' : 'முழு கதையை நகலெடு (Copy Text)'}</span>
                   </button>
-                ))}
+                </div>
               </div>
             )}
 
-            {/* English Category Filter Pills */}
-            {quoteLanguage === 'en' && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {[
-                  { id: 'all', label: '🌟 All (35+)' },
-                  { id: 'fire_sunset', label: '🔥 Inner Flame' },
-                  { id: 'stoic_marble', label: '🏛️ Stoic Mindset' },
-                  { id: 'minimal_linen', label: '🧘 Calm Confidence' },
-                  { id: 'cyber_midnight', label: '🚀 Vision & Hustle' },
-                  { id: 'vintage_journal', label: '📜 Timeless Wisdom' },
-                  { id: 'emerald_wealth', label: '💎 Abundance' },
-                ].map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      setEnglishCategory(cat.id);
-                      const pool = cat.id === 'all'
-                        ? PRESET_QUOTES
-                        : PRESET_QUOTES.filter((q) => q.theme === cat.id);
-                      if (pool.length > 0) {
-                        setSelectedQuoteIndex(0);
-                        setQuote(pool[0].quote);
-                        setAuthor(pool[0].author);
-                        stopPlaybackAndAudio();
-                      }
-                    }}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all cursor-pointer ${
-                      englishCategory === cat.id
-                        ? 'bg-rose-500/20 border-rose-400 text-rose-300'
-                        : 'bg-white/[0.02] border-white/10 text-white/50 hover:text-white'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* If in Single Quote Mode */}
+            {videoMode === 'quote' && (
+              <div className="space-y-3 pt-1">
+                {/* Tamil Category Filter Pills */}
+                {quoteLanguage === 'ta' && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    {[
+                      { id: 'all', label: '🌟 அனைத்தும்' },
+                      { id: 'thirukkural', label: '📜 திருக்குறள்' },
+                      { id: 'bharathiyar', label: '🔥 பாரதியார்' },
+                      { id: 'kalam', label: '🚀 கலாம்' },
+                      { id: 'vivekananda', label: '🧘 விவேகானந்தர்' },
+                      { id: 'wisdom', label: '💎 தத்துவம்' },
+                      { id: 'cinema', label: '🎬 சினிமா' },
+                    ].map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setTamilCategory(cat.id);
+                          const pool = cat.id === 'all'
+                            ? TAMIL_PRESET_QUOTES
+                            : TAMIL_PRESET_QUOTES.filter((q) => q.category === cat.id);
+                          if (pool.length > 0) {
+                            setQuote(pool[0].quote);
+                            setAuthor(pool[0].author);
+                            stopPlaybackAndAudio();
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all cursor-pointer ${
+                          tamilCategory === cat.id
+                            ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                            : 'bg-white/[0.02] border-white/10 text-white/50 hover:text-white'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  {quoteLanguage === 'ta' ? 'வாசகம் & வரிகள்' : 'Quote Text & Subtitles'}
-                </h3>
-              </div>
-              <button
-                onClick={handleShuffleQuote}
-                className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 transition-colors cursor-pointer font-medium"
-              >
-                <Dices className="w-3.5 h-3.5" />
-                <span>
-                  {quoteLanguage === 'ta' ? 'அடுத்த தமிழ் வரி (Shuffle 40+)' : 'Shuffle from 35+ Library'}
-                </span>
-              </button>
-            </div>
+                {/* English Category Filter Pills */}
+                {quoteLanguage === 'en' && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    {[
+                      { id: 'all', label: '🌟 All (35+)' },
+                      { id: 'fire_sunset', label: '🔥 Inner Flame' },
+                      { id: 'stoic_marble', label: '🏛️ Stoic Mindset' },
+                      { id: 'minimal_linen', label: '🧘 Calm Confidence' },
+                      { id: 'cyber_midnight', label: '🚀 Vision & Hustle' },
+                      { id: 'vintage_journal', label: '📜 Timeless Wisdom' },
+                      { id: 'emerald_wealth', label: '💎 Abundance' },
+                    ].map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => {
+                          setEnglishCategory(cat.id);
+                          const pool = cat.id === 'all'
+                            ? PRESET_QUOTES
+                            : PRESET_QUOTES.filter((q) => q.theme === cat.id);
+                          if (pool.length > 0) {
+                            setSelectedQuoteIndex(0);
+                            setQuote(pool[0].quote);
+                            setAuthor(pool[0].author);
+                            stopPlaybackAndAudio();
+                          }
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap border transition-all cursor-pointer ${
+                          englishCategory === cat.id
+                            ? 'bg-rose-500/20 border-rose-400 text-rose-300'
+                            : 'bg-white/[0.02] border-white/10 text-white/50 hover:text-white'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
-            <textarea
-              rows={3}
-              value={quote}
-              onChange={(e) => {
-                setQuote(e.target.value);
-                stopPlaybackAndAudio();
-              }}
-              placeholder={quoteLanguage === 'ta' ? 'ரீல்ஸ்கான தமிழ் வரிகளை உள்ளிடவும்...' : 'Enter quote text for the reel...'}
-              className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-rose-500 transition-colors resize-none leading-relaxed"
-            />
-
-            <input
-              type="text"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              placeholder={quoteLanguage === 'ta' ? 'ஆசிரியர் பெயர் (எ.கா. திருவள்ளுவர், அப்துல் கலாம்)' : 'Author name (e.g. Spark Within, Marcus Aurelius)'}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-rose-500 transition-colors"
-            />
-          </div>
-
-          {/* Section: Warm, Calm & Sweet Voiceover Studio */}
-          <div className="p-5 rounded-2xl bg-gradient-to-b from-rose-500/10 to-purple-500/5 border border-rose-500/20 space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <Heart className="w-4 h-4 text-rose-400 fill-rose-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  Warm, Calm & Sweet Voice Profiles
-                </h3>
-              </div>
-              {/* Test Voice Button */}
-              <button
-                onClick={handleTestWarmVoice}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  isTestingVoice
-                    ? 'bg-rose-500 text-white animate-pulse shadow-lg shadow-rose-500/30'
-                    : 'bg-rose-500/20 border border-rose-400/40 text-rose-300 hover:bg-rose-500/30'
-                }`}
-              >
-                <Headphones className="w-3.5 h-3.5" />
-                <span>{isTestingVoice ? 'Listening to Warm Voice...' : '🎧 Test Warm Voice'}</span>
-              </button>
-            </div>
-
-            {quoteLanguage === 'ta' && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>தமிழ் ரீல்ஸ்க்கு அமைதியான மற்றும் தியான பின்னணி இசை (Ambient Music) தானாக இயக்கப்படும். கீழுள்ள இசையை விருப்பத்திற்கேற்ப மாற்றலாம்.</span>
-              </div>
-            )}
-
-            {/* 4 Voice Profile Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {WARM_VOICE_PROFILES.map((profile) => {
-                const isSelected = voiceProfileId === profile.id;
-                return (
-                  <button
-                    key={profile.id}
-                    onClick={() => handleSelectVoiceProfile(profile)}
-                    className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1.5 relative ${
-                      isSelected
-                        ? 'bg-rose-500/20 border-rose-400/90 shadow-lg shadow-rose-500/15 ring-1 ring-rose-400/50'
-                        : 'bg-black/30 border-white/10 hover:bg-white/[0.04] text-white/70'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white tracking-tight flex items-center gap-1.5">
-                        {profile.name}
-                      </span>
-                      <span className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
-                        isSelected ? 'bg-rose-500/40 text-rose-200' : 'bg-white/10 text-white/60'
-                      }`}>
-                        {profile.badge}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-white/60 leading-relaxed">{profile.description}</p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Fine Tuning Controls: Pitch & Speaking Pace */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/10">
-              {/* Sweetness & Pitch Slider */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/70 font-medium">Sweetness & Pitch</span>
-                  <span className="font-mono text-rose-300 text-[11px] font-bold">{voicePitch.toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range"
-                  min={0.85}
-                  max={1.25}
-                  step={0.02}
-                  value={voicePitch}
-                  onChange={(e) => setVoicePitch(parseFloat(e.target.value))}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
-                />
-                <div className="flex justify-between text-[9px] text-white/40">
-                  <span>Deeper Warmth</span>
-                  <span>Sweet & Melodic</span>
-                </div>
-              </div>
-
-              {/* Calm Speaking Pace */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/70 font-medium">Calm Speaking Pace</span>
-                  <span className="font-mono text-amber-300 text-[11px] font-bold">{speechRate.toFixed(2)}x</span>
-                </div>
-                <input
-                  type="range"
-                  min={0.75}
-                  max={1.20}
-                  step={0.02}
-                  value={speechRate}
+                <textarea
+                  rows={3}
+                  value={quote}
                   onChange={(e) => {
-                    setSpeechRate(parseFloat(e.target.value));
+                    setQuote(e.target.value);
                     stopPlaybackAndAudio();
                   }}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white resize-none leading-relaxed"
                 />
-                <div className="flex justify-between text-[9px] text-white/40">
-                  <span>Slow & Zen</span>
-                  <span>Conversational</span>
-                </div>
-              </div>
-            </div>
 
-            {/* System Voice Match Status / Override */}
-            {availableVoices.length > 0 && (
-              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-white/60">
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Matched Natural Voice: <strong className="text-white">{activeVoiceObj?.name || 'Default Natural'}</strong></span>
-                </span>
-                <select
-                  value={selectedVoiceURI}
-                  onChange={(e) => setSelectedVoiceURI(e.target.value)}
-                  className="bg-black/60 border border-white/15 rounded-lg px-2 py-1 text-[10px] text-white focus:outline-none focus:border-rose-500 cursor-pointer max-w-[180px]"
-                >
-                  <option value="">Auto-Match Best Warm Voice</option>
-                  {availableVoices
-                    .filter((v) => v.lang.startsWith('en'))
-                    .map((v) => (
-                      <option key={v.voiceURI} value={v.voiceURI}>
-                        {v.name}
-                      </option>
-                    ))}
-                </select>
+                <input
+                  type="text"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white"
+                />
               </div>
             )}
           </div>
 
-          {/* Section: Ambient Soothing Background Soundscapes */}
+          {/* Section: BGM Music & Soundscapes */}
           <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Music className="w-4 h-4 text-purple-400" />
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  Ambient Background Soundscape (Included in MP4)
+                  பின்னணி இசை (Background BGM Music)
                 </h3>
               </div>
-              <span className="text-[10px] text-purple-300 font-mono">Web Audio $0 Engine</span>
+              <span className="text-[11px] font-mono text-purple-300 font-bold">Volume: {Math.round(ambientVolume * 100)}%</span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {AMBIENT_SOUNDSCAPES.map((track) => {
-                const isSelected = ambientType === track.id;
+            {/* Soundscape Options Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {AMBIENT_SOUNDSCAPES.map((sound) => {
+                const isSelected = ambientType === sound.id;
                 return (
                   <button
-                    key={track.id}
+                    key={sound.id}
                     onClick={() => {
-                      setAmbientType(track.id);
-                      if (isPlaying && isMusicActive) {
-                        ambientSoundEngine.play(track.id);
+                      ambientSoundEngine.unlockAudio();
+                      setAmbientType(sound.id);
+                      if (isPlaying && sound.id !== 'none') {
+                        ambientSoundEngine.play(sound.id);
                       }
                     }}
-                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1 ${
                       isSelected
-                        ? 'bg-purple-500/20 border-purple-400/80 text-white shadow-md shadow-purple-500/10'
+                        ? 'bg-purple-500/20 border-purple-400 text-white shadow-md'
                         : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
                     }`}
                   >
-                    <span className="text-xs font-bold truncate">{track.name.split(' ')[0]} {track.badge}</span>
-                    <span className="text-[9px] text-white/40 truncate">{track.name.split(' ').slice(1).join(' ')}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Music Volume Slider */}
-            {ambientType !== 'none' && (
-              <div className="flex items-center gap-3 pt-1">
-                <span className="text-[11px] text-white/60 shrink-0">Music Volume:</span>
-                <input
-                  type="range"
-                  min={0.05}
-                  max={0.5}
-                  step={0.02}
-                  value={ambientVolume}
-                  onChange={(e) => setAmbientVolume(parseFloat(e.target.value))}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                />
-                <span className="text-[11px] font-mono text-purple-300 font-bold shrink-0">
-                  {Math.round(ambientVolume * 200)}%
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Cartoon Character Switcher */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-white uppercase tracking-wider">
-                Cartoon Character Avatar
-              </label>
-              <span className="text-[10px] text-amber-400 font-mono">4 Vector Animated Styles</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {CARTOON_CHARACTERS.map((char) => {
-                const isSelected = selectedCharacter === char.id;
-                return (
-                  <button
-                    key={char.id}
-                    onClick={() => {
-                      setSelectedCharacter(char.id);
-                      setParticleType(char.particleType);
-                    }}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col gap-1 relative overflow-hidden ${
-                      isSelected
-                        ? 'bg-amber-500/15 border-amber-400/80 shadow-lg shadow-amber-500/10'
-                        : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-white/20 text-white/70'
-                    }`}
-                  >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white tracking-tight">{char.name}</span>
-                      <span
-                        className="text-[9px] font-mono px-2 py-0.5 rounded uppercase font-bold"
-                        style={{ color: char.accentColor, backgroundColor: `${char.accentColor}20` }}
-                      >
-                        {char.badge}
+                      <span className="text-xs font-bold text-white">{sound.name}</span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
+                        isSelected ? 'bg-purple-500/30 text-purple-300' : 'bg-white/10 text-white/40'
+                      }`}>
+                        {sound.badge}
                       </span>
                     </div>
-                    <p className="text-[10px] text-white/50 leading-relaxed">{char.description}</p>
+                    <span className="text-[10px] text-white/40 line-clamp-2">{sound.description}</span>
                   </button>
                 );
               })}
             </div>
+
+            {/* Volume Slider */}
+            <div className="pt-2">
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={ambientVolume}
+                onChange={(e) => setAmbientVolume(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+              />
+            </div>
           </div>
 
-          {/* Particle Effects Switcher */}
+          {/* Character Avatar Picker */}
           <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            <label className="text-xs font-bold text-white uppercase tracking-wider">
-              Atmospheric Particle Simulation
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(['sparks', 'mist', 'stars', 'rain'] as const).map((p) => (
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">கார்ட்டூன் அவதார் (Character Avatar)</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {CARTOON_CHARACTERS.map((char) => (
                 <button
-                  key={p}
-                  onClick={() => setParticleType(p)}
-                  className={`py-2 rounded-xl text-xs font-bold border capitalize transition-all cursor-pointer ${
-                    particleType === p
-                      ? 'bg-amber-500/20 border-amber-400/60 text-amber-300'
-                      : 'bg-white/[0.02] border-white/10 text-white/50 hover:text-white'
+                  key={char.id}
+                  onClick={() => setSelectedCharacter(char.id as any)}
+                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                    selectedCharacter === char.id
+                      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md'
+                      : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
                   }`}
                 >
-                  {p === 'sparks' ? '🔥 Flying Sparks' : p === 'mist' ? '🌲 Misty Fog' : p === 'stars' ? '🌌 Starfield' : '🌧️ Night Rain'}
+                  <span className="text-base block mb-1">
+                    {char.id === 'anime-warrior' ? '⚔️' : char.id === 'stoic-monk' ? '🧘' : char.id === 'minimalist-doodle' ? '✏️' : '🌌'}
+                  </span>
+                  <span className="text-[11px] font-bold block">{char.name}</span>
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Watermark Branding */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-2">
-            <label className="text-xs font-bold text-white uppercase tracking-wider">
-              Reels Watermark / Handle
-            </label>
-            <input
-              type="text"
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              placeholder="@_sparkwithin_hub_"
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 focus:outline-none focus:border-rose-500 transition-colors"
-            />
           </div>
         </div>
       </div>

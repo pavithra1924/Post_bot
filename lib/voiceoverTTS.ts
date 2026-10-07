@@ -173,6 +173,24 @@ export function findBestVoiceForProfile(
 }
 
 /**
+ * Finds the best voice taking language into account (supports Tamil and English).
+ */
+export function findBestVoiceForLanguage(
+  voices: SpeechSynthesisVoice[],
+  lang: 'en' | 'ta',
+  profileId: 'warm-sweet' | 'calm-storyteller' | 'sweet-angelic' | 'meditative-zen' = 'warm-sweet'
+): SpeechSynthesisVoice | null {
+  if (!voices || voices.length === 0) return null;
+  if (lang === 'ta') {
+    const tamilVoices = voices.filter(
+      (v) => v.lang.startsWith('ta') || v.lang.toLowerCase().includes('tamil') || v.lang.includes('ta-IN')
+    );
+    if (tamilVoices.length > 0) return tamilVoices[0];
+  }
+  return findBestVoiceForProfile(voices, profileId);
+}
+
+/**
  * Injects subtle punctuation breathing pauses to make speech synthesis sound human, calm, and warm.
  */
 export function formatTextForNaturalCadence(text: string): string {
