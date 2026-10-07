@@ -43,11 +43,10 @@ export const AspectRatioPicker: React.FC<AspectRatioPickerProps> = ({ value, onC
             <button
               key={opt.id}
               onClick={() => onChange(opt.id)}
-              className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all text-center ${
-                isActive
+              className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all text-center ${isActive
                   ? 'bg-rose-500/10 border-rose-500 text-white shadow-lg shadow-rose-500/10'
                   : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.07] hover:text-white'
-              }`}
+                }`}
             >
               <div className={`mb-1.5 ${isActive ? 'text-rose-400' : 'text-white/40'}`}>
                 {opt.icon}
