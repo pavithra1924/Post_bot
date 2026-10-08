@@ -8,7 +8,7 @@ export interface ExportProgress {
 
 /**
  * High-speed in-browser 1080x1920 MP4/WebM video generator.
- * Encodes canvas frames into an exportable video file with perfectly synchronized audio.
+ * Encodes canvas frames into an exportable video file with perfectly synchronized audio (voice + BGM).
  */
 export async function exportReelVideo(
   config: Omit<VideoRenderConfig, 'currentTime'>,
@@ -26,15 +26,17 @@ export async function exportReelVideo(
   // Check supported mime types
   let mimeType = 'video/mp4';
   if (!MediaRecorder.isTypeSupported('video/mp4')) {
-    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-      mimeType = 'video/webm;codecs=vp9';
-    } else {
+    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+      mimeType = 'video/webm;codecs=vp9,opus';
+    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+      mimeType = 'video/webm;codecs=vp8,opus';
+    } else if (MediaRecorder.isTypeSupported('video/webm')) {
       mimeType = 'video/webm';
     }
   }
 
   const stream = offscreenCanvas.captureStream(fps);
-  if (audioTrack) {
+  if (audioTrack && audioTrack.readyState === 'live') {
     try {
       stream.addTrack(audioTrack);
     } catch (err) {
@@ -44,24 +46,29 @@ export async function exportReelVideo(
 
   const recorder = new MediaRecorder(stream, {
     mimeType,
-    videoBitsPerSecond: 8000000, // 8 Mbps high quality
+    videoBitsPerSecond: 8000000, // 8 Mbps high quality video
+    audioBitsPerSecond: 128000,  // 128 kbps crisp voice & music
   });
 
   const chunks: Blob[] = [];
   recorder.ondataavailable = (e) => {
-    if (e.data.size > 0) chunks.push(e.data);
+    if (e.data && e.data.size > 0) chunks.push(e.data);
   };
 
-  const recordingPromise = new Promise<Blob>((resolve) => {
+  const recordingPromise = new Promise<Blob>((resolve, reject) => {
     recorder.onstop = () => {
-      resolve(new Blob(chunks, { type: mimeType }));
+      if (chunks.length > 0) {
+        resolve(new Blob(chunks, { type: mimeType }));
+      } else {
+        reject(new Error('No video data recorded'));
+      }
     };
+    recorder.onerror = (err) => reject(err);
   });
 
-  recorder.start();
+  recorder.start(1000); // Gather chunks every second
 
-  // If audioTrack is attached, pace frames at real-time 1000/fps (33.3ms) to guarantee 100% audio-video sync!
-  // If silent, render at maximum speed.
+  // Pace frames at real-time 1000 / fps (~33.3ms) to guarantee 100% audio-video sync with audioTrack
   const frameDelay = audioTrack ? Math.floor(1000 / fps) : 16;
 
   for (let frame = 0; frame < totalFrames; frame++) {
@@ -85,12 +92,15 @@ export async function exportReelVideo(
 }
 
 export function downloadVideoBlob(blob: Blob, filename = 'sparkwithin-story-reel.mp4'): void {
+  const isWebm = blob.type.includes('webm');
+  const finalFilename = isWebm && filename.endsWith('.mp4') ? filename.replace(/\.mp4$/, '.webm') : filename;
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename;
+  a.download = finalFilename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }

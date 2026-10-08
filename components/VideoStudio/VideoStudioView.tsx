@@ -1,30 +1,22 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { CARTOON_CHARACTERS } from '@/lib/cartoonAvatars';
-import { renderVideoFrame } from '@/lib/videoRenderer';
-import {
-  calculateWordTimings,
-  playVoiceover,
-  stopVoiceover,
-  subscribeVoices,
-  WARM_VOICE_PROFILES,
-  VoiceProfile,
-  findBestVoiceForLanguage,
-} from '@/lib/voiceoverTTS';
-import {
-  ambientSoundEngine,
-  AMBIENT_SOUNDSCAPES,
-  AmbientSoundscapeType,
-} from '@/lib/ambientAudio';
+import { renderVideoFrame, SlideTimingInfo } from '@/lib/videoRenderer';
+import { calculateWordTimings } from '@/lib/voiceoverTTS';
+import { AMBIENT_SOUNDSCAPES, AmbientSoundscapeType } from '@/lib/ambientAudio';
 import { exportReelVideo, downloadVideoBlob, ExportProgress } from '@/lib/videoExporter';
 import { PRESET_QUOTES } from '@/lib/presets';
-import { TAMIL_PRESET_QUOTES, TamilQuoteItem } from '@/lib/tamilPresets';
+import { TAMIL_PRESET_QUOTES } from '@/lib/tamilPresets';
 import {
   CURATED_PASSAGES,
   StoryPassageItem,
   generateInfinitePassage,
 } from '@/lib/storyPassages';
+import {
+  studioAudioEngine,
+  DecodedSlideAudio,
+} from '@/lib/studioAudioEngine';
 import {
   Play,
   Pause,
@@ -36,7 +28,6 @@ import {
   Dices,
   Film,
   Zap,
-  Heart,
   Music,
   Sliders,
   Check,
@@ -44,8 +35,11 @@ import {
   BookOpen,
   MessageSquare,
   Copy,
+  Clock,
   Layers,
-  ArrowRight,
+  Radio,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -63,7 +57,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
   const [videoMode, setVideoMode] = useState<'passage' | 'quote'>('passage');
 
   // Story Passages State (6-8 Slides)
-  const initialPassage = CURATED_PASSAGES.find((p) => p.language === (isInitialTamil ? 'ta' : 'en')) || CURATED_PASSAGES[0];
+  const initialPassage =
+    CURATED_PASSAGES.find((p) => p.language === (isInitialTamil ? 'ta' : 'en')) || CURATED_PASSAGES[0];
   const [currentPassage, setCurrentPassage] = useState<StoryPassageItem>(initialPassage);
   const [passageIndex, setPassageIndex] = useState(0);
   const [copiedStory, setCopiedStory] = useState(false);
@@ -71,29 +66,27 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
   // Single Quote State
   const [tamilCategory, setTamilCategory] = useState<string>('all');
   const [englishCategory, setEnglishCategory] = useState<string>('all');
-  const [tamilQuoteIndex, setTamilQuoteIndex] = useState(0);
-  const [selectedQuoteIndex, setSelectedQuoteIndex] = useState(0);
   const [quote, setQuote] = useState(initialQuote || initialPassage.slides[0]);
   const [author, setAuthor] = useState(initialAuthor || initialPassage.author);
 
   // Visuals & Characters
-  const [selectedCharacter, setSelectedCharacter] = useState<'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer'>('anime-warrior');
+  const [selectedCharacter, setSelectedCharacter] = useState<
+    'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer'
+  >('anime-warrior');
   const [particleType, setParticleType] = useState<'sparks' | 'mist' | 'stars' | 'rain'>('sparks');
   const [handle, setHandle] = useState('@_sparkwithin_hub_');
 
-  // Voiceover & Warm Voice State
-  const [voiceProfileId, setVoiceProfileId] = useState<'warm-sweet' | 'calm-storyteller' | 'sweet-angelic' | 'meditative-zen'>('warm-sweet');
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('');
-  const [speechRate, setSpeechRate] = useState(0.88);
-  const [voicePitch, setVoicePitch] = useState(1.05);
-  const [isVoiceoverActive, setIsVoiceoverActive] = useState(false); // Default to instrumental BGM for story passages
-  const [isTestingVoice, setIsTestingVoice] = useState(false);
-
-  // Ambient Music State (Default loud & rich Tamil / Piano BGM)
-  const [ambientType, setAmbientType] = useState<AmbientSoundscapeType>(isInitialTamil ? 'tamil-melody-bgm' : 'warm-piano-pad');
-  const [ambientVolume, setAmbientVolume] = useState(0.70);
-  const [isMusicActive, setIsMusicActive] = useState(true);
+  // Audio Engine State: Synchronized Voice + Ambient Music
+  const [isVoiceoverActive, setIsVoiceoverActive] = useState(true); // Voice ON by default
+  const [isMusicActive, setIsMusicActive] = useState(true); // BGM ON by default
+  const [ambientType, setAmbientType] = useState<AmbientSoundscapeType>(
+    isInitialTamil ? 'tamil-melody-bgm' : 'warm-piano-pad'
+  );
+  const [voiceVolume, setVoiceVolume] = useState(1.0);
+  const [musicVolume, setMusicVolume] = useState(0.35); // Ducked BGM so voice is crisp
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [slideAudios, setSlideAudios] = useState<DecodedSlideAudio[]>([]);
+  const [passageDuration, setPassageDuration] = useState<number>(24);
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -107,26 +100,37 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
   const animationFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
 
-  const currentProfile = WARM_VOICE_PROFILES.find((p) => p.id === voiceProfileId) || WARM_VOICE_PROFILES[0];
-
-  // Subscribe to system voices
+  // Sync volume with studio audio engine
   useEffect(() => {
-    const unsubscribe = subscribeVoices((voices) => {
-      setAvailableVoices(voices);
-      if (!selectedVoiceURI) {
-        const best = findBestVoiceForLanguage(voices, quoteLanguage, voiceProfileId);
-        if (best) setSelectedVoiceURI(best.voiceURI);
-      }
-    });
-    return () => unsubscribe();
-  }, [voiceProfileId, selectedVoiceURI, quoteLanguage]);
+    studioAudioEngine.setVoiceVolume(isVoiceoverActive ? voiceVolume : 0);
+  }, [voiceVolume, isVoiceoverActive]);
 
-  // Update volume in ambient engine
   useEffect(() => {
-    ambientSoundEngine.setVolume(isMusicActive ? ambientVolume : 0);
-  }, [ambientVolume, isMusicActive]);
+    studioAudioEngine.setMusicVolume(isMusicActive ? musicVolume : 0);
+  }, [musicVolume, isMusicActive]);
 
-  // Sync external quote when passed from outside
+  // Load Audio & Synchronized Slide Timings for Passages
+  const loadPassageAudioData = useCallback(async (passage: StoryPassageItem, lang: 'ta' | 'en') => {
+    setIsLoadingAudio(true);
+    try {
+      const session = await studioAudioEngine.loadPassageAudio(passage.slides, lang);
+      setSlideAudios(session.slideAudios);
+      setPassageDuration(session.totalDuration);
+    } catch (err) {
+      console.warn('Error loading passage audio session:', err);
+    } finally {
+      setIsLoadingAudio(false);
+    }
+  }, []);
+
+  // Initial load of audio for passage
+  useEffect(() => {
+    if (videoMode === 'passage') {
+      loadPassageAudioData(currentPassage, quoteLanguage);
+    }
+  }, [currentPassage, quoteLanguage, videoMode, loadPassageAudioData]);
+
+  // Handle external quote updates
   useEffect(() => {
     if (initialQuote) {
       const isTam = /[\u0B80-\u0BFF]/.test(initialQuote);
@@ -134,48 +138,59 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
       setQuote(initialQuote);
       if (initialAuthor) setAuthor(initialAuthor);
       setIsPlaying(false);
+      studioAudioEngine.stopPlayback();
       setCurrentTime(0);
     }
   }, [initialQuote, initialAuthor]);
 
-  // Calculate duration
+  // Derive exact SlideTimingInfo array for renderer
+  const slideTimings: SlideTimingInfo[] = slideAudios.map((sa) => ({
+    index: sa.index,
+    startTime: sa.startTime,
+    endTime: sa.endTime,
+    duration: sa.duration,
+  }));
+
+  // Estimate single quote duration
   const { words: wordTimings, totalDuration: calculatedQuoteDuration } = calculateWordTimings(
     quote,
-    speechRate,
-    currentProfile.pauseMultiplier
+    0.9,
+    1.3
   );
 
-  // In Story Passage mode, give ~3.2s per slide
-  const passageDuration = Math.max(16, currentPassage.slides.length * 3.2);
   const totalDuration = videoMode === 'passage' ? passageDuration : calculatedQuoteDuration;
 
-  const currentSlideIndex = Math.min(
-    currentPassage.slides.length - 1,
-    Math.max(0, Math.floor(currentTime / (totalDuration / currentPassage.slides.length)))
-  );
+  // Determine current active slide based on currentTime and slideTimings
+  let currentSlideIndex = 0;
+  if (videoMode === 'passage' && slideTimings.length > 0) {
+    const foundIdx = slideTimings.findIndex(
+      (st) => currentTime >= st.startTime && currentTime < st.endTime
+    );
+    if (foundIdx !== -1) {
+      currentSlideIndex = foundIdx;
+    } else if (currentTime >= (slideTimings[slideTimings.length - 1]?.endTime || 0)) {
+      currentSlideIndex = slideTimings.length - 1;
+    }
+  }
 
-  // Filtered quotes pools
-  const filteredTamilQuotes = tamilCategory === 'all'
-    ? TAMIL_PRESET_QUOTES
-    : TAMIL_PRESET_QUOTES.filter((q) => q.category === tamilCategory);
+  // Stop all playback and audio
+  const stopPlaybackAndAudio = useCallback(() => {
+    setIsPlaying(false);
+    studioAudioEngine.stopPlayback();
+    setCurrentTime(0);
+  }, []);
 
-  const filteredEnglishQuotes = englishCategory === 'all'
-    ? PRESET_QUOTES
-    : PRESET_QUOTES.filter((q) => q.theme === englishCategory);
-
-  const filteredPassages = CURATED_PASSAGES.filter((p) => p.language === quoteLanguage);
-
-  // Switch between Story Passage mode and Single Quote mode
+  // Mode Switcher (Story Passage vs Single Quote)
   const handleSwitchMode = (mode: 'passage' | 'quote') => {
     stopPlaybackAndAudio();
     setVideoMode(mode);
     if (mode === 'passage') {
-      const match = CURATED_PASSAGES.find((p) => p.language === quoteLanguage) || CURATED_PASSAGES[0];
+      const match =
+        CURATED_PASSAGES.find((p) => p.language === quoteLanguage) || CURATED_PASSAGES[0];
       setCurrentPassage(match);
       setQuote(match.slides[0]);
       setAuthor(match.author);
-      setIsVoiceoverActive(false);
-      setIsMusicActive(true);
+      loadPassageAudioData(match, quoteLanguage);
     } else {
       if (quoteLanguage === 'ta') {
         setQuote(TAMIL_PRESET_QUOTES[0].quote);
@@ -187,7 +202,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     }
   };
 
-  // Switch Language
+  // Language Switcher
   const handleSwitchLanguage = (lang: 'ta' | 'en') => {
     setQuoteLanguage(lang);
     stopPlaybackAndAudio();
@@ -199,16 +214,21 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
       setQuote(chosen.slides[0]);
       setAuthor(chosen.author);
       setAmbientType(lang === 'ta' ? 'tamil-melody-bgm' : 'warm-piano-pad');
-      setIsMusicActive(true);
-      setIsVoiceoverActive(false);
+      loadPassageAudioData(chosen, lang);
     } else {
       if (lang === 'ta') {
-        const pool = tamilCategory === 'all' ? TAMIL_PRESET_QUOTES : TAMIL_PRESET_QUOTES.filter((q) => q.category === tamilCategory);
+        const pool =
+          tamilCategory === 'all'
+            ? TAMIL_PRESET_QUOTES
+            : TAMIL_PRESET_QUOTES.filter((q) => q.category === tamilCategory);
         setQuote(pool[0]?.quote || TAMIL_PRESET_QUOTES[0].quote);
         setAuthor(pool[0]?.author || TAMIL_PRESET_QUOTES[0].author);
         setAmbientType('tamil-melody-bgm');
       } else {
-        const pool = englishCategory === 'all' ? PRESET_QUOTES : PRESET_QUOTES.filter((q) => q.theme === englishCategory);
+        const pool =
+          englishCategory === 'all'
+            ? PRESET_QUOTES
+            : PRESET_QUOTES.filter((q) => q.theme === englishCategory);
         setQuote(pool[0]?.quote || PRESET_QUOTES[0].quote);
         setAuthor(pool[0]?.author || PRESET_QUOTES[0].author);
         setAmbientType('warm-piano-pad');
@@ -223,40 +243,37 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     setQuote(item.slides[0]);
     setAuthor(item.author);
     stopPlaybackAndAudio();
+    loadPassageAudioData(item, quoteLanguage);
   };
 
   // Shuffle Curated Story Passages
   const handleShufflePassage = () => {
-    const nextIdx = (passageIndex + 1) % filteredPassages.length;
-    handleSelectPassage(filteredPassages[nextIdx], nextIdx);
+    const filtered = CURATED_PASSAGES.filter((p) => p.language === quoteLanguage);
+    const nextIdx = (passageIndex + 1) % filtered.length;
+    handleSelectPassage(filtered[nextIdx], nextIdx);
   };
 
   // Generate Infinite Non-Repeating Story Passage (20-Year Guarantee)
   const handleGenerateInfiniteStory = () => {
-    ambientSoundEngine.unlockAudio();
+    studioAudioEngine.unlockAudio();
     stopPlaybackAndAudio();
     const newPassage = generateInfinitePassage(quoteLanguage);
     setCurrentPassage(newPassage);
     setQuote(newPassage.slides[0]);
     setAuthor(newPassage.author);
-    setCurrentTime(0);
+    loadPassageAudioData(newPassage, quoteLanguage);
 
     confetti({
-      particleCount: 60,
-      spread: 60,
+      particleCount: 70,
+      spread: 70,
       origin: { y: 0.8 },
       colors: ['#F59E0B', '#F43F5E', '#10B981'],
     });
-
-    setTimeout(() => {
-      setIsPlaying(true);
-      ambientSoundEngine.play(quoteLanguage === 'ta' ? 'tamil-melody-bgm' : 'warm-piano-pad');
-    }, 100);
   };
 
-  // 1-Click Tamil Story Reel
+  // 1-Click Tamil Story Reel (Synchronized Voice + BGM)
   const handleAutoCreateTamilReel = () => {
-    ambientSoundEngine.unlockAudio();
+    studioAudioEngine.unlockAudio();
     stopPlaybackAndAudio();
     setQuoteLanguage('ta');
     setVideoMode('passage');
@@ -268,23 +285,22 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     setAuthor(chosen.author);
 
     const characters: ('anime-warrior' | 'stoic-monk' | 'minimalist-doodle' | 'cosmic-wanderer')[] = [
-      'anime-warrior', 'stoic-monk', 'minimalist-doodle', 'cosmic-wanderer'
+      'anime-warrior',
+      'stoic-monk',
+      'minimalist-doodle',
+      'cosmic-wanderer',
     ];
     setSelectedCharacter(characters[Math.floor(Math.random() * characters.length)]);
     setAmbientType('tamil-melody-bgm');
     setIsMusicActive(true);
-    setIsVoiceoverActive(false);
-    setCurrentTime(0);
+    setIsVoiceoverActive(true);
 
-    setTimeout(() => {
-      setIsPlaying(true);
-      ambientSoundEngine.play('tamil-melody-bgm');
-    }, 120);
+    loadPassageAudioData(chosen, 'ta');
   };
 
-  // 1-Click English Story Reel
+  // 1-Click English Story Reel (Synchronized Voice + BGM)
   const handleAutoCreateEnglishReel = () => {
-    ambientSoundEngine.unlockAudio();
+    studioAudioEngine.unlockAudio();
     stopPlaybackAndAudio();
     setQuoteLanguage('en');
     setVideoMode('passage');
@@ -296,62 +312,58 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     setAuthor(chosen.author);
 
     const characters: ('anime-warrior' | 'stoic-monk' | 'minimalist-doodle' | 'cosmic-wanderer')[] = [
-      'anime-warrior', 'stoic-monk', 'minimalist-doodle', 'cosmic-wanderer'
+      'anime-warrior',
+      'stoic-monk',
+      'minimalist-doodle',
+      'cosmic-wanderer',
     ];
     setSelectedCharacter(characters[Math.floor(Math.random() * characters.length)]);
     setAmbientType('warm-piano-pad');
     setIsMusicActive(true);
-    setIsVoiceoverActive(false);
-    setCurrentTime(0);
+    setIsVoiceoverActive(true);
 
-    setTimeout(() => {
-      setIsPlaying(true);
-      ambientSoundEngine.play('warm-piano-pad');
-    }, 120);
+    loadPassageAudioData(chosen, 'en');
   };
 
-  // Play / Pause toggle
+  // Jump directly to a slide's timestamp
+  const handleJumpToSlide = (idx: number) => {
+    studioAudioEngine.unlockAudio();
+    studioAudioEngine.stopPlayback();
+    setIsPlaying(false);
+
+    if (slideTimings[idx]) {
+      setCurrentTime(slideTimings[idx].startTime);
+    } else {
+      const slideDuration = totalDuration / currentPassage.slides.length;
+      setCurrentTime(idx * slideDuration);
+    }
+  };
+
+  // Play / Pause toggle with 100% audio-visual synchronization
   const togglePlay = () => {
-    ambientSoundEngine.unlockAudio();
+    studioAudioEngine.unlockAudio();
 
     if (isPlaying) {
       setIsPlaying(false);
-      stopVoiceover();
-      ambientSoundEngine.stop();
+      studioAudioEngine.stopPlayback();
     } else {
-      if (isTestingVoice) {
-        stopVoiceover();
-        setIsTestingVoice(false);
-      }
-
-      if (currentTime >= totalDuration) {
+      let startTime = currentTime;
+      if (startTime >= totalDuration) {
+        startTime = 0;
         setCurrentTime(0);
       }
+
       setIsPlaying(true);
       lastTimeRef.current = performance.now();
 
-      // Start ambient music
-      if (isMusicActive && ambientType !== 'none') {
-        ambientSoundEngine.play(ambientType);
-      }
-
-      // Start voiceover if enabled
-      if (isVoiceoverActive) {
-        const textToSpeak = videoMode === 'passage' ? currentPassage.slides.join('. ') : quote;
-        playVoiceover(
-          textToSpeak,
-          {
-            rate: speechRate,
-            pitch: voicePitch,
-            profileId: voiceProfileId,
-            voiceURI: selectedVoiceURI || undefined,
-          },
-          () => {
-            setIsPlaying(false);
-            ambientSoundEngine.stop();
-          }
-        );
-      }
+      // Start synchronized voiceover and BGM from exact currentTime
+      studioAudioEngine.startPlayback({
+        currentTime: startTime,
+        slideAudios,
+        isMusicActive,
+        isVoiceActive: isVoiceoverActive,
+        ambientType,
+      });
     }
   };
 
@@ -359,21 +371,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     stopPlaybackAndAudio();
   };
 
-  const stopPlaybackAndAudio = () => {
-    setIsPlaying(false);
-    setIsTestingVoice(false);
-    stopVoiceover();
-    ambientSoundEngine.stop();
-    setCurrentTime(0);
-  };
-
-  // Jump directly to a slide time
-  const handleJumpToSlide = (idx: number) => {
-    const slideDuration = totalDuration / currentPassage.slides.length;
-    setCurrentTime(idx * slideDuration + 0.1);
-  };
-
-  // Animation Loop
+  // Animation Loop (Runs synchronized with currentTime)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -392,8 +390,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           const next = prev + delta;
           if (next >= totalDuration) {
             setIsPlaying(false);
-            stopVoiceover();
-            ambientSoundEngine.stop();
+            studioAudioEngine.stopPlayback();
             return totalDuration;
           }
           return next;
@@ -413,6 +410,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         handle,
         slides: videoMode === 'passage' ? currentPassage.slides : undefined,
         passageCategory: videoMode === 'passage' ? currentPassage.categoryLabel : undefined,
+        slideTimings: videoMode === 'passage' ? slideTimings : undefined,
       });
 
       animationFrameRef.current = requestAnimationFrame(loop);
@@ -436,22 +434,30 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     handle,
     videoMode,
     currentPassage,
+    slideTimings,
   ]);
 
-  // Export 1080x1920 MP4 Video with synchronized Audio Track
+  // Export 1080x1920 MP4 Video with synchronized Voiceover + Background Music
   const handleExportReel = async () => {
-    ambientSoundEngine.unlockAudio();
+    studioAudioEngine.unlockAudio();
     stopPlaybackAndAudio();
     setIsExporting(true);
     setExportProgress({ percent: 0, currentFrame: 0, totalFrames: 100 });
 
     try {
-      let audioTrack: MediaStreamTrack | null = null;
-      if (isMusicActive && ambientType !== 'none') {
-        ambientSoundEngine.play(ambientType);
-        audioTrack = ambientSoundEngine.getMediaStreamTrack();
-      }
+      // 1. Start audio playback from t = 0 through the studio audio engine
+      studioAudioEngine.startPlayback({
+        currentTime: 0,
+        slideAudios,
+        isMusicActive,
+        isVoiceActive: isVoiceoverActive,
+        ambientType,
+      });
 
+      // 2. Capture the combined audio track containing BOTH voice and music
+      const audioTrack = studioAudioEngine.getMediaStreamTrack();
+
+      // 3. Render 1080x1920 video frames and mux synchronized audio
       const blob = await exportReelVideo(
         {
           quote,
@@ -463,6 +469,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           handle,
           slides: videoMode === 'passage' ? currentPassage.slides : undefined,
           passageCategory: videoMode === 'passage' ? currentPassage.categoryLabel : undefined,
+          slideTimings: videoMode === 'passage' ? slideTimings : undefined,
         },
         (progress) => {
           setExportProgress(progress);
@@ -470,11 +477,18 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         audioTrack
       );
 
-      ambientSoundEngine.stop();
+      studioAudioEngine.stopPlayback();
       downloadVideoBlob(blob, `sparkwithin-${videoMode}-${quoteLanguage}-reel.mp4`);
+
+      confetti({
+        particleCount: 80,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#8B5CF6', '#EC4899', '#10B981'],
+      });
     } catch (err) {
       console.error('Reel export error:', err);
-      ambientSoundEngine.stop();
+      studioAudioEngine.stopPlayback();
       alert('Video export error. Please check browser support for WebCodecs/MediaRecorder.');
     } finally {
       setIsExporting(false);
@@ -484,60 +498,68 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-500/15 via-rose-500/15 to-amber-500/15 border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Top Banner / Studio Command Center */}
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-900/40 via-studio-900 to-rose-950/40 border border-white/10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
         <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold tracking-wider uppercase border border-purple-500/30 flex items-center gap-1">
-              <Film className="w-3 h-3 text-purple-400" />
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-[11px] font-bold tracking-wider uppercase border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
+              <Film className="w-3.5 h-3.5 text-purple-400" />
               Reels & Story Studio
             </span>
-            <span className="text-xs text-white/50">• 9:16 Vertical (1080×1920)</span>
-            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-500/30 flex items-center gap-1">
-              <Music className="w-2.5 h-2.5 text-rose-400" />
-              Tamil Piano BGM & Ambient Audio
+            <span className="text-xs text-white/50">• 9:16 Vertical HD (1080×1920)</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 flex items-center gap-1">
+              <Music className="w-3 h-3 text-rose-400" />
+              Tamil Cinema Piano BGM
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
-              6-8 Slide Story Passages 🌱
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-bold border border-emerald-500/30 flex items-center gap-1">
+              <Headphones className="w-3 h-3 text-emerald-400" />
+              Neural Synchronized Voiceover
             </span>
           </div>
-          <h2 className="text-xl font-extrabold text-white tracking-tight">Viral Story Passage & Reel Creator</h2>
-          <p className="text-xs text-white/60 mt-1 max-w-xl">
-            Create emotional 6-8 slide POV & reality passage video reels with rich Tamil cinematic piano music, cartoon avatars, and progressive story animations.
+          <h2 className="text-2xl font-black text-white tracking-tight">
+            Viral Story Passage & Reel Studio
+          </h2>
+          <p className="text-xs text-white/60 mt-1 max-w-xl leading-relaxed">
+            Create high-engagement 6–8 slide POV stories with frame-by-frame synchronized voiceover,
+            emotional Tamil piano chords, breathing anime characters, and Instagram story progress bars.
           </p>
         </div>
 
         {/* Action Buttons: 1-Click English Reel, 1-Click Tamil Reel & Export */}
-        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+        <div className="flex items-center gap-3 flex-wrap shrink-0">
           <button
-            onClick={handleAutoCreateEnglishReel}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-300 text-xs font-bold shadow-lg transition-all cursor-pointer"
-            title="Automatically generate an English POV Story Reel with warm piano music"
+            onClick={handleAutoCreateTamilReel}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/25 to-rose-500/25 hover:from-amber-500/35 hover:to-rose-500/35 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-lg shadow-amber-500/10 transition-all cursor-pointer"
+            title="Generate an aesthetic Tamil Story Reel with synchronized voice & emotional piano BGM"
           >
-            <Sparkles className="w-4 h-4 text-rose-400" />
-            <span>⚡ 1-Click English Reel</span>
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>⚡ 1-Click Tamil Reel</span>
           </button>
 
           <button
-            onClick={handleAutoCreateTamilReel}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-lg transition-all cursor-pointer"
-            title="Automatically generate an aesthetic Tamil Story Reel with emotional piano BGM"
+            onClick={handleAutoCreateEnglishReel}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500/25 to-rose-500/25 hover:from-purple-500/35 hover:to-rose-500/35 border border-purple-400/40 text-purple-300 text-xs font-bold shadow-lg shadow-purple-500/10 transition-all cursor-pointer"
+            title="Generate an English POV Story Reel with synchronized voice & warm piano music"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>⚡ 1-Click Tamil Reel (BGM)</span>
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span>⚡ 1-Click English Reel</span>
           </button>
 
           <button
             onClick={handleExportReel}
             disabled={isExporting}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-500 via-rose-500 to-amber-500 hover:opacity-95 text-white text-xs font-bold shadow-xl shadow-purple-500/20 disabled:opacity-50 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-600 hover:opacity-95 text-white text-xs font-bold shadow-xl shadow-purple-500/25 disabled:opacity-50 transition-all cursor-pointer"
           >
             {isExporting ? (
-              <Sparkles className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin text-white" />
             ) : (
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 text-white" />
             )}
-            <span>{isExporting ? `Rendering Reel (${exportProgress?.percent || 0}%)...` : 'Export 1080×1920 MP4'}</span>
+            <span>
+              {isExporting
+                ? `Recording Reel (${exportProgress?.percent || 0}%)...`
+                : 'Export 1080×1920 MP4 (With Voice & Music)'}
+            </span>
           </button>
         </div>
       </div>
@@ -546,19 +568,16 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
       <div className="flex flex-col lg:flex-row gap-8 items-start">
         {/* Left: 9:16 Reel Player Canvas */}
         <div className="lg:w-[42%] w-full flex flex-col items-center">
-          <div className="sticky top-20 w-full max-w-[370px] flex flex-col items-center gap-4">
+          <div className="sticky top-20 w-full max-w-[380px] flex flex-col items-center gap-4">
             {/* Player Container (Phone Aspect Ratio) */}
-            <div className="w-full aspect-[9/16] rounded-3xl overflow-hidden bg-black border-2 border-white/15 shadow-2xl shadow-purple-500/10 relative group">
-              <canvas
-                ref={canvasRef}
-                className="w-full h-full object-contain select-none"
-              />
+            <div className="w-full aspect-[9/16] rounded-3xl overflow-hidden bg-black border-2 border-white/15 shadow-2xl shadow-purple-500/15 relative group">
+              <canvas ref={canvasRef} className="w-full h-full object-contain select-none" />
 
               {/* Play Overlay when paused */}
               {!isPlaying && (
                 <div
                   onClick={togglePlay}
-                  className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center cursor-pointer transition-opacity"
+                  className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center cursor-pointer transition-opacity"
                 >
                   <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white shadow-2xl shadow-rose-500/40 hover:scale-110 transition-transform">
                     <Play className="w-7 h-7 ml-1" />
@@ -567,24 +586,52 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
               )}
 
               {/* Live Status Badge */}
-              <div className="absolute top-4 left-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[10px] font-mono text-white flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+              <div className="absolute top-4 left-4 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/20 text-[10px] font-mono text-white flex items-center gap-1.5 shadow-md">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isPlaying ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                  }`}
+                />
                 <span>{isPlaying ? 'PLAYING PREVIEW' : '9:16 REEL PREVIEW'}</span>
               </div>
 
               {/* Slide Counter Indicator */}
               {videoMode === 'passage' && (
-                <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-[10px] font-bold text-amber-300 flex items-center gap-1">
-                  <span>Slide {currentSlideIndex + 1} / {currentPassage.slides.length}</span>
+                <div className="absolute top-4 right-4 px-2.5 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/20 text-[10px] font-bold text-amber-300 flex items-center gap-1 shadow-md">
+                  <span>
+                    Slide {currentSlideIndex + 1} / {currentPassage.slides.length}
+                  </span>
                 </div>
               )}
+
+              {/* Audio Sync Status Indicator */}
+              <div className="absolute bottom-4 left-4 right-4 px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md border border-white/15 text-[11px] text-white/80 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  {isLoadingAudio ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                      <span className="text-amber-300 font-mono text-[10px]">Syncing Speech Audio...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-emerald-300 font-mono text-[10px]">Voice & BGM 100% Synced</span>
+                    </>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-[10px] font-mono text-white/50">
+                  <span>{isVoiceoverActive ? '🎙️ Voice ON' : '🎙️ Voice OFF'}</span>
+                  <span>•</span>
+                  <span>{isMusicActive ? '🎵 BGM ON' : '🔇 Mute'}</span>
+                </div>
+              </div>
             </div>
 
             {/* Timeline Controls */}
-            <div className="w-full p-4 rounded-2xl bg-studio-900 border border-white/10 space-y-3 shadow-lg">
+            <div className="w-full p-4 rounded-2xl bg-studio-900/90 backdrop-blur-md border border-white/10 space-y-3 shadow-lg">
               {/* Scrub Slider */}
               <div className="space-y-1">
-                <div className="flex justify-between text-[11px] font-mono text-white/50">
+                <div className="flex justify-between text-[11px] font-mono text-white/60">
                   <span>{currentTime.toFixed(1)}s</span>
                   <span>{totalDuration.toFixed(1)}s</span>
                 </div>
@@ -598,14 +645,13 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                     const t = parseFloat(e.target.value);
                     setCurrentTime(t);
                     setIsPlaying(false);
-                    stopVoiceover();
-                    ambientSoundEngine.stop();
+                    studioAudioEngine.stopPlayback();
                   }}
                   className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
                 />
               </div>
 
-              {/* Playback Buttons & Audio Toggles */}
+              {/* Playback Buttons & Quick Toggles */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <button
@@ -628,29 +674,50 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => {
-                      ambientSoundEngine.unlockAudio();
+                      studioAudioEngine.unlockAudio();
+                      setIsVoiceoverActive(!isVoiceoverActive);
+                      if (isPlaying) {
+                        studioAudioEngine.startPlayback({
+                          currentTime,
+                          slideAudios,
+                          isMusicActive,
+                          isVoiceActive: !isVoiceoverActive,
+                          ambientType,
+                        });
+                      }
+                    }}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
+                      isVoiceoverActive
+                        ? 'bg-rose-500/20 border-rose-400/40 text-rose-300 shadow-sm'
+                        : 'bg-white/5 border-white/10 text-white/40'
+                    }`}
+                  >
+                    <Volume2 className="w-3.5 h-3.5" />
+                    <span>Voiceover</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      studioAudioEngine.unlockAudio();
                       setIsMusicActive(!isMusicActive);
+                      if (isPlaying) {
+                        studioAudioEngine.startPlayback({
+                          currentTime,
+                          slideAudios,
+                          isMusicActive: !isMusicActive,
+                          isVoiceActive: isVoiceoverActive,
+                          ambientType,
+                        });
+                      }
                     }}
                     className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
                       isMusicActive && ambientType !== 'none'
-                        ? 'bg-purple-500/20 border-purple-400/40 text-purple-300'
+                        ? 'bg-purple-500/20 border-purple-400/40 text-purple-300 shadow-sm'
                         : 'bg-white/5 border-white/10 text-white/40'
                     }`}
                   >
                     <Music className="w-3.5 h-3.5" />
                     <span>BGM Music</span>
-                  </button>
-
-                  <button
-                    onClick={() => setIsVoiceoverActive(!isVoiceoverActive)}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
-                      isVoiceoverActive
-                        ? 'bg-rose-500/20 border-rose-400/40 text-rose-300'
-                        : 'bg-white/5 border-white/10 text-white/40'
-                    }`}
-                  >
-                    {isVoiceoverActive ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-                    <span>Voice</span>
                   </button>
                 </div>
               </div>
@@ -658,7 +725,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           </div>
         </div>
 
-        {/* Right: Customization Panel */}
+        {/* Right: Customization & Story Controls */}
         <div className="lg:w-[58%] w-full space-y-5">
           {/* Format Mode Switcher: 6-8 Slide Story vs Single Quote */}
           <div className="p-4 rounded-2xl bg-studio-900 border border-white/10 flex items-center justify-between gap-3 flex-wrap">
@@ -692,17 +759,20 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             </div>
           </div>
 
-          {/* Language Switcher */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
-              <span className="text-[11px] font-bold text-white/70 uppercase tracking-wider">மொழி (Language):</span>
-              <div className="flex items-center gap-1.5">
+          {/* Language Switcher & Story Passages Container */}
+          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-amber-400" />
+                <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">மொழி (Language):</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleSwitchLanguage('ta')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     quoteLanguage === 'ta'
-                      ? 'bg-amber-500 text-black border-amber-400 shadow-sm'
+                      ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-amber-400 shadow-sm'
                       : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                   }`}
                 >
@@ -711,9 +781,9 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSwitchLanguage('en')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     quoteLanguage === 'en'
-                      ? 'bg-rose-500 text-white border-rose-400 shadow-sm'
+                      ? 'bg-gradient-to-r from-rose-500 to-purple-600 text-white border-rose-400 shadow-sm'
                       : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
                   }`}
                 >
@@ -753,34 +823,63 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                   </div>
                 </div>
 
-                {/* Slides Interactive Card List */}
+                {/* Slides Interactive Card List with Precise Audio Timings */}
                 <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-white/50 uppercase tracking-wider">ஸ்லைடுகள் (Click any slide to jump):</span>
-                  <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-none">
-                    {currentPassage.slides.map((slide, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => handleJumpToSlide(idx)}
-                        className={`p-2.5 rounded-xl border text-xs transition-all cursor-pointer flex items-start gap-2.5 ${
-                          currentSlideIndex === idx
-                            ? 'bg-amber-500/20 border-amber-400 text-amber-200 shadow-sm'
-                            : 'bg-black/30 border-white/10 text-white/70 hover:bg-white/5'
-                        }`}
-                      >
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
-                          currentSlideIndex === idx ? 'bg-amber-500 text-black' : 'bg-white/10 text-white/50'
-                        }`}>
-                          {idx + 1}
-                        </span>
-                        <span className="line-clamp-2 leading-relaxed">{slide}</span>
-                      </div>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-white/60 uppercase tracking-wider">
+                      ஸ்லைடுகள் (Click any slide to jump & preview):
+                    </span>
+                    <span className="text-[10px] text-white/40 font-mono">
+                      Total: {totalDuration.toFixed(1)}s
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+                    {currentPassage.slides.map((slide, idx) => {
+                      const timing = slideTimings[idx];
+                      const isCurrent = currentSlideIndex === idx;
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => handleJumpToSlide(idx)}
+                          className={`p-3 rounded-2xl border text-xs transition-all cursor-pointer flex items-start gap-3 ${
+                            isCurrent
+                              ? 'bg-amber-500/20 border-amber-400 text-amber-100 shadow-md ring-1 ring-amber-400/30'
+                              : 'bg-black/30 border-white/10 text-white/70 hover:bg-white/5 hover:border-white/20'
+                          }`}
+                        >
+                          <div className="flex flex-col items-center gap-1 shrink-0">
+                            <span
+                              className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold ${
+                                isCurrent ? 'bg-amber-500 text-black' : 'bg-white/10 text-white/60'
+                              }`}
+                            >
+                              Slide {idx + 1}
+                            </span>
+                            {timing && (
+                              <span className="text-[9px] font-mono text-white/40 flex items-center gap-0.5">
+                                <Clock className="w-2.5 h-2.5" />
+                                {timing.duration.toFixed(1)}s
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="leading-relaxed">{slide}</p>
+                            {timing && (
+                              <div className="mt-1 flex items-center gap-2 text-[10px] font-mono text-white/40">
+                                <span>{timing.startTime.toFixed(1)}s - {timing.endTime.toFixed(1)}s</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Copy Full Story Caption */}
                 <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-                  <span className="text-[11px] text-white/50">முழு கதை உரை (Full Passage Text):</span>
+                  <span className="text-[11px] text-white/50">முழு கதை உரை (Full Caption):</span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(currentPassage.fullText);
@@ -799,7 +898,6 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             {/* If in Single Quote Mode */}
             {videoMode === 'quote' && (
               <div className="space-y-3 pt-1">
-                {/* Tamil Category Filter Pills */}
                 {quoteLanguage === 'ta' && (
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                     {[
@@ -816,9 +914,10 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                         type="button"
                         onClick={() => {
                           setTamilCategory(cat.id);
-                          const pool = cat.id === 'all'
-                            ? TAMIL_PRESET_QUOTES
-                            : TAMIL_PRESET_QUOTES.filter((q) => q.category === cat.id);
+                          const pool =
+                            cat.id === 'all'
+                              ? TAMIL_PRESET_QUOTES
+                              : TAMIL_PRESET_QUOTES.filter((q) => q.category === cat.id);
                           if (pool.length > 0) {
                             setQuote(pool[0].quote);
                             setAuthor(pool[0].author);
@@ -837,7 +936,6 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                   </div>
                 )}
 
-                {/* English Category Filter Pills */}
                 {quoteLanguage === 'en' && (
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                     {[
@@ -854,11 +952,11 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                         type="button"
                         onClick={() => {
                           setEnglishCategory(cat.id);
-                          const pool = cat.id === 'all'
-                            ? PRESET_QUOTES
-                            : PRESET_QUOTES.filter((q) => q.theme === cat.id);
+                          const pool =
+                            cat.id === 'all'
+                              ? PRESET_QUOTES
+                              : PRESET_QUOTES.filter((q) => q.theme === cat.id);
                           if (pool.length > 0) {
-                            setSelectedQuoteIndex(0);
                             setQuote(pool[0].quote);
                             setAuthor(pool[0].author);
                             stopPlaybackAndAudio();
@@ -896,69 +994,113 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             )}
           </div>
 
-          {/* Section: BGM Music & Soundscapes */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            <div className="flex items-center justify-between">
+          {/* Section: Audio Mixing Console (Voiceover + BGM Control) */}
+          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Music className="w-4 h-4 text-purple-400" />
+                <Sliders className="w-4 h-4 text-purple-400" />
                 <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                  பின்னணி இசை (Background BGM Music)
+                  ஸ்டுடியோ ஆடியோ மிக்ஸர் (Audio Console)
                 </h3>
               </div>
-              <span className="text-[11px] font-mono text-purple-300 font-bold">Volume: {Math.round(ambientVolume * 100)}%</span>
+              <span className="text-[10px] text-purple-300 font-mono">
+                Auto-Ducking: BGM dips smoothly during speech
+              </span>
             </div>
 
-            {/* Soundscape Options Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {AMBIENT_SOUNDSCAPES.map((sound) => {
-                const isSelected = ambientType === sound.id;
-                return (
-                  <button
-                    key={sound.id}
-                    onClick={() => {
-                      ambientSoundEngine.unlockAudio();
-                      setAmbientType(sound.id);
-                      if (isPlaying && sound.id !== 'none') {
-                        ambientSoundEngine.play(sound.id);
-                      }
-                    }}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1 ${
-                      isSelected
-                        ? 'bg-purple-500/20 border-purple-400 text-white shadow-md'
-                        : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{sound.name}</span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
-                        isSelected ? 'bg-purple-500/30 text-purple-300' : 'bg-white/10 text-white/40'
-                      }`}>
-                        {sound.badge}
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-white/40 line-clamp-2">{sound.description}</span>
-                  </button>
-                );
-              })}
+            {/* Voiceover Volume Control */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/80 font-semibold flex items-center gap-1.5">
+                  <Volume2 className="w-3.5 h-3.5 text-rose-400" />
+                  குரல் ஒலி அளவு (Voiceover Volume)
+                </span>
+                <span className="font-mono text-rose-300 font-bold">{Math.round(voiceVolume * 100)}%</span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={1.5}
+                step={0.05}
+                value={voiceVolume}
+                onChange={(e) => setVoiceVolume(parseFloat(e.target.value))}
+                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
+              />
             </div>
 
-            {/* Volume Slider */}
-            <div className="pt-2">
+            {/* Background BGM Volume Control */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/80 font-semibold flex items-center gap-1.5">
+                  <Music className="w-3.5 h-3.5 text-purple-400" />
+                  பின்னணி இசை ஒலி அளவு (BGM Music Volume)
+                </span>
+                <span className="font-mono text-purple-300 font-bold">{Math.round(musicVolume * 100)}%</span>
+              </div>
               <input
                 type="range"
                 min={0}
                 max={1}
                 step={0.05}
-                value={ambientVolume}
-                onChange={(e) => setAmbientVolume(parseFloat(e.target.value))}
+                value={musicVolume}
+                onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
                 className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
               />
+            </div>
+
+            {/* BGM Track Selector */}
+            <div className="pt-1">
+              <span className="text-[11px] font-bold text-white/60 uppercase tracking-wider block mb-2">
+                பின்னணி இசை தேர்வு (Select BGM Track):
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {AMBIENT_SOUNDSCAPES.map((sound) => {
+                  const isSelected = ambientType === sound.id;
+                  return (
+                    <button
+                      key={sound.id}
+                      onClick={() => {
+                        studioAudioEngine.unlockAudio();
+                        setAmbientType(sound.id);
+                        if (isPlaying) {
+                          studioAudioEngine.startPlayback({
+                            currentTime,
+                            slideAudios,
+                            isMusicActive,
+                            isVoiceActive: isVoiceoverActive,
+                            ambientType: sound.id,
+                          });
+                        }
+                      }}
+                      className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1 ${
+                        isSelected
+                          ? 'bg-purple-500/20 border-purple-400 text-white shadow-md'
+                          : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white">{sound.name}</span>
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
+                            isSelected ? 'bg-purple-500/30 text-purple-300' : 'bg-white/10 text-white/40'
+                          }`}
+                        >
+                          {sound.badge}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-white/40 line-clamp-2">{sound.description}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           {/* Character Avatar Picker */}
           <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">கார்ட்டூன் அவதார் (Character Avatar)</h3>
+            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              கார்ட்டூன் அவதார் (Character Avatar)
+            </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {CARTOON_CHARACTERS.map((char) => (
                 <button
@@ -971,7 +1113,13 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                   }`}
                 >
                   <span className="text-base block mb-1">
-                    {char.id === 'anime-warrior' ? '⚔️' : char.id === 'stoic-monk' ? '🧘' : char.id === 'minimalist-doodle' ? '✏️' : '🌌'}
+                    {char.id === 'anime-warrior'
+                      ? '⚔️'
+                      : char.id === 'stoic-monk'
+                      ? '🧘'
+                      : char.id === 'minimalist-doodle'
+                      ? '✏️'
+                      : '🌌'}
                   </span>
                   <span className="text-[11px] font-bold block">{char.name}</span>
                 </button>

@@ -1,6 +1,13 @@
 import { drawCartoonCharacter, CARTOON_CHARACTERS } from './cartoonAvatars';
 import { WordTiming } from './voiceoverTTS';
 
+export interface SlideTimingInfo {
+  index: number;
+  startTime: number;
+  endTime: number;
+  duration: number;
+}
+
 export interface VideoRenderConfig {
   quote: string;
   author: string;
@@ -12,6 +19,7 @@ export interface VideoRenderConfig {
   handle: string;
   slides?: string[];
   passageCategory?: string;
+  slideTimings?: SlideTimingInfo[];
 }
 
 /**
@@ -110,10 +118,31 @@ export function renderVideoFrame(
     // =========================================================
     // MULTI-SLIDE PASSAGE REEL RENDERING (6-8 SLIDES)
     // =========================================================
-    const slideDuration = config.totalDuration / slideCount;
-    const activeSlideIndex = Math.min(slideCount - 1, Math.max(0, Math.floor(t / slideDuration)));
-    const slideTime = t - (activeSlideIndex * slideDuration);
-    const slideProgress = Math.min(1, Math.max(0, slideTime / slideDuration));
+    let activeSlideIndex = 0;
+    let slideStartTime = 0;
+    let slideEndTime = config.totalDuration / slideCount;
+
+    if (config.slideTimings && config.slideTimings.length === slideCount) {
+      const foundIdx = config.slideTimings.findIndex((st) => t >= st.startTime && t < st.endTime);
+      if (foundIdx !== -1) {
+        activeSlideIndex = foundIdx;
+        slideStartTime = config.slideTimings[foundIdx].startTime;
+        slideEndTime = config.slideTimings[foundIdx].endTime;
+      } else if (t >= config.slideTimings[slideCount - 1].endTime) {
+        activeSlideIndex = slideCount - 1;
+        slideStartTime = config.slideTimings[slideCount - 1].startTime;
+        slideEndTime = config.slideTimings[slideCount - 1].endTime;
+      }
+    } else {
+      const slideDuration = config.totalDuration / slideCount;
+      activeSlideIndex = Math.min(slideCount - 1, Math.max(0, Math.floor(t / slideDuration)));
+      slideStartTime = activeSlideIndex * slideDuration;
+      slideEndTime = slideStartTime + slideDuration;
+    }
+
+    const currentSlideDuration = Math.max(0.1, slideEndTime - slideStartTime);
+    const slideTime = Math.max(0, t - slideStartTime);
+    const slideProgress = Math.min(1, Math.max(0, slideTime / currentSlideDuration));
 
     // A. Top Instagram Story Progress Bars
     const barTopY = 90;
