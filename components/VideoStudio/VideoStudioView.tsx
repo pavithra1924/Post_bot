@@ -40,6 +40,8 @@ import {
   Radio,
   CheckCircle2,
   Loader2,
+  Send,
+  Share2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -496,6 +498,18 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
     }
   };
 
+  // Direct 1-Click Post to Instagram
+  const handlePostDirectToInstagram = async () => {
+    try {
+      await navigator.clipboard.writeText(currentPassage.fullText);
+      setCopiedStory(true);
+      setTimeout(() => setCopiedStory(false), 3000);
+    } catch (_) {}
+
+    window.open('https://www.instagram.com/', '_blank');
+    await handleExportReel();
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Banner / Studio Command Center */}
@@ -526,10 +540,10 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         </div>
 
         {/* Action Buttons: 1-Click English Reel, 1-Click Tamil Reel & Export */}
-        <div className="flex items-center gap-3 flex-wrap shrink-0">
+        <div className="flex items-center gap-2.5 flex-wrap shrink-0">
           <button
             onClick={handleAutoCreateTamilReel}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/25 to-rose-500/25 hover:from-amber-500/35 hover:to-rose-500/35 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-lg shadow-amber-500/10 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/25 to-rose-500/25 hover:from-amber-500/35 hover:to-rose-500/35 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-lg shadow-amber-500/10 transition-all cursor-pointer"
             title="Generate an aesthetic Tamil Story Reel with synchronized voice & emotional piano BGM"
           >
             <Sparkles className="w-4 h-4 text-amber-400" />
@@ -538,7 +552,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
 
           <button
             onClick={handleAutoCreateEnglishReel}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500/25 to-rose-500/25 hover:from-purple-500/35 hover:to-rose-500/35 border border-purple-400/40 text-purple-300 text-xs font-bold shadow-lg shadow-purple-500/10 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500/25 to-rose-500/25 hover:from-purple-500/35 hover:to-rose-500/35 border border-purple-400/40 text-purple-300 text-xs font-bold shadow-lg shadow-purple-500/10 transition-all cursor-pointer"
             title="Generate an English POV Story Reel with synchronized voice & warm piano music"
           >
             <Sparkles className="w-4 h-4 text-purple-400" />
@@ -546,9 +560,19 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           </button>
 
           <button
+            onClick={handlePostDirectToInstagram}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500/25 to-purple-600/25 hover:from-rose-500/35 hover:to-purple-600/35 border border-rose-400/40 text-rose-300 text-xs font-bold shadow-lg transition-all cursor-pointer disabled:opacity-50"
+            title="Copy caption, download reel with voice & BGM, and open Instagram"
+          >
+            <Send className="w-4 h-4 text-rose-400" />
+            <span>📱 Post to Instagram</span>
+          </button>
+
+          <button
             onClick={handleExportReel}
             disabled={isExporting}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-600 hover:opacity-95 text-white text-xs font-bold shadow-xl shadow-purple-500/25 disabled:opacity-50 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-600 hover:opacity-95 text-white text-xs font-bold shadow-xl shadow-purple-500/25 disabled:opacity-50 transition-all cursor-pointer"
           >
             {isExporting ? (
               <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -557,8 +581,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             )}
             <span>
               {isExporting
-                ? `Recording Reel (${exportProgress?.percent || 0}%)...`
-                : 'Export 1080×1920 MP4 (With Voice & Music)'}
+                ? `Recording (${exportProgress?.percent || 0}%)...`
+                : 'Export MP4'}
             </span>
           </button>
         </div>
