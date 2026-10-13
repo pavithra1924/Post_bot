@@ -21,36 +21,65 @@ export interface InstagramAccountInfo {
   id: string;
   username: string;
   name?: string;
-  profilePictureUrl?: string;
 }
 
 /**
  * Validates the user's Meta Graph API credentials and fetches the connected Instagram profile.
+ * Intelligently resolves if the user passed an Instagram ID, Page ID, or User ID.
  */
 export async function verifyInstagramAccount(
   igUserId: string,
   accessToken: string
 ): Promise<{ valid: boolean; account?: InstagramAccountInfo; error?: string }> {
   try {
-    const url = `https://graph.facebook.com/v21.0/${igUserId}?fields=id,username,name,profile_picture_url&access_token=${accessToken}`;
+    // 1. First try querying directly as an Instagram Account (only safe fields: id,username,name)
+    const url = `https://graph.facebook.com/v21.0/${igUserId}?fields=id,username,name&access_token=${accessToken}`;
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!res.ok || data.error) {
+    if (res.ok && data.id && data.username) {
       return {
-        valid: false,
-        error: data.error?.message || 'Invalid Instagram credentials or token expired.',
+        valid: true,
+        account: {
+          id: data.id,
+          username: data.username,
+          name: data.name,
+        },
+      };
+    }
+
+    // 2. If it failed or has no username (e.g. user entered Facebook User ID or Page ID):
+    // Check if it's a Page with connected instagram_business_account
+    const pageUrl = `https://graph.facebook.com/v21.0/${igUserId}?fields=id,name,instagram_business_account{id,username,name}&access_token=${accessToken}`;
+    const pageRes = await fetch(pageUrl);
+    const pageData = await pageRes.json();
+
+    if (pageRes.ok && pageData.instagram_business_account) {
+      const ig = pageData.instagram_business_account;
+      return {
+        valid: true,
+        account: {
+          id: ig.id,
+          username: ig.username,
+          name: ig.name || pageData.name,
+        },
+      };
+    }
+
+    // 3. Fallback: query /me/accounts to auto-resolve the linked Instagram account
+    const auto = await autoDiscoverInstagramAccount(accessToken);
+    if (auto.success && auto.account) {
+      return {
+        valid: true,
+        account: auto.account,
       };
     }
 
     return {
-      valid: true,
-      account: {
-        id: data.id,
-        username: data.username,
-        name: data.name,
-        profilePictureUrl: data.profile_picture_url,
-      },
+      valid: false,
+      error:
+        data.error?.message ||
+        'Could not verify Instagram Account ID. Please click "Auto-Detect My Instagram Account ID" above.',
     };
   } catch (err: any) {
     return {
@@ -62,13 +91,13 @@ export async function verifyInstagramAccount(
 
 /**
  * Auto-discovers the Instagram Business/Creator account ID from the Access Token.
- * Queries /me/accounts?fields=name,instagram_business_account{id,username,name,profile_picture_url}
+ * Queries /me/accounts?fields=name,instagram_business_account{id,username,name}
  */
 export async function autoDiscoverInstagramAccount(
   accessToken: string
 ): Promise<{ success: boolean; account?: InstagramAccountInfo; error?: string }> {
   try {
-    const url = `https://graph.facebook.com/v21.0/me/accounts?fields=name,instagram_business_account{id,username,name,profile_picture_url}&access_token=${accessToken}`;
+    const url = `https://graph.facebook.com/v21.0/me/accounts?fields=name,instagram_business_account{id,username,name}&access_token=${accessToken}`;
     const res = await fetch(url);
     const data = await res.json();
 
@@ -89,7 +118,6 @@ export async function autoDiscoverInstagramAccount(
             id: ig.id,
             username: ig.username,
             name: ig.name || page.name,
-            profilePictureUrl: ig.profile_picture_url,
           },
         };
       }
@@ -97,7 +125,8 @@ export async function autoDiscoverInstagramAccount(
 
     return {
       success: false,
-      error: 'No connected Instagram Creator or Business account found on your linked Facebook pages. Ensure your Instagram account is linked to a Facebook page.',
+      error:
+        'No connected Instagram Creator or Business account found on your linked Facebook pages. Ensure your Instagram account is linked to your Facebook page.',
     };
   } catch (err: any) {
     return {
