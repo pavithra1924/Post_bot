@@ -78,6 +78,7 @@ export async function verifyInstagramAccount(
     return {
       valid: false,
       error:
+        auto.error ||
         data.error?.message ||
         'Could not verify Instagram Account ID. Please click "Auto-Detect My Instagram Account ID" above.',
     };
@@ -109,6 +110,14 @@ export async function autoDiscoverInstagramAccount(
     }
 
     const pages = data.data || [];
+    if (pages.length === 0) {
+      return {
+        success: false,
+        error:
+          'No Facebook Pages found on this token. When clicking "Generate Access Token" in Meta Explorer, be sure to check your Facebook Page ("Spark Within") in the permissions popup.',
+      };
+    }
+
     for (const page of pages) {
       if (page.instagram_business_account) {
         const ig = page.instagram_business_account;
@@ -123,10 +132,10 @@ export async function autoDiscoverInstagramAccount(
       }
     }
 
+    const pageNames = pages.map((p: any) => p.name).join(', ');
     return {
       success: false,
-      error:
-        'No connected Instagram Creator or Business account found on your linked Facebook pages. Ensure your Instagram account is linked to your Facebook page.',
+      error: `Found Facebook Page: "${pageNames}", but your Instagram Professional account is not linked to it yet. Please open Facebook Page Settings → Linked Accounts → Connect Instagram.`,
     };
   } catch (err: any) {
     return {
