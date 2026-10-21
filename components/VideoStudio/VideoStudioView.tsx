@@ -73,8 +73,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
 
   // Visuals & Characters
   const [selectedCharacter, setSelectedCharacter] = useState<
-    'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer'
-  >('anime-warrior');
+    'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer' | 'indian-girl'
+  >('indian-girl');
   const [particleType, setParticleType] = useState<'sparks' | 'mist' | 'stars' | 'rain'>('sparks');
   const [handle, setHandle] = useState('@_sparkwithin_hub_');
 
@@ -413,6 +413,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         slides: videoMode === 'passage' ? currentPassage.slides : undefined,
         passageCategory: videoMode === 'passage' ? currentPassage.categoryLabel : undefined,
         slideTimings: videoMode === 'passage' ? slideTimings : undefined,
+        amplitude: isPlaying && isVoiceoverActive ? studioAudioEngine.getVoiceAmplitude() : undefined,
       });
 
       animationFrameRef.current = requestAnimationFrame(loop);
@@ -586,6 +587,51 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             </span>
           </button>
         </div>
+      </div>
+
+      {/* AI Photo Talking Avatar Lip-Sync Highlight Banner */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950/60 via-purple-950/50 to-amber-950/60 border border-rose-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-rose-500 shrink-0 shadow-lg shadow-rose-500/30">
+            <img
+              src="/avatars/indian-girl.png"
+              alt="Aanya Avatar"
+              className="w-full h-full object-cover object-top"
+            />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-extrabold text-white">👧 AI Photo Talking Avatar (Live Lip-Sync)</h3>
+              <span className="text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold uppercase">
+                {selectedCharacter === 'indian-girl' ? 'ACTIVE' : 'TRIAL READY'}
+              </span>
+            </div>
+            <p className="text-xs text-white/70">
+              Realistic mouth lip-sync, blinking & breathing with Tamil & English voiceover!
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setSelectedCharacter('indian-girl')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1.5 ${
+            selectedCharacter === 'indian-girl'
+              ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30'
+              : 'bg-white/10 hover:bg-white/20 text-white'
+          }`}
+        >
+          {selectedCharacter === 'indian-girl' ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              <span>Aanya Avatar Active</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+              <span>Use Aanya Avatar</span>
+            </>
+          )}
+        </button>
       </div>
 
       {/* Main Grid: Video Player (Left) + Controls (Right) */}
@@ -1122,30 +1168,57 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
 
           {/* Character Avatar Picker */}
           <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-              கார்ட்டூன் அவதார் (Character Avatar)
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                அவதார் கதாபாத்திரம் (Character Avatar)
+              </h3>
+              <span className="text-[10px] text-rose-400 font-bold">
+                {selectedCharacter === 'indian-girl' ? 'AI Photo Lip-Sync Active ✨' : ''}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
               {CARTOON_CHARACTERS.map((char) => (
                 <button
                   key={char.id}
                   onClick={() => setSelectedCharacter(char.id as any)}
-                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                  className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center ${
                     selectedCharacter === char.id
-                      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md'
+                      ? char.id === 'indian-girl'
+                        ? 'bg-rose-500/25 border-rose-400 text-white shadow-lg shadow-rose-500/30'
+                        : 'bg-amber-500/20 border-amber-400 text-white shadow-md'
                       : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
                   }`}
                 >
-                  <span className="text-base block mb-1">
-                    {char.id === 'anime-warrior'
-                      ? '⚔️'
-                      : char.id === 'stoic-monk'
-                      ? '🧘'
-                      : char.id === 'minimalist-doodle'
-                      ? '✏️'
-                      : '🌌'}
-                  </span>
-                  <span className="text-[11px] font-bold block">{char.name}</span>
+                  {char.id === 'indian-girl' ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-rose-400 mb-1 shadow-md shadow-rose-500/30">
+                        <img
+                          src="/avatars/indian-girl.png"
+                          alt="Aanya Avatar"
+                          className="w-full h-full object-cover object-top"
+                        />
+                      </div>
+                      <span className="text-[11px] font-bold block text-white truncate max-w-[80px]">
+                        Aanya
+                      </span>
+                      <span className="text-[8px] px-1 py-0.2 rounded bg-rose-500/30 text-rose-200 font-extrabold uppercase mt-0.5">
+                        LIP-SYNC ✨
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-base block mb-1">
+                        {char.id === 'anime-warrior'
+                          ? '⚔️'
+                          : char.id === 'stoic-monk'
+                          ? '🧘'
+                          : char.id === 'minimalist-doodle'
+                          ? '✏️'
+                          : '🌌'}
+                      </span>
+                      <span className="text-[11px] font-bold block">{char.name}</span>
+                    </>
+                  )}
                 </button>
               ))}
             </div>

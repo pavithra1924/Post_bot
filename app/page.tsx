@@ -30,11 +30,12 @@ import { BatchScheduler, ScheduledDayPost } from '@/components/AutoPilot/BatchSc
 import { InstagramPublishModal } from '@/components/AutoPilot/InstagramPublishModal';
 import { VideoStudioView } from '@/components/VideoStudio/VideoStudioView';
 import { TamilStudioView } from '@/components/TamilStudio/TamilStudioView';
+import { LipSyncAvatarDemo } from '@/components/AvatarStudio/LipSyncAvatarDemo';
 import { ShareModal } from '@/components/ShareModal';
 
 export default function Home() {
-  // Navigation: 'studio' vs 'autopilot' vs 'video' vs 'tamil'
-  const [currentTab, setCurrentTab] = useState<'studio' | 'autopilot' | 'video' | 'tamil'>('studio');
+  // Navigation: 'studio' vs 'autopilot' vs 'video' vs 'tamil' vs 'avatar-demo'
+  const [currentTab, setCurrentTab] = useState<'studio' | 'autopilot' | 'video' | 'tamil' | 'avatar-demo'>('studio');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // 1. Core Quote State
@@ -400,7 +401,13 @@ export default function Home() {
 
       {/* Main Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        {currentTab === 'autopilot' ? (
+        {currentTab === 'avatar-demo' ? (
+          /* AI Photo Talking Avatar Lip-Sync Demo */
+          <LipSyncAvatarDemo
+            onSelectForMainStudio={() => setCurrentTab('video')}
+            onClose={() => setCurrentTab('video')}
+          />
+        ) : currentTab === 'autopilot' ? (
           /* 7-Day Auto-Pilot Viral Scheduler */
           <BatchScheduler
             onLoadPostToStudio={handleLoadPostToStudio}

@@ -1,13 +1,37 @@
+import { computeLipSyncState, drawTalkingGirlAvatar } from './lipSyncEngine';
+
 export interface CartoonCharacter {
-  id: 'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer';
+  id: 'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer' | 'indian-girl';
   name: string;
   badge: string;
   description: string;
   accentColor: string;
   particleType: 'sparks' | 'mist' | 'stars' | 'rain';
+  isPhotoAvatar?: boolean;
+  avatarImagePath?: string;
+}
+
+let cachedGirlImg: HTMLImageElement | null = null;
+function getGirlAvatarImage(): HTMLImageElement | null {
+  if (typeof window === 'undefined') return null;
+  if (!cachedGirlImg) {
+    cachedGirlImg = new Image();
+    cachedGirlImg.src = '/avatars/indian-girl.png';
+  }
+  return cachedGirlImg;
 }
 
 export const CARTOON_CHARACTERS: CartoonCharacter[] = [
+  {
+    id: 'indian-girl',
+    name: 'Aanya (AI Talking Photo)',
+    badge: 'AI PHOTO LIP-SYNC ✨',
+    description: 'Realistic talking Indian girl photo avatar with real-time audio lip-sync, blinking & speech animation',
+    accentColor: '#EC4899',
+    particleType: 'sparks',
+    isPhotoAvatar: true,
+    avatarImagePath: '/avatars/indian-girl.png',
+  },
   {
     id: 'anime-warrior',
     name: 'Anime Flame Warrior',
@@ -51,7 +75,8 @@ export function drawCartoonCharacter(
   cx: number,
   cy: number,
   time: number,
-  scale = 1.0
+  scale = 1.0,
+  amplitude = 0
 ): void {
   ctx.save();
   ctx.translate(cx, cy);
@@ -59,6 +84,38 @@ export function drawCartoonCharacter(
 
   const breath = Math.sin(time * 2.5) * 6;
   const float = Math.sin(time * 1.5) * 8;
+
+  if (characterId === 'indian-girl') {
+    const img = getGirlAvatarImage();
+    if (img && img.complete && img.naturalWidth > 0) {
+      const state = computeLipSyncState(amplitude, time);
+      drawTalkingGirlAvatar(
+        ctx,
+        img,
+        state,
+        0,
+        float * 0.2,
+        340,
+        435,
+        {
+          enableBlink: true,
+          enableBreathing: true,
+          enableHeadMotion: true,
+          shadowGlow: 'rgba(236, 72, 153, 0.32)',
+        }
+      );
+    } else {
+      ctx.fillStyle = '#1B101A';
+      ctx.beginPath();
+      ctx.arc(0, float, 80, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#EC4899';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.restore();
+    return;
+  }
 
   if (characterId === 'anime-warrior') {
     // 1. Fiery Back Aura

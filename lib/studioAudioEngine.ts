@@ -22,6 +22,7 @@ class StudioAudioEngine {
   private masterGain: GainNode | null = null;
   private voiceGain: GainNode | null = null;
   private musicGain: GainNode | null = null;
+  private voiceAnalyser: AnalyserNode | null = null;
   private mediaStreamDest: MediaStreamAudioDestinationNode | null = null;
 
   // Active audio sources
@@ -62,6 +63,12 @@ class StudioAudioEngine {
       this.musicGain = this.ctx.createGain();
       this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
 
+      // Fast analyser node for real-time lip-sync
+      this.voiceAnalyser = this.ctx.createAnalyser();
+      this.voiceAnalyser.fftSize = 256;
+      this.voiceAnalyser.smoothingTimeConstant = 0.3;
+      this.voiceGain.connect(this.voiceAnalyser);
+
       // Routing:
       // voiceGain -> compressor
       // musicGain -> compressor
@@ -100,6 +107,22 @@ class StudioAudioEngine {
   public getAudioContext(): AudioContext | null {
     this.initContext();
     return this.ctx;
+  }
+
+  /**
+   * Returns current voice speech amplitude (0.0 to 1.0) for real-time lip-sync.
+   */
+  public getVoiceAmplitude(): number {
+    if (!this.voiceAnalyser) return 0;
+    const data = new Uint8Array(this.voiceAnalyser.frequencyBinCount);
+    this.voiceAnalyser.getByteFrequencyData(data);
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) {
+      sum += data[i];
+    }
+    const avg = sum / data.length;
+    // Normalized 0 to 1 with speech boost
+    return Math.min(1.0, (avg / 128) * 1.6);
   }
 
   /**

@@ -11,7 +11,7 @@ export interface SlideTimingInfo {
 export interface VideoRenderConfig {
   quote: string;
   author: string;
-  characterId: 'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer';
+  characterId: 'anime-warrior' | 'minimalist-doodle' | 'stoic-monk' | 'cosmic-wanderer' | 'indian-girl';
   wordTimings: WordTiming[];
   currentTime: number;
   totalDuration: number;
@@ -20,6 +20,7 @@ export interface VideoRenderConfig {
   slides?: string[];
   passageCategory?: string;
   slideTimings?: SlideTimingInfo[];
+  amplitude?: number;
 }
 
 /**
@@ -49,9 +50,31 @@ export function renderVideoFrame(
   const charDef = CARTOON_CHARACTERS.find(c => c.id === config.characterId);
   const accent = charDef?.accentColor || '#F59E0B';
 
+  // Compute speech amplitude for lip sync
+  let speechAmplitude = config.amplitude ?? 0;
+  if (config.amplitude === undefined) {
+    if (config.wordTimings && config.wordTimings.length > 0) {
+      const isWordActive = config.wordTimings.some(w => t >= w.startTime && t <= w.endTime);
+      if (isWordActive) {
+        speechAmplitude = 0.55 + 0.35 * Math.sin(t * 22);
+      }
+    } else if (config.slides && config.slides.length > 0) {
+      // In slide mode, active if within duration and not in the last 0.2s pause
+      const slideDur = config.totalDuration / config.slides.length;
+      const modT = t % slideDur;
+      if (modT < slideDur - 0.25) {
+        speechAmplitude = 0.55 + 0.35 * Math.sin(t * 20);
+      }
+    }
+  }
+
   // 1. Dark Luxury Background with Animated Gradient
   const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-  if (config.characterId === 'anime-warrior') {
+  if (config.characterId === 'indian-girl') {
+    bgGrad.addColorStop(0, '#140613');
+    bgGrad.addColorStop(0.5, '#220A1F');
+    bgGrad.addColorStop(1, '#080208');
+  } else if (config.characterId === 'anime-warrior') {
     bgGrad.addColorStop(0, '#0F0906');
     bgGrad.addColorStop(0.5, '#1A0C08');
     bgGrad.addColorStop(1, '#050201');
@@ -201,7 +224,7 @@ export function renderVideoFrame(
     // C. Draw Animated Cartoon Avatar Character in Center Upper
     const charX = width / 2;
     const charY = height * 0.36;
-    drawCartoonCharacter(ctx, config.characterId, charX, charY, t, 1.45);
+    drawCartoonCharacter(ctx, config.characterId, charX, charY, t, 1.45, speechAmplitude);
 
     // D. Frosted Glass Passage Narrative Card
     const cardMargin = 60;
@@ -285,7 +308,7 @@ export function renderVideoFrame(
     // =========================================================
     const charX = width / 2;
     const charY = height * 0.42;
-    drawCartoonCharacter(ctx, config.characterId, charX, charY, t, 1.85);
+    drawCartoonCharacter(ctx, config.characterId, charX, charY, t, 1.85, speechAmplitude);
 
     // Category Header Badge
     ctx.save();

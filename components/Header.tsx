@@ -4,8 +4,8 @@ import React from 'react';
 import { Sparkles, Key, RotateCcw, Send, LayoutTemplate, Calendar, Globe } from 'lucide-react';
 
 interface HeaderProps {
-  currentTab: 'studio' | 'autopilot' | 'video' | 'tamil';
-  onChangeTab: (tab: 'studio' | 'autopilot' | 'video' | 'tamil') => void;
+  currentTab: 'studio' | 'autopilot' | 'video' | 'tamil' | 'avatar-demo';
+  onChangeTab: (tab: 'studio' | 'autopilot' | 'video' | 'tamil' | 'avatar-demo') => void;
   hasApiKey: boolean;
   onOpenApiKeyModal: () => void;
   onOpenPublishModal: () => void;
@@ -95,6 +95,23 @@ export const Header: React.FC<HeaderProps> = ({
             <Sparkles className="w-3.5 h-3.5 text-purple-400" />
             <span>🎬 Video Reels</span>
             <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/15 text-purple-300 font-mono">EN+தமிழ்</span>
+          </button>
+
+          {/* Dedicated Lip-Sync Trial Tab */}
+          <button
+            onClick={() => onChangeTab('avatar-demo')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              currentTab === 'avatar-demo'
+                ? 'bg-gradient-to-r from-rose-500 via-purple-600 to-amber-500 text-white shadow-md shadow-rose-500/30'
+                : 'text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-500/20'
+            }`}
+            title="AI Photo Talking Avatar Lip-Sync Trial Demo (Aanya character)"
+          >
+            <span>👧✨</span>
+            <span className="font-bold">Lip-Sync Demo</span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/30 text-rose-200 border border-rose-500/40 font-mono">
+              TRIAL
+            </span>
           </button>
         </div>
 
