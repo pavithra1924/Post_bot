@@ -67,15 +67,15 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({ currentLayout, onCha
               onClick={() => onChangeLayout(lay.id)}
               className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all relative overflow-hidden ${
                 isActive
-                  ? 'bg-amber-500/15 border-amber-400/80 shadow-md shadow-amber-500/10'
-                  : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-white/20 text-white/70'
+                  ? 'bg-[#1c1c1e] border-[#0095F6] shadow-md shadow-[#0095F6]/10'
+                  : 'bg-[#000000] border-[#262626] hover:bg-[#181818] text-[#A8A8A8]'
               }`}
             >
-              <div className="mb-1.5 p-1.5 rounded-lg bg-white/5 border border-white/10">
+              <div className="mb-1.5 p-1.5 rounded-lg bg-[#121212] border border-[#262626]">
                 {lay.icon}
               </div>
               <span className="text-xs font-bold text-white tracking-tight">{lay.name}</span>
-              <span className="text-[9px] text-white/40 mt-0.5 line-clamp-2 leading-tight">{lay.desc}</span>
+              <span className="text-[9px] text-[#737373] mt-0.5 line-clamp-2 leading-tight">{lay.desc}</span>
             </button>
           );
         })}

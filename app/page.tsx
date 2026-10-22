@@ -30,12 +30,12 @@ import { BatchScheduler, ScheduledDayPost } from '@/components/AutoPilot/BatchSc
 import { InstagramPublishModal } from '@/components/AutoPilot/InstagramPublishModal';
 import { VideoStudioView } from '@/components/VideoStudio/VideoStudioView';
 import { TamilStudioView } from '@/components/TamilStudio/TamilStudioView';
-import { LipSyncAvatarDemo } from '@/components/AvatarStudio/LipSyncAvatarDemo';
+import { InstagramStoriesBar } from '@/components/Instagram/InstagramStoriesBar';
 import { ShareModal } from '@/components/ShareModal';
 
 export default function Home() {
-  // Navigation: 'studio' vs 'autopilot' vs 'video' vs 'tamil' vs 'avatar-demo'
-  const [currentTab, setCurrentTab] = useState<'studio' | 'autopilot' | 'video' | 'tamil' | 'avatar-demo'>('studio');
+  // Navigation: 'studio' vs 'autopilot' vs 'video' vs 'tamil'
+  const [currentTab, setCurrentTab] = useState<'studio' | 'autopilot' | 'video' | 'tamil'>('studio');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   // 1. Core Quote State
@@ -387,7 +387,7 @@ export default function Home() {
   ]);
 
   return (
-    <div className="min-h-screen bg-studio-950 text-white flex flex-col font-sans selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-[#000000] text-[#FAFAFA] flex flex-col font-sans selection:bg-[#E1306C] selection:text-white">
       {/* Top Header */}
       <Header
         onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
@@ -399,15 +399,21 @@ export default function Home() {
         onOpenShareModal={() => setIsShareModalOpen(true)}
       />
 
+      {/* Instagram Stories Highlights Bar */}
+      <InstagramStoriesBar
+        currentThemeId={themeId}
+        onSelectTheme={(id) => {
+          applyTheme(id);
+          setCurrentTab('studio');
+        }}
+        onOpenVideoTab={() => setCurrentTab('video')}
+        onOpenTamilTab={() => setCurrentTab('tamil')}
+        handle={handle}
+      />
+
       {/* Main Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        {currentTab === 'avatar-demo' ? (
-          /* AI Photo Talking Avatar Lip-Sync Demo */
-          <LipSyncAvatarDemo
-            onSelectForMainStudio={() => setCurrentTab('video')}
-            onClose={() => setCurrentTab('video')}
-          />
-        ) : currentTab === 'autopilot' ? (
+        {currentTab === 'autopilot' ? (
           /* 7-Day Auto-Pilot Viral Scheduler */
           <BatchScheduler
             onLoadPostToStudio={handleLoadPostToStudio}
@@ -467,7 +473,7 @@ export default function Home() {
               />
 
               {/* Canva & Pinterest Layout Style Switcher */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
                 <LayoutPicker
                   currentLayout={layoutStyle}
                   onChangeLayout={(lay) => {
@@ -478,7 +484,7 @@ export default function Home() {
               </div>
 
               {/* Aspect Ratio Switcher (4:5 Portrait Feed vs 1:1 Square vs 9:16 Story) */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
                 <AspectRatioPicker
                   value={aspectRatio}
                   onChange={setAspectRatio}
@@ -486,7 +492,7 @@ export default function Home() {
               </div>
 
               {/* Aesthetic Environment Theme Selector (7 Distinct Worlds) */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
                 <ThemeSelector
                   currentTheme={themeId}
                   onSelectTheme={(id) => applyTheme(id)}
@@ -494,7 +500,7 @@ export default function Home() {
               </div>
 
               {/* Background Image Controls */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
                 <ImagePicker
                   onShuffleImage={handleShuffleImage}
                   onGeneratePollinations={handleGeneratePollinations}
@@ -504,7 +510,7 @@ export default function Home() {
               </div>
 
               {/* Typography & Color Customizer */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
                 <TypographyPicker
                   fontFamily={fontFamily}
                   onChangeFont={setFontFamily}
@@ -520,7 +526,7 @@ export default function Home() {
               </div>
 
               {/* Atmosphere, Overlays & Canva-Grade Glass Card */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
                 <StylingSliders
                   overlayOpacity={overlayOpacity}
                   onChangeOverlayOpacity={setOverlayOpacity}
@@ -540,7 +546,7 @@ export default function Home() {
               </div>
 
               {/* Brand Watermark & Signature Handle */}
-              <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
                 <WatermarkControl
                   handle={handle}
                   onChangeHandle={setHandle}

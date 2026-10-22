@@ -51,11 +51,11 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({ currentTheme, onSe
               onClick={() => onSelectTheme(themeKey)}
               className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all relative overflow-hidden group ${
                 isActive
-                  ? 'bg-white/[0.08] border-rose-500/80 shadow-md shadow-rose-500/10'
-                  : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05] hover:border-white/20'
+                  ? 'bg-[#1c1c1e] border-[#0095F6] shadow-md shadow-[#0095F6]/10'
+                  : 'bg-[#000000] border-[#262626] hover:bg-[#181818]'
               }`}
             >
-              <div className="mt-0.5 p-2 rounded-lg bg-white/5 border border-white/10 shrink-0">
+              <div className="mt-0.5 p-2 rounded-lg bg-[#121212] border border-[#262626] shrink-0">
                 {THEME_ICONS[themeKey] || <Sparkles className="w-4 h-4 text-white" />}
               </div>
               <div className="flex-1 min-w-0">
@@ -64,7 +64,7 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({ currentTheme, onSe
                     {theme.name}
                   </span>
                   {isActive && (
-                    <span className="w-4 h-4 rounded-full bg-rose-500 text-white flex items-center justify-center shrink-0">
+                    <span className="w-4 h-4 rounded-full bg-[#0095F6] text-white flex items-center justify-center shrink-0">
                       <Check className="w-2.5 h-2.5 stroke-[3]" />
                     </span>
                   )}

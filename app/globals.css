@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: #090A0F;
-    --foreground: #F8FAFC;
+    --background: #000000;
+    --foreground: #FAFAFA;
   }
 }
 
@@ -16,21 +16,41 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom Studio Scrollbar */
+/* Authentic Instagram Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F111A;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #272E49;
+  background: #262626;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #38436B;
+  background: #363636;
+}
+
+/* Instagram Story Ring */
+.ig-story-ring {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+
+.ig-gradient-text {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Hide scrollbar for story highlights bar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
