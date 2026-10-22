@@ -63,7 +63,7 @@ export const BatchCardCanvas: React.FC<BatchCardCanvasProps> = ({
   }, [post, aspectRatio, showAuthor]);
 
   return (
-    <div className={`w-full ${aspectRatio === '4:5' ? 'aspect-[4/5]' : 'aspect-square'} relative rounded-xl overflow-hidden bg-black border border-white/10 shadow-xl group-hover:scale-[1.01] transition-transform`}>
+    <div className={`w-full ${aspectRatio === '4:5' ? 'aspect-[4/5]' : 'aspect-square'} relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md group-hover:scale-[1.01] transition-transform`}>
       <canvas
         ref={canvasRef}
         className="w-full h-full object-contain pointer-events-none select-none"

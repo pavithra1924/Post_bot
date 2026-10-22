@@ -346,20 +346,20 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/20 via-rose-500/15 to-purple-600/20 border border-amber-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-indigo-500/10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold tracking-wider uppercase border border-amber-500/30 flex items-center gap-1">
-              <Flame className="w-3 h-3 text-amber-400" />
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-bold tracking-wider uppercase border border-amber-200 flex items-center gap-1 shadow-xs">
+              <Flame className="w-3 h-3 text-amber-500" />
               தமிழ் ஸ்டுடியோ (Tamil Quotes Hub)
             </span>
-            <span className="text-xs text-white/50">• Canva & Pinterest Dark Luxury Aesthetics</span>
-            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-bold border border-rose-500/30">
+            <span className="text-xs text-slate-500">• Canva & Pinterest Aesthetics</span>
+            <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold border border-rose-200 shadow-xs">
               40+ Curated Quotes + 52 Tags
             </span>
           </div>
-          <h2 className="text-xl font-extrabold text-white tracking-tight">தமிழ் மோட்டிவேஷன் போஸ்ட் ஸ்டுடியோ</h2>
-          <p className="text-xs text-white/60 mt-1 max-w-xl">
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">தமிழ் மோட்டிவேஷன் போஸ்ட் ஸ்டுடியோ</h2>
+          <p className="text-xs text-slate-600 mt-1 max-w-xl">
             திருக்குறள், பாரதியார், அப்துல் கலாம் மற்றும் மாஸ் சினிமா வரிகளுடன் பிரமிக்க வைக்கும் உயர்தர இன்ஸ்டாகிராம் போஸ்ட்களை (4:5 Portrait / 1:1 Square) நொடியில் உருவாக்குங்கள்.
           </p>
         </div>
@@ -369,10 +369,10 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
           {onOpenPublishModal && (
             <button
               onClick={handlePostToInstagram}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 hover:text-white text-xs font-bold shadow-lg transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold shadow-xs transition-all cursor-pointer"
               title="Publish directly to Instagram via Meta Graph API"
             >
-              <Send className="w-4 h-4 text-rose-400" />
+              <Send className="w-4 h-4 text-rose-500" />
               <span>🚀 Post to Instagram</span>
             </button>
           )}
@@ -380,17 +380,17 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
           {onSendToVideoStudio && (
             <button
               onClick={() => onSendToVideoStudio(customQuote, customAuthor)}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold shadow-lg transition-all cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold shadow-xs transition-all cursor-pointer"
               title="Convert this Tamil quote into an animated 9:16 Video Reel"
             >
-              <Film className="w-4 h-4 text-rose-400" />
+              <Film className="w-4 h-4 text-indigo-500" />
               <span>🎥 Create Video Reel</span>
             </button>
           )}
 
           <button
             onClick={handleDownloadPNG}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-purple-600 hover:opacity-95 text-white text-xs font-bold shadow-xl shadow-amber-500/20 cursor-pointer shrink-0 transition-all"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white text-xs font-bold shadow-md shadow-rose-500/20 cursor-pointer shrink-0 transition-all"
           >
             <Download className="w-4 h-4" />
             <span>Download 1080p PNG</span>
@@ -422,8 +422,8 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
             }}
             className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition-all cursor-pointer ${
               selectedCategory === cat.id
-                ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-md shadow-amber-500/10'
-                : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06] hover:text-white'
+                ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold shadow-xs'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
             }`}
           >
             {cat.label}
@@ -441,14 +441,14 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
             </div>
 
             {/* Format & Download Controls */}
-            <div className="w-full p-4 rounded-2xl bg-studio-900 border border-white/10 flex items-center justify-between gap-3 shadow-lg">
+            <div className="w-full p-4 rounded-2xl bg-white border border-slate-200/90 flex items-center justify-between gap-3 shadow-sm">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPostFormat('4:5')}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                     postFormat === '4:5'
-                      ? 'bg-amber-500 text-black border-amber-400 shadow-md'
-                      : 'bg-white/5 border-white/10 text-white/60'
+                      ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200/80'
                   }`}
                 >
                   4:5 போர்ட்ரெய்ட் (Feed)
@@ -457,8 +457,8 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                   onClick={() => setPostFormat('1:1')}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                     postFormat === '1:1'
-                      ? 'bg-amber-500 text-black border-amber-400 shadow-md'
-                      : 'bg-white/5 border-white/10 text-white/60'
+                      ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200/80'
                   }`}
                 >
                   1:1 சதுரம் (Square)
@@ -468,20 +468,20 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   onClick={handleCopyImage}
-                  className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-xs font-semibold cursor-pointer transition-all"
+                  className="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-semibold cursor-pointer transition-all shadow-xs"
                   title="Copy post image to clipboard"
                 >
-                  {copiedImage ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedImage ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedImage ? 'Copied!' : 'Copy'}</span>
                 </button>
 
                 {onOpenPublishModal && (
                   <button
                     onClick={handlePostToInstagram}
-                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 hover:text-white text-xs font-bold shadow-sm cursor-pointer transition-all"
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-bold shadow-xs cursor-pointer transition-all"
                     title="Publish directly to Instagram"
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-3.5 h-3.5 text-rose-500" />
                     <span>Post</span>
                   </button>
                 )}
@@ -489,17 +489,17 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 {onSendToVideoStudio && (
                   <button
                     onClick={() => onSendToVideoStudio(customQuote, customAuthor)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 text-xs font-bold shadow-md cursor-pointer transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-bold shadow-xs cursor-pointer transition-all"
                     title="Convert this quote into an animated 9:16 Video Reel"
                   >
-                    <Film className="w-3.5 h-3.5" />
+                    <Film className="w-3.5 h-3.5 text-indigo-500" />
                     <span>Reel</span>
                   </button>
                 )}
 
                 <button
                   onClick={handleDownloadPNG}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 text-white text-xs font-bold shadow-md shadow-amber-500/20 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white text-xs font-bold shadow-md shadow-rose-500/20 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download</span>
@@ -512,17 +512,17 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
         {/* Right: Studio Customization & 52 Hashtags */}
         <div className="lg:w-[52%] w-full space-y-5">
           {/* Quote & Author Editor */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">போஸ்ட் வாசகம் & ஆசிரியர்</h3>
+                <Zap className="w-4 h-4 text-amber-500" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">போஸ்ட் வாசகம் & ஆசிரியர்</h3>
               </div>
               <button
                 onClick={handleShuffleQuote}
-                className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-medium cursor-pointer"
+                className="flex items-center gap-1.5 text-xs text-amber-600 hover:text-amber-700 font-bold cursor-pointer"
               >
-                <Dices className="w-3.5 h-3.5" />
+                <Dices className="w-3.5 h-3.5 text-amber-500" />
                 <span>அடுத்த வரி (Shuffle 40+)</span>
               </button>
             </div>
@@ -531,7 +531,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
               rows={3}
               value={customQuote}
               onChange={(e) => setCustomQuote(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-500 resize-none leading-relaxed font-sans"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500 resize-none leading-relaxed font-sans"
             />
 
             <div className="flex gap-2">
@@ -540,21 +540,21 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 value={customAuthor}
                 onChange={(e) => setCustomAuthor(e.target.value)}
                 placeholder="ஆசிரியர் பெயர் (எ.கா. திருவள்ளுவர், பாரதியார்)"
-                className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500"
               />
             </div>
           </div>
 
           {/* Alignment, Font Size & Typography Studio Controls */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-4">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Type className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">எழுத்து சீரமைப்பு & வடிவமைப்பு (Alignment & Fonts)</h3>
+                <Type className="w-4 h-4 text-amber-500" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">எழுத்து சீரமைப்பு & வடிவமைப்பு (Alignment & Fonts)</h3>
               </div>
               <button
                 onClick={() => { setTextAlign('center'); setFontSize(42); setFontFamily('Mukta Malar'); setLineSpacing(1.55); }}
-                className="text-[11px] text-amber-400 hover:text-amber-300 font-medium cursor-pointer"
+                className="text-[11px] text-amber-600 hover:text-amber-700 font-bold cursor-pointer"
               >
                 இயல்புநிலை (Reset)
               </button>
@@ -562,15 +562,15 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
 
             {/* 1. Alignment Switcher */}
             <div className="space-y-1.5">
-              <label className="text-[11px] text-white/70 font-semibold">உரை சீரமைப்பு (Text Alignment)</label>
+              <label className="text-[11px] text-slate-600 font-bold">உரை சீரமைப்பு (Text Alignment)</label>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setTextAlign('left')}
                   className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     textAlign === 'left'
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm'
-                      : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
+                      ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <AlignLeft className="w-3.5 h-3.5" />
@@ -581,8 +581,8 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                   onClick={() => setTextAlign('center')}
                   className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     textAlign === 'center'
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm'
-                      : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
+                      ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <AlignCenter className="w-3.5 h-3.5" />
@@ -593,8 +593,8 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                   onClick={() => setTextAlign('right')}
                   className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     textAlign === 'right'
-                      ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-sm'
-                      : 'bg-white/[0.03] border-white/10 text-white/60 hover:bg-white/[0.06]'
+                      ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-xs'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <AlignRight className="w-3.5 h-3.5" />
@@ -606,8 +606,8 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
             {/* 2. Font Size Slider & Quick Step Buttons */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-white/70 font-semibold">எழுத்து அளவு (Font Size)</span>
-                <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">
+                <span className="text-slate-600 font-bold">எழுத்து அளவு (Font Size)</span>
+                <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-mono font-bold border border-amber-200 shadow-xs">
                   {fontSize}px
                 </span>
               </div>
@@ -615,7 +615,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setFontSize(Math.max(28, fontSize - 2))}
-                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center text-xs font-bold border border-white/10 cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold border border-slate-200 cursor-pointer shadow-xs"
                 >
                   A-
                 </button>
@@ -626,12 +626,12 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                   step="2"
                   value={fontSize}
                   onChange={(e) => setFontSize(Number(e.target.value))}
-                  className="flex-1 accent-amber-500 h-1.5 bg-white/10 rounded-lg cursor-pointer"
+                  className="flex-1 accent-amber-500 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
                 />
                 <button
                   type="button"
                   onClick={() => setFontSize(Math.min(56, fontSize + 2))}
-                  className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center text-xs font-bold border border-white/10 cursor-pointer"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold border border-slate-200 cursor-pointer shadow-xs"
                 >
                   A+
                 </button>
@@ -640,7 +640,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
 
             {/* 3. Tamil Font Picker */}
             <div className="space-y-1.5">
-              <label className="text-[11px] text-white/70 font-semibold">தமிழ் எழுத்துரு ஸ்டைல் (Tamil Fonts)</label>
+              <label className="text-[11px] text-slate-600 font-bold">தமிழ் எழுத்துரு ஸ்டைல் (Tamil Fonts)</label>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { id: 'Mukta Malar', name: '👑 முக்தா மலர் (Mukta Malar)', note: 'ராயல் செரிஃப்' },
@@ -654,12 +654,12 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                     onClick={() => setFontFamily(f.id)}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col ${
                       fontFamily === f.id
-                        ? 'bg-amber-500/20 border-amber-400 text-white shadow-sm'
-                        : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
+                        ? 'bg-amber-50 border-amber-300 text-slate-900 shadow-xs ring-1 ring-amber-300'
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    <span className="text-xs font-bold text-white">{f.name}</span>
-                    <span className="text-[10px] text-white/40">{f.note}</span>
+                    <span className="text-xs font-bold text-slate-900">{f.name}</span>
+                    <span className="text-[10px] text-slate-500">{f.note}</span>
                   </button>
                 ))}
               </div>
@@ -667,44 +667,44 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
           </div>
 
           {/* Canva & Pinterest Layout Style Switcher */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Palette className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">வடிவமைப்பு ஸ்டைல் (Canva Layouts)</h3>
+                <Palette className="w-4 h-4 text-amber-500" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">வடிவமைப்பு ஸ்டைல் (Canva Layouts)</h3>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
               {[
-                { id: 'luxury-gold', name: '👑 Dark Gold Luxury', desc: 'தங்க நிற மூலை அலங்காரமும் செழுமையான பின்னணியும்' },
+                { id: 'luxury-gold', name: '👑 Gold Luxury', desc: 'தங்க நிற மூலை அலங்காரமும் செழுமையான பின்னணியும்' },
                 { id: 'frosted-glass', name: '🧊 Frosted Glass Card', desc: 'மங்கலான கண்ணாடி அட்டை வடிவமைப்பு' },
                 { id: 'magazine-frame', name: '📰 Editorial Magazine', desc: 'இரட்டை மெல்லிய கோட்டுடன் நேர்த்தியான வடிவம்' },
-                { id: 'minimal-dark', name: '🖤 Obsidian Minimalist', desc: 'தூய கருமை மற்றும் எளிமையான தோற்றம்' },
+                { id: 'minimal-dark', name: '✨ Clean Minimalist', desc: 'எளிமையான நேர்த்தியான தோற்றம்' },
               ].map((style) => (
                 <button
                   key={style.id}
                   onClick={() => setLayoutStyle(style.id as any)}
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
                     layoutStyle === style.id
-                      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md shadow-amber-500/10'
-                      : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
+                      ? 'bg-amber-50 border-amber-300 text-slate-900 shadow-sm ring-1 ring-amber-300'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="text-xs font-bold text-white">{style.name}</span>
-                  <span className="text-[10px] text-white/40 leading-snug">{style.desc}</span>
+                  <span className="text-xs font-bold text-slate-900">{style.name}</span>
+                  <span className="text-[10px] text-slate-500 leading-snug">{style.desc}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Watermark & Signature */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-2">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-white uppercase tracking-wider">இன்ஸ்டாகிராம் கைப்பிடி (Watermark)</label>
+              <label className="text-xs font-bold text-slate-900 uppercase tracking-wider">இன்ஸ்டாகிராம் கைப்பிடி (Watermark)</label>
               <button
                 onClick={() => setShowWatermark(!showWatermark)}
-                className="text-xs text-amber-400 hover:underline cursor-pointer"
+                className="text-xs text-amber-600 hover:underline font-bold cursor-pointer"
               >
                 {showWatermark ? 'மறைக்க (Hide)' : 'காண்பிக்க (Show)'}
               </button>
@@ -714,27 +714,27 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
               value={handle}
               onChange={(e) => setHandle(e.target.value)}
               placeholder="@_sparkwithin_hub_"
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500 font-medium"
             />
           </div>
 
           {/* 52 Tamil Viral Hashtags & Caption Box */}
-          <div className="p-5 rounded-2xl bg-gradient-to-b from-amber-500/10 to-rose-500/5 border border-amber-500/20 space-y-4">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                <Flame className="w-4 h-4 text-rose-500" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                   52 தமிழ் வைரல் ஹேஷ்டேக்குகள் & விளக்கம்
                 </h3>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 text-[10px] font-bold border border-amber-200 shadow-xs">
                 🔥 52 Total Tags
               </span>
             </div>
 
             {/* Main Caption Box (30 Tags) */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs text-white/70">
+              <div className="flex items-center justify-between text-xs text-slate-600 font-semibold">
                 <span>முதன்மை கேப்ஷன் (Main Caption — 30 Tags)</span>
                 <button
                   onClick={() => {
@@ -742,20 +742,20 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                     setCopiedCaption(true);
                     setTimeout(() => setCopiedCaption(false), 2000);
                   }}
-                  className="flex items-center gap-1 text-[11px] text-amber-400 hover:text-amber-300 font-bold cursor-pointer"
+                  className="flex items-center gap-1 text-[11px] text-amber-600 hover:text-amber-700 font-bold cursor-pointer"
                 >
-                  {copiedCaption ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedCaption ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-amber-600" />}
                   <span>{copiedCaption ? 'நகலெடுக்கப்பட்டது!' : 'முழு கேப்ஷனை நகலெடு'}</span>
                 </button>
               </div>
-              <div className="p-3 rounded-xl bg-black/50 border border-white/10 text-xs text-white/75 max-h-[150px] overflow-y-auto whitespace-pre-line leading-relaxed font-sans">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 max-h-[150px] overflow-y-auto whitespace-pre-line leading-relaxed font-sans">
                 {captionData.fullCaption}
               </div>
             </div>
 
             {/* First Comment Booster (22 Tags) */}
-            <div className="space-y-1.5 pt-2 border-t border-white/10">
-              <div className="flex items-center justify-between text-xs text-white/70">
+            <div className="space-y-1.5 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between text-xs text-slate-600 font-semibold">
                 <span>முதல் பின்னூட்ட பூஸ்டர் (First Comment Booster — 22 Tags)</span>
                 <button
                   onClick={() => {
@@ -763,13 +763,13 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                     setCopiedBooster(true);
                     setTimeout(() => setCopiedBooster(false), 2000);
                   }}
-                  className="flex items-center gap-1 text-[11px] text-rose-400 hover:text-rose-300 font-bold cursor-pointer"
+                  className="flex items-center gap-1 text-[11px] text-rose-600 hover:text-rose-700 font-bold cursor-pointer"
                 >
-                  {copiedBooster ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copiedBooster ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-rose-500" />}
                   <span>{copiedBooster ? 'நகலெடுக்கப்பட்டது!' : 'பூஸ்டர் நகலெடு'}</span>
                 </button>
               </div>
-              <div className="p-2.5 rounded-xl bg-black/50 border border-white/10 text-xs text-white/60 max-h-[85px] overflow-y-auto whitespace-pre-line">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-h-[85px] overflow-y-auto whitespace-pre-line">
                 {captionData.firstComment}
               </div>
             </div>

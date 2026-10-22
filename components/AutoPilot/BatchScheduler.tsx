@@ -206,26 +206,26 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-purple-500/15 border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-indigo-500/10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 text-[10px] font-bold tracking-wider uppercase border border-rose-500/30 flex items-center gap-1">
-              <Flame className="w-3 h-3 text-amber-400" />
+            <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold tracking-wider uppercase border border-rose-200 flex items-center gap-1 shadow-xs">
+              <Flame className="w-3 h-3 text-rose-500" />
               {scheduleLang === 'ta' ? 'தமிழ் ஆட்டோ-பைலட்' : 'Spark Within Auto-Pilot'}
             </span>
-            <span className="text-xs text-white/50">
+            <span className="text-xs text-slate-500">
               {scheduleLang === 'ta' ? '• 40+ திருக்குறள், பாரதியார், கலாம் வரிகள்' : '• 35+ Curated Quotes'}
             </span>
-            <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5" />
+            <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
               {scheduleLang === 'ta' ? '100% மீண்டும் வராத உத்தரவாதம்' : '100% Non-Repeating Guarantee'}
             </span>
           </div>
 
-          <h2 className="text-xl font-extrabold text-white tracking-tight">
-            {scheduleLang === 'ta' ? '7-நாள் தமிழ் மோட்டிவேஷன் ஆட்டோ-பைலட்' : '7-Day Dark-Luxury Content Queue'}
+          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+            {scheduleLang === 'ta' ? '7-நாள் தமிழ் மோட்டிவேஷன் ஆட்டோ-பைலட்' : '7-Day Inspiring Content Queue'}
           </h2>
-          <p className="text-xs text-white/60 mt-1 max-w-xl">
+          <p className="text-xs text-slate-600 mt-1 max-w-xl">
             {scheduleLang === 'ta'
               ? 'திங்கள் முதல் ஞாயிறு வரை 7 தனித்துவமான Canva/Pinterest போஸ்ட்கள், 52 வைரல் ஹேஷ்டேக்குகள் மற்றும் ஆட்டோ-போஸ்டிங் @_sparkwithin_hub_ க்காக.'
               : '7 distinct visual environments, Canva & Pinterest layouts, and verified attributions engineered for @_sparkwithin_hub_.'}
@@ -237,8 +237,8 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
               onClick={() => handleSwitchLanguage('ta')}
               className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                 scheduleLang === 'ta'
-                  ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/20'
-                  : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                  ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
               }`}
             >
               🌾 தமிழ் ஆட்டோ-பைலட் (Tamil)
@@ -247,8 +247,8 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
               onClick={() => handleSwitchLanguage('en')}
               className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                 scheduleLang === 'en'
-                  ? 'bg-amber-500 text-black border-amber-400 shadow-md shadow-amber-500/20'
-                  : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                  ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
               }`}
             >
               🇺🇸 English Auto-Pilot
@@ -260,10 +260,10 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
           {/* Shuffle Entire Week Button */}
           <button
             onClick={handleShuffleEntireWeek}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-semibold transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer shadow-xs"
             title="Rotate to 7 completely fresh, non-repeating quotes and photos"
           >
-            <Dices className="w-4 h-4 text-amber-300" />
+            <Dices className="w-4 h-4 text-amber-500" />
             <span>{scheduleLang === 'ta' ? 'வாரத்தை கலக்கு (Shuffle)' : 'Shuffle Week (No Repeats)'}</span>
           </button>
 
@@ -290,22 +290,22 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
       </div>
 
       {/* Control Bar: Aspect Ratio & Attribution Style */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-studio-900 border border-white/10 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm text-xs">
         <div className="flex items-center gap-3">
-          <span className="text-white/60 font-semibold uppercase tracking-wider text-[10px]">Feed Format:</span>
-          <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10">
+          <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Feed Format:</span>
+          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
             <button
               onClick={() => setAspectRatio('4:5')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                aspectRatio === '4:5' ? 'bg-rose-500 text-white shadow' : 'text-white/60 hover:text-white'
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                aspectRatio === '4:5' ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               4:5 Portrait (Recommended for IG)
             </button>
             <button
               onClick={() => setAspectRatio('1:1')}
-              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                aspectRatio === '1:1' ? 'bg-rose-500 text-white shadow' : 'text-white/60 hover:text-white'
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                aspectRatio === '1:1' ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               1:1 Square
@@ -315,17 +315,17 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
 
         {/* Attribution Toggle */}
         <div className="flex items-center gap-3">
-          <span className="text-white/60 font-semibold uppercase tracking-wider text-[10px]">Attribution Style:</span>
+          <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Attribution Style:</span>
           <button
             onClick={() => setShowAuthorAttribution(!showAuthorAttribution)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-xs ${
               showAuthorAttribution
-                ? 'bg-amber-500/20 border-amber-400/40 text-amber-300'
-                : 'bg-white/5 border-white/10 text-white/70 hover:text-white'
+                ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold'
+                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
             title="Toggle between verified author attribution line and clean Pinterest page signature only"
           >
-            <UserCheck className="w-3.5 h-3.5" />
+            <UserCheck className="w-3.5 h-3.5 text-amber-600" />
             <span>{showAuthorAttribution ? 'Author Line: ON (Verified Thinkers)' : 'Pinterest Clean: Page Signature Only'}</span>
           </button>
         </div>
@@ -339,16 +339,16 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
           return (
             <div
               key={item.day}
-              className="p-4 rounded-2xl bg-studio-900 border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between group shadow-xl relative overflow-hidden"
+              className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all flex flex-col justify-between group shadow-sm hover:shadow-md relative overflow-hidden"
             >
               {/* Day Header */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-rose-400" />
+                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-rose-500" />
                     {item.day}
                   </span>
-                  <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-white/5 text-amber-300 border border-white/10">
+                  <span className="text-[9px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
                     {theme.environment}
                   </span>
                 </div>
@@ -365,34 +365,34 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
                   <button
                     onClick={() => handleRerollDay(idx)}
                     title="Swap to another non-repeating quote & photo in this theme"
-                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 backdrop-blur-md border border-white/20 text-white/80 hover:text-white transition-colors cursor-pointer z-10 flex items-center gap-1 text-[10px]"
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/85 backdrop-blur-md border border-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer z-10 flex items-center gap-1 text-[10px] font-bold shadow-xs"
                   >
-                    <Dices className="w-3.5 h-3.5 text-amber-300" />
+                    <Dices className="w-3.5 h-3.5 text-amber-600" />
                     <span className="hidden group-hover:inline pr-1">Swap</span>
                   </button>
                 </div>
 
                 {/* Caption Snippet */}
                 {item.caption ? (
-                  <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-[11px] text-white/70 mb-3 space-y-1">
-                    <p className="font-bold text-amber-300 line-clamp-1">{item.caption.hook}</p>
-                    <p className="text-white/50 text-[10px] line-clamp-2 leading-relaxed">{item.caption.insight || (item.caption as any).story || item.explanationTamil}</p>
-                    <p className="text-[9px] text-rose-400 font-mono line-clamp-1 mt-1">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-700 mb-3 space-y-1">
+                    <p className="font-bold text-amber-800 line-clamp-1">{item.caption.hook}</p>
+                    <p className="text-slate-500 text-[10px] line-clamp-2 leading-relaxed">{item.caption.insight || (item.caption as any).story || item.explanationTamil}</p>
+                    <p className="text-[9px] text-rose-600 font-mono font-bold line-clamp-1 mt-1">
                       {item.caption.hashtags.slice(0, 4).join(' ')}
                     </p>
                   </div>
                 ) : (
-                  <div className="p-2.5 rounded-xl bg-white/[0.02] border border-dashed border-white/10 text-[10px] text-white/40 text-center mb-3">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-[10px] text-slate-400 font-medium text-center mb-3">
                     Click "Write All 7 Captions" above
                   </div>
                 )}
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 pt-2 border-t border-white/10">
+              <div className="flex gap-2 pt-2 border-t border-slate-100">
                 <button
                   onClick={() => onLoadPostToStudio(item)}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-white transition-colors cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer shadow-xs"
                   title={item.language === 'ta' ? 'Open in Tamil Studio' : 'Open in English Studio'}
                 >
                   <span>{item.language === 'ta' ? '🌾 தமிழ் Studio' : '🇺🇸 English Studio'}</span>
@@ -402,7 +402,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
                 {onSendToVideoStudio && (
                   <button
                     onClick={() => onSendToVideoStudio(item.quote, item.author)}
-                    className="p-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 hover:text-purple-200 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 transition-colors cursor-pointer shadow-xs"
                     title="Convert this quote into an animated 9:16 Video Reel"
                   >
                     <Film className="w-3.5 h-3.5" />
@@ -411,7 +411,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
 
                 <button
                   onClick={() => onOpenPublishModal(item.backgroundImage, item.caption?.fullCaption || item.quote)}
-                  className="p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                  className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 transition-colors cursor-pointer shadow-xs"
                   title="Direct Post to Instagram"
                 >
                   <Send className="w-3.5 h-3.5" />

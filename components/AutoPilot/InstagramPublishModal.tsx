@@ -220,34 +220,34 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-studio-900 border border-white/15 rounded-3xl p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative max-h-[92vh] overflow-y-auto space-y-5 text-slate-900">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/50 hover:text-white transition-colors cursor-pointer"
+          className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shadow-lg shadow-rose-500/20">
+          <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-500 to-indigo-500 text-white shadow-md shadow-rose-500/20">
             <Send className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Post to Instagram</h3>
-            <p className="text-xs text-white/50">Publish posts & reels directly to @_sparkwithin_hub_</p>
+            <h3 className="text-base font-bold text-slate-900">Post to Instagram</h3>
+            <p className="text-xs text-slate-500">Publish posts & reels directly to @_sparkwithin_hub_</p>
           </div>
         </div>
 
         {/* Tab Switcher */}
-        <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-black/40 border border-white/10">
+        <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-slate-100 border border-slate-200">
           <button
             onClick={() => setActiveTab('fast')}
             className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'fast'
-                ? 'bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md'
-                : 'text-white/60 hover:text-white'
+                ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -258,8 +258,8 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
             onClick={() => setActiveTab('api')}
             className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'api'
-                ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-md'
-                : 'text-white/60 hover:text-white'
+                ? 'bg-gradient-to-r from-indigo-600 to-rose-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -270,24 +270,24 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
         {/* TAB 1: 1-Click Fast Post Workflow (Zero Setup, 100% Reliable) */}
         {activeTab === 'fast' && (
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-purple-500/10 border border-rose-500/20 space-y-3">
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-rose-50 to-indigo-50 border border-rose-200/60 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-rose-300 flex items-center gap-1.5">
-                  <Smartphone className="w-4 h-4 text-rose-400" />
+                <span className="text-xs font-bold text-rose-700 flex items-center gap-1.5">
+                  <Smartphone className="w-4 h-4 text-rose-500" />
                   Easiest Creator Workflow (Takes 15s)
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold border border-emerald-200">
                   Zero Token Setup
                 </span>
               </div>
-              <p className="text-xs text-white/70 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 Click the button below to automatically copy your viral caption and open Instagram ready to post!
               </p>
 
               {/* Action: Open & Post on Instagram */}
               <button
                 onClick={handleFastShare}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-rose-500 via-purple-600 to-amber-500 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white text-xs font-bold shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Share2 className="w-4 h-4" />
                 <span>🚀 Open & Post to Instagram Now</span>
@@ -295,14 +295,14 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
             </div>
 
             {/* Quick Caption Box */}
-            <div className="space-y-2 p-3.5 rounded-2xl bg-black/40 border border-white/10">
+            <div className="space-y-2 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/60 font-semibold">Ready Caption & Hashtags:</span>
+                <span className="text-slate-600 font-semibold">Ready Caption & Hashtags:</span>
                 <button
                   onClick={handleCopyCaption}
-                  className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-300 font-bold cursor-pointer"
+                  className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 font-bold cursor-pointer"
                 >
-                  {copiedCaption ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedCaption ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedCaption ? 'Copied to Clipboard!' : 'Copy Caption'}</span>
                 </button>
               </div>
@@ -310,7 +310,7 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
                 rows={4}
                 readOnly
                 value={currentCaption}
-                className="w-full bg-transparent border-0 text-xs text-white/80 leading-relaxed resize-none focus:outline-none scrollbar-none select-all"
+                className="w-full bg-transparent border-0 text-xs text-slate-800 leading-relaxed resize-none focus:outline-none scrollbar-none select-all"
               />
             </div>
           </div>
@@ -319,26 +319,26 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
         {/* TAB 2: Meta Graph API Auto-Publish */}
         {activeTab === 'api' && (
           <div className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-white/70 space-y-1">
-              <p className="font-semibold text-white flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-purple-400" />
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+              <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-indigo-600" />
                 Meta Graph API Direct Publishing
               </p>
-              <p className="text-white/60 text-[11px]">
-                Requires a Meta Developer Business App with <code className="text-rose-300 font-mono">instagram_content_publish</code> permissions.
+              <p className="text-slate-500 text-[11px]">
+                Requires a Meta Developer Business App with <code className="text-rose-600 font-mono">instagram_content_publish</code> permissions.
               </p>
             </div>
 
             {/* Input Fields */}
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[11px] font-medium text-white/70">Meta Graph API Access Token</label>
+                <label className="text-[11px] font-semibold text-slate-700">Meta Graph API Access Token</label>
                 <input
                   type="password"
                   value={accessToken}
                   onChange={(e) => setAccessToken(e.target.value)}
                   placeholder="Paste your EAAP... token here"
-                  className="w-full bg-studio-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white font-mono placeholder-white/30 focus:outline-none focus:border-rose-500"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                 />
               </div>
 
@@ -347,29 +347,29 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
                 type="button"
                 onClick={handleAutoDiscover}
                 disabled={isDiscovering || !accessToken.trim()}
-                className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-500/20 via-rose-500/20 to-amber-500/20 hover:from-purple-500/30 hover:to-amber-500/30 border border-purple-500/40 text-xs font-bold text-purple-300 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+                className="w-full py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-xs font-bold text-amber-900 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
               >
-                {isDiscovering ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : <Sparkles className="w-3.5 h-3.5 text-purple-400" />}
+                {isDiscovering ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-600" /> : <Sparkles className="w-3.5 h-3.5 text-amber-600" />}
                 <span>{isDiscovering ? 'Detecting your Instagram page...' : '✨ Auto-Detect My Instagram Account ID'}</span>
               </button>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-medium text-white/70">Instagram Account ID</label>
+                <label className="text-[11px] font-semibold text-slate-700">Instagram Account ID</label>
                 <input
                   type="text"
                   value={igUserId}
                   onChange={(e) => setIgUserId(e.target.value)}
                   placeholder="e.g. 17841400000000000"
-                  className="w-full bg-studio-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white font-mono placeholder-white/30 focus:outline-none focus:border-rose-500"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-mono placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                 />
               </div>
 
               <button
                 onClick={handleVerify}
                 disabled={isVerifying || !igUserId || !accessToken}
-                className="w-full py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs font-semibold text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
-                {isVerifying ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
+                {isVerifying ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-600" /> : null}
                 <span>{verifiedAccount ? `✓ Connected: @${verifiedAccount.username}` : 'Test Connection & Verify'}</span>
               </button>
 
@@ -377,7 +377,7 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
               <button
                 onClick={handlePublish}
                 disabled={isPublishing || !igUserId || !accessToken}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white text-xs font-bold shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isPublishing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 <span>{isPublishing ? 'Publishing to Instagram...' : 'Publish to Instagram Now'}</span>
@@ -391,8 +391,8 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
           <div
             className={`p-3 rounded-xl border text-xs flex items-start gap-2 ${
               statusMessage.type === 'success'
-                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
-                : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}
           >
             {statusMessage.type === 'success' ? (

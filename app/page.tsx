@@ -387,7 +387,7 @@ export default function Home() {
   ]);
 
   return (
-    <div className="min-h-screen bg-[#000000] text-[#FAFAFA] flex flex-col font-sans selection:bg-[#E1306C] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col font-sans selection:bg-amber-500 selection:text-white">
       {/* Top Header */}
       <Header
         onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
@@ -473,7 +473,7 @@ export default function Home() {
               />
 
               {/* Canva & Pinterest Layout Style Switcher */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
                 <LayoutPicker
                   currentLayout={layoutStyle}
                   onChangeLayout={(lay) => {
@@ -484,7 +484,7 @@ export default function Home() {
               </div>
 
               {/* Aspect Ratio Switcher (4:5 Portrait Feed vs 1:1 Square vs 9:16 Story) */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
                 <AspectRatioPicker
                   value={aspectRatio}
                   onChange={setAspectRatio}
@@ -492,7 +492,7 @@ export default function Home() {
               </div>
 
               {/* Aesthetic Environment Theme Selector (7 Distinct Worlds) */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
                 <ThemeSelector
                   currentTheme={themeId}
                   onSelectTheme={(id) => applyTheme(id)}
@@ -500,7 +500,7 @@ export default function Home() {
               </div>
 
               {/* Background Image Controls */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
                 <ImagePicker
                   onShuffleImage={handleShuffleImage}
                   onGeneratePollinations={handleGeneratePollinations}
@@ -510,7 +510,7 @@ export default function Home() {
               </div>
 
               {/* Typography & Color Customizer */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
                 <TypographyPicker
                   fontFamily={fontFamily}
                   onChangeFont={setFontFamily}
@@ -526,7 +526,7 @@ export default function Home() {
               </div>
 
               {/* Atmosphere, Overlays & Canva-Grade Glass Card */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
                 <StylingSliders
                   overlayOpacity={overlayOpacity}
                   onChangeOverlayOpacity={setOverlayOpacity}
@@ -546,7 +546,7 @@ export default function Home() {
               </div>
 
               {/* Brand Watermark & Signature Handle */}
-              <div className="p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
                 <WatermarkControl
                   handle={handle}
                   onChangeHandle={setHandle}

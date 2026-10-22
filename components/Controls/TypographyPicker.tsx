@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FONT_OPTIONS } from '@/lib/fonts';
-import { AlignCenter, AlignLeft, Type } from 'lucide-react';
+import { AlignCenter, AlignLeft } from 'lucide-react';
 
 interface TypographyPickerProps {
   fontFamily: string;
@@ -20,12 +20,12 @@ interface TypographyPickerProps {
 const QUICK_COLORS = [
   '#FFFFFF', // Pure White
   '#FDF6E2', // Warm Cream
-  '#F59E0B', // Gold
-  '#00F0FF', // Cyber Cyan
+  '#F59E0B', // Positive Gold
+  '#F43F5E', // Rose Coral
   '#10B981', // Emerald
-  '#EC4899', // Pink
-  '#A855F7', // Purple
-  '#1F2937', // Charcoal
+  '#6366F1', // Indigo
+  '#8B5CF6', // Purple
+  '#0F172A', // Deep Slate
 ];
 
 export const TypographyPicker: React.FC<TypographyPickerProps> = ({
@@ -42,34 +42,34 @@ export const TypographyPicker: React.FC<TypographyPickerProps> = ({
 }) => {
   return (
     <div className="space-y-4">
-      <label className="text-xs font-semibold tracking-wider text-white/70 uppercase">
+      <label className="text-xs font-bold tracking-wider text-slate-800 uppercase">
         Typography & Styling
       </label>
 
       {/* Font Family Dropdown */}
       <div className="space-y-1.5">
-        <label className="text-[11px] text-white/50">Font Family</label>
+        <label className="text-[11px] text-slate-600 font-medium">Font Family</label>
         <div className="relative">
           <select
             value={fontFamily}
             onChange={(e) => onChangeFont(e.target.value)}
-            className="w-full bg-studio-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white appearance-none focus:outline-none focus:border-rose-500 transition-colors"
+            className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-900 appearance-none focus:bg-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-medium cursor-pointer"
           >
-            <optgroup label="Sans-Serif (Modern & Heavy)">
+            <optgroup label="Sans-Serif (Modern & Clean)">
               {FONT_OPTIONS.filter((f) => f.category === 'sans').map((f) => (
                 <option key={f.name} value={f.name}>
                   {f.label}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Serif (Editorial & Classical)">
+            <optgroup label="Serif (Editorial & Luxury)">
               {FONT_OPTIONS.filter((f) => f.category === 'serif').map((f) => (
                 <option key={f.name} value={f.name}>
                   {f.label}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="Monospace (Cyber & Tech)">
+            <optgroup label="Monospace (Modern & Tech)">
               {FONT_OPTIONS.filter((f) => f.category === 'mono').map((f) => (
                 <option key={f.name} value={f.name}>
                   {f.label}
@@ -91,8 +91,8 @@ export const TypographyPicker: React.FC<TypographyPickerProps> = ({
       <div className="grid grid-cols-2 gap-3 items-center">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-[11px] text-white/50">Base Font Size</label>
-            <span className="text-[11px] text-white/70 font-mono">{fontSize}px</span>
+            <label className="text-[11px] text-slate-600 font-medium">Base Font Size</label>
+            <span className="text-[11px] text-slate-800 font-mono font-bold">{fontSize}px</span>
           </div>
           <input
             type="range"
@@ -101,17 +101,17 @@ export const TypographyPicker: React.FC<TypographyPickerProps> = ({
             step="2"
             value={fontSize}
             onChange={(e) => onChangeFontSize(Number(e.target.value))}
-            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
+            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] text-white/50">Alignment</label>
-          <div className="flex rounded-xl bg-white/5 p-1 border border-white/10">
+          <label className="text-[11px] text-slate-600 font-medium">Alignment</label>
+          <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
             <button
               onClick={() => onChangeTextAlign('center')}
-              className={`flex-1 py-1 rounded-lg flex items-center justify-center transition-colors ${
-                textAlign === 'center' ? 'bg-rose-500 text-white' : 'text-white/60 hover:text-white'
+              className={`flex-1 py-1 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                textAlign === 'center' ? 'bg-white text-slate-900 shadow-xs font-bold border border-slate-200/60' : 'text-slate-500 hover:text-slate-900'
               }`}
               title="Centered"
             >
@@ -119,8 +119,8 @@ export const TypographyPicker: React.FC<TypographyPickerProps> = ({
             </button>
             <button
               onClick={() => onChangeTextAlign('left')}
-              className={`flex-1 py-1 rounded-lg flex items-center justify-center transition-colors ${
-                textAlign === 'left' ? 'bg-rose-500 text-white' : 'text-white/60 hover:text-white'
+              className={`flex-1 py-1 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                textAlign === 'left' ? 'bg-white text-slate-900 shadow-xs font-bold border border-slate-200/60' : 'text-slate-500 hover:text-slate-900'
               }`}
               title="Left Aligned"
             >
@@ -134,20 +134,20 @@ export const TypographyPicker: React.FC<TypographyPickerProps> = ({
       <div className="grid grid-cols-2 gap-3">
         {/* Text Color */}
         <div className="space-y-1.5">
-          <label className="text-[11px] text-white/50">Text Color</label>
+          <label className="text-[11px] text-slate-600 font-medium">Text Color</label>
           <div className="flex items-center gap-2">
             <input
               type="color"
               value={textColor}
               onChange={(e) => onChangeTextColor(e.target.value)}
-              className="w-8 h-8 rounded-lg border border-white/20 bg-transparent cursor-pointer"
+              className="w-8 h-8 rounded-lg border border-slate-300 bg-transparent cursor-pointer shadow-xs"
             />
             <div className="flex gap-1 flex-wrap">
               {QUICK_COLORS.slice(0, 4).map((c) => (
                 <button
                   key={c}
                   onClick={() => onChangeTextColor(c)}
-                  className="w-5 h-5 rounded border border-white/20"
+                  className="w-5 h-5 rounded border border-slate-300 shadow-xs transition-transform hover:scale-110"
                   style={{ backgroundColor: c }}
                 />
               ))}
@@ -157,20 +157,20 @@ export const TypographyPicker: React.FC<TypographyPickerProps> = ({
 
         {/* Accent Color */}
         <div className="space-y-1.5">
-          <label className="text-[11px] text-white/50">Accent / Badge Color</label>
+          <label className="text-[11px] text-slate-600 font-medium">Accent / Badge Color</label>
           <div className="flex items-center gap-2">
             <input
               type="color"
               value={accentColor}
               onChange={(e) => onChangeAccentColor(e.target.value)}
-              className="w-8 h-8 rounded-lg border border-white/20 bg-transparent cursor-pointer"
+              className="w-8 h-8 rounded-lg border border-slate-300 bg-transparent cursor-pointer shadow-xs"
             />
             <div className="flex gap-1 flex-wrap">
               {QUICK_COLORS.slice(2, 6).map((c) => (
                 <button
                   key={c}
                   onClick={() => onChangeAccentColor(c)}
-                  className="w-5 h-5 rounded border border-white/20"
+                  className="w-5 h-5 rounded border border-slate-300 shadow-xs transition-transform hover:scale-110"
                   style={{ backgroundColor: c }}
                 />
               ))}

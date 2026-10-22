@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Globe, Copy, Check, Smartphone, Laptop, Cloud, ShieldCheck } from 'lucide-react';
+import { X, Globe, Copy, Check, Smartphone, Cloud, ShieldCheck } from 'lucide-react';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -28,90 +28,90 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-lg bg-studio-900 border border-white/15 rounded-3xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-white border border-slate-200/90 rounded-3xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/50 hover:text-white transition-colors cursor-pointer"
+          className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20">
+          <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-amber-500 to-rose-500 text-white shadow-md shadow-rose-500/20">
             <Globe className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Multi-User Access & Sharing</h3>
-            <p className="text-xs text-white/50">Allow multiple people and phones to use InstaQuote AI</p>
+            <h3 className="text-base font-bold text-slate-900">Multi-User Access & Sharing</h3>
+            <p className="text-xs text-slate-500">Allow multiple people and phones to use InstaQuote Studio</p>
           </div>
         </div>
 
         {/* Method 1: Local Network (Same Wi-Fi) */}
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Smartphone className="w-4 h-4 text-cyan-400" />
+            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <Smartphone className="w-4 h-4 text-indigo-500" />
               1. Instant Same-Wi-Fi Access (Phones & Laptops)
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">
               Zero Setup
             </span>
           </div>
-          <p className="text-xs text-white/60 leading-relaxed">
+          <p className="text-xs text-slate-600 leading-relaxed">
             Anyone connected to the same Wi-Fi network (your mobile phone, colleagues, or friends) can open this URL directly in their browser:
           </p>
 
-          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-black/60 border border-white/10">
-            <code className="text-xs text-cyan-300 font-mono flex-1 select-all">{lanUrl}</code>
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
+            <code className="text-xs text-indigo-600 font-mono font-bold flex-1 select-all">{lanUrl}</code>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(lanUrl);
                 setCopiedLan(true);
                 setTimeout(() => setCopiedLan(false), 2000);
               }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-bold transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all cursor-pointer shrink-0"
             >
-              {copiedLan ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedLan ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedLan ? 'Copied!' : 'Copy Link'}</span>
             </button>
           </div>
         </div>
 
         {/* Method 2: Global 1-Click Free Public Deployment */}
-        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <Cloud className="w-4 h-4 text-purple-400" />
+            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <Cloud className="w-4 h-4 text-rose-500" />
               2. Permanent Public Internet Link ($0 Free on Vercel)
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold border border-rose-200">
               Global 24/7
             </span>
           </div>
-          <p className="text-xs text-white/60 leading-relaxed">
-            To share this app with anyone around the world (permanent public <code className="text-purple-300">.vercel.app</code> domain), run this single command in the project folder:
+          <p className="text-xs text-slate-600 leading-relaxed">
+            To share this app with anyone around the world (permanent public <code className="text-rose-600 font-bold">.vercel.app</code> domain), run this single command in the project folder:
           </p>
 
-          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-black/60 border border-white/10">
-            <code className="text-xs text-purple-300 font-mono flex-1 select-all">npx vercel --prod</code>
+          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-slate-200 shadow-xs">
+            <code className="text-xs text-rose-600 font-mono font-bold flex-1 select-all">npx vercel --prod</code>
             <button
               onClick={() => {
                 navigator.clipboard.writeText('npx vercel --prod');
                 setCopiedCmd(true);
                 setTimeout(() => setCopiedCmd(false), 2000);
               }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-bold transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all cursor-pointer shrink-0"
             >
-              {copiedCmd ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copiedCmd ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedCmd ? 'Copied!' : 'Copy Command'}</span>
             </button>
           </div>
         </div>
 
         {/* Multi-User Privacy & Security */}
-        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-start gap-2.5 text-xs text-emerald-300 leading-relaxed">
-          <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-start gap-2.5 text-xs text-emerald-800 leading-relaxed">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
           <p>
             <strong>100% Client-Side Privacy:</strong> Each person who opens the site has their own independent browser session. Quotes, custom watermarks, and Instagram tokens are stored locally on their device and are never shared or mixed with other users.
           </p>
@@ -119,7 +119,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose }) => {
 
         <button
           onClick={onClose}
-          className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition-colors cursor-pointer"
+          className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer shadow-xs"
         >
           Close
         </button>

@@ -40,27 +40,29 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
   };
 
   return (
-    <div className="space-y-3 p-4 rounded-2xl bg-[#121212] border border-[#262626] shadow-sm">
+    <div className="space-y-3 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <QuoteIcon className="w-4 h-4 text-[#E1306C]" />
-          <span className="text-xs font-bold text-[#FAFAFA] uppercase tracking-wider">Quote Content</span>
+          <div className="w-6 h-6 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-center">
+            <QuoteIcon className="w-3.5 h-3.5 text-amber-600" />
+          </div>
+          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Quote Content</span>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleShuffleQuote}
-            className="flex items-center gap-1 text-xs text-[#0095F6] hover:text-[#1877F2] transition-colors font-semibold cursor-pointer"
-            title="Pick a random non-repeating viral quote from library"
+            className="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 transition-colors font-semibold cursor-pointer"
+            title="Pick a random non-repeating quote from library"
           >
-            <Dices className="w-3.5 h-3.5" />
+            <Dices className="w-3.5 h-3.5 text-amber-500" />
             <span>Shuffle Quote</span>
           </button>
-          <span className="text-[#363636]">•</span>
+          <span className="text-slate-300">•</span>
           <button
             onClick={onOpenPresets}
-            className="flex items-center gap-1 text-xs text-[#E1306C] hover:text-[#FD1D1D] transition-colors font-semibold cursor-pointer"
+            className="flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700 transition-colors font-semibold cursor-pointer"
           >
-            <BookOpen className="w-3.5 h-3.5" />
+            <BookOpen className="w-3.5 h-3.5 text-rose-500" />
             <span>35+ Library</span>
           </button>
         </div>
@@ -72,7 +74,7 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
         value={quote}
         onChange={(e) => onChangeQuote(e.target.value)}
         placeholder="Enter quote text here..."
-        className="w-full bg-[#000000] border border-[#262626] rounded-xl p-3 text-sm text-[#FAFAFA] placeholder-[#737373] focus:outline-none focus:border-[#0095F6] transition-colors resize-none"
+        className="w-full bg-slate-50/70 border border-slate-200 rounded-xl p-3 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all resize-none leading-relaxed"
       />
 
       {/* Author & Attribution Controls */}
@@ -84,7 +86,7 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
               value={author}
               onChange={(e) => onChangeAuthor(e.target.value)}
               placeholder="Author name (e.g. Marcus Aurelius, Spark Within)"
-              className="w-full bg-[#000000] border border-[#262626] rounded-xl px-3 py-2 text-xs text-[#FAFAFA] placeholder-[#737373] focus:outline-none focus:border-[#0095F6] transition-colors"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
             />
           </div>
 
@@ -93,20 +95,20 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
             onClick={() => onToggleShowAuthor(!showAuthor)}
             className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
               showAuthor
-                ? 'bg-[#0095F6]/15 border-[#0095F6]/40 text-[#0095F6]'
-                : 'bg-[#1c1c1e] border-[#262626] text-[#A8A8A8] hover:text-white'
+                ? 'bg-amber-50 border-amber-300 text-amber-800 shadow-xs'
+                : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200/70'
             }`}
             title={showAuthor ? 'Author line visible' : 'Author line hidden (Minimalist style)'}
           >
-            {showAuthor ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+            {showAuthor ? <Eye className="w-3.5 h-3.5 text-amber-600" /> : <EyeOff className="w-3.5 h-3.5 text-slate-500" />}
             <span>{showAuthor ? 'Author: ON' : 'Minimal Clean'}</span>
           </button>
 
-          {/* AI Auto-Style in Instagram Gradient */}
+          {/* AI Auto-Style in Positive Radiant Gradient */}
           <button
             onClick={onAnalyze}
             disabled={isAnalyzing || !quote.trim()}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-[#dc2743]/20 disabled:opacity-50 transition-all cursor-pointer shrink-0"
+            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white text-xs font-bold shadow-md shadow-rose-500/20 disabled:opacity-50 transition-all cursor-pointer shrink-0"
           >
             <Wand2 className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-spin' : ''}`} />
             <span>{isAnalyzing ? 'Matching Mood...' : 'AI Auto-Style'}</span>
@@ -115,14 +117,14 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
 
         {/* Quick Attribution Pills */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <span className="text-[10px] text-[#737373]">Quick Attribution:</span>
+          <span className="text-[10px] text-slate-400 font-medium">Quick Attribution:</span>
           <button
             type="button"
             onClick={() => {
               onChangeAuthor('Spark Within');
               onToggleShowAuthor(true);
             }}
-            className="px-2 py-0.5 rounded bg-[#1c1c1e] hover:bg-[#262626] border border-[#262626] text-[10px] text-[#0095F6] font-medium cursor-pointer"
+            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] text-amber-700 font-semibold cursor-pointer transition-colors"
           >
             Spark Within
           </button>
@@ -132,7 +134,7 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
               onChangeAuthor('Marcus Aurelius');
               onToggleShowAuthor(true);
             }}
-            className="px-2 py-0.5 rounded bg-[#1c1c1e] hover:bg-[#262626] border border-[#262626] text-[10px] text-[#A8A8A8] hover:text-white font-medium cursor-pointer"
+            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] text-slate-700 font-medium cursor-pointer transition-colors"
           >
             Marcus Aurelius
           </button>
@@ -142,7 +144,7 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
               onChangeAuthor('Seneca');
               onToggleShowAuthor(true);
             }}
-            className="px-2 py-0.5 rounded bg-[#1c1c1e] hover:bg-[#262626] border border-[#262626] text-[10px] text-[#A8A8A8] hover:text-white font-medium cursor-pointer"
+            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] text-slate-700 font-medium cursor-pointer transition-colors"
           >
             Seneca
           </button>
@@ -152,7 +154,7 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
               onChangeAuthor('Friedrich Nietzsche');
               onToggleShowAuthor(true);
             }}
-            className="px-2 py-0.5 rounded bg-[#1c1c1e] hover:bg-[#262626] border border-[#262626] text-[10px] text-[#A8A8A8] hover:text-white font-medium cursor-pointer"
+            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] text-slate-700 font-medium cursor-pointer transition-colors"
           >
             Nietzsche
           </button>
@@ -161,7 +163,7 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
             onClick={() => {
               onToggleShowAuthor(false);
             }}
-            className="px-2 py-0.5 rounded bg-[#1c1c1e] hover:bg-[#262626] border border-[#262626] text-[10px] text-[#ED4956] font-medium cursor-pointer"
+            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] text-rose-600 font-semibold cursor-pointer transition-colors"
           >
             None (Handle Only)
           </button>
@@ -170,8 +172,8 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
 
       {detectedThemeBadge && (
         <div className="flex items-center gap-2 pt-1">
-          <span className="text-[10px] text-[#737373]">Detected Mood:</span>
-          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#1c1c1e] text-[#0095F6] border border-[#262626] font-bold">
+          <span className="text-[10px] text-slate-400 font-medium">Detected Mood:</span>
+          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-bold">
             {detectedThemeBadge}
           </span>
         </div>

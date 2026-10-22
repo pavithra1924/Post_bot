@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         {/* Preload Google Fonts stylesheet */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,7 +25,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-studio-950 text-slate-100 antialiased selection:bg-rose-500 selection:text-white">
+      <body className="min-h-screen bg-[#F8FAFC] text-slate-900 antialiased selection:bg-amber-500 selection:text-white">
         {children}
       </body>
     </html>

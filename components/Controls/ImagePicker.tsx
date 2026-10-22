@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Dices, Sparkles, Image as ImageIcon, Upload, RefreshCw } from 'lucide-react';
+import React from 'react';
+import { Dices, Sparkles, Upload, RefreshCw } from 'lucide-react';
 
 interface ImagePickerProps {
   onShuffleImage: () => void;
@@ -19,50 +19,50 @@ export const ImagePicker: React.FC<ImagePickerProps> = ({
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold tracking-wider text-white/70 uppercase">
+        <label className="text-xs font-bold tracking-wider text-slate-800 uppercase">
           Background Image
         </label>
-        <span className="text-[10px] text-emerald-400 font-mono">$0 Free Engine</span>
+        <span className="text-[10px] text-emerald-600 font-bold font-mono">$0 Free Engine</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
         {/* Re-roll Background */}
         <button
           onClick={onShuffleImage}
-          className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-white/80 hover:text-white transition-all group"
+          className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 transition-all group cursor-pointer shadow-xs"
           title="Swap photo from curated collection"
         >
-          <Dices className="w-4 h-4 text-amber-400 mb-1 group-hover:rotate-12 transition-transform" />
-          <span className="text-xs font-bold">Re-roll</span>
-          <span className="text-[9px] text-white/40">Curated</span>
+          <Dices className="w-4 h-4 text-amber-500 mb-1 group-hover:rotate-12 transition-transform" />
+          <span className="text-xs font-bold text-slate-900">Re-roll</span>
+          <span className="text-[9px] text-slate-500">Curated</span>
         </button>
 
         {/* AI Generative (Pollinations) */}
         <button
           onClick={onGeneratePollinations}
           disabled={isGenerating}
-          className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-white transition-all group disabled:opacity-50"
+          className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-amber-300 bg-amber-50/80 hover:bg-amber-100 text-amber-900 transition-all group disabled:opacity-50 cursor-pointer shadow-xs"
           title="Generate matching AI background with Pollinations"
         >
           {isGenerating ? (
-            <RefreshCw className="w-4 h-4 text-rose-400 mb-1 animate-spin" />
+            <RefreshCw className="w-4 h-4 text-amber-600 mb-1 animate-spin" />
           ) : (
-            <Sparkles className="w-4 h-4 text-rose-400 mb-1 group-hover:scale-110 transition-transform" />
+            <Sparkles className="w-4 h-4 text-amber-600 mb-1 group-hover:scale-110 transition-transform" />
           )}
           <span className="text-xs font-bold">AI Render</span>
-          <span className="text-[9px] text-rose-300/60">Zero-Key AI</span>
+          <span className="text-[9px] text-amber-700 font-medium">Zero-Key AI</span>
         </button>
 
         {/* Upload Custom */}
-        <label className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] text-white/80 hover:text-white transition-all cursor-pointer group">
-          <Upload className="w-4 h-4 text-cyan-400 mb-1 group-hover:-translate-y-0.5 transition-transform" />
-          <span className="text-xs font-bold">Upload</span>
-          <span className="text-[9px] text-white/40">Custom Photo</span>
+        <label className="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-100 text-slate-700 transition-all cursor-pointer group shadow-xs">
+          <Upload className="w-4 h-4 text-indigo-500 mb-1 group-hover:-translate-y-0.5 transition-transform" />
+          <span className="text-xs font-bold text-slate-900">Upload</span>
+          <span className="text-[9px] text-slate-500">Custom Photo</span>
           <input
             type="file"
             accept="image/*"
-            onChange={onCustomImageUpload}
             className="hidden"
+            onChange={onCustomImageUpload}
           />
         </label>
       </div>

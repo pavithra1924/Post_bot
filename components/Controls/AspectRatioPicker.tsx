@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AspectRatio, ASPECT_DIMENSIONS } from '@/lib/canvasRenderer';
+import { AspectRatio } from '@/lib/canvasRenderer';
 import { Square, RectangleVertical, Smartphone } from 'lucide-react';
 
 interface AspectRatioPickerProps {
@@ -33,7 +33,7 @@ export const AspectRatioPicker: React.FC<AspectRatioPickerProps> = ({ value, onC
 
   return (
     <div className="space-y-2">
-      <label className="text-xs font-semibold tracking-wider text-white/70 uppercase">
+      <label className="text-xs font-bold tracking-wider text-slate-800 uppercase">
         Aspect Ratio
       </label>
       <div className="grid grid-cols-3 gap-2">
@@ -43,16 +43,17 @@ export const AspectRatioPicker: React.FC<AspectRatioPickerProps> = ({ value, onC
             <button
               key={opt.id}
               onClick={() => onChange(opt.id)}
-              className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all text-center ${isActive
-                  ? 'bg-[#0095F6]/15 border-[#0095F6] text-white shadow-lg shadow-[#0095F6]/10'
-                  : 'bg-[#000000] border-[#262626] text-[#A8A8A8] hover:bg-[#181818] hover:text-white'
-                }`}
+              className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all text-center cursor-pointer ${
+                isActive
+                  ? 'bg-amber-50/80 border-amber-400 text-slate-900 shadow-sm ring-1 ring-amber-300'
+                  : 'bg-slate-50/70 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
             >
-              <div className={`mb-1.5 ${isActive ? 'text-[#0095F6]' : 'text-[#737373]'}`}>
+              <div className={`mb-1.5 ${isActive ? 'text-amber-600' : 'text-slate-400'}`}>
                 {opt.icon}
               </div>
               <span className="text-xs font-bold">{opt.label}</span>
-              <span className="text-[10px] text-white/40 mt-0.5">{opt.sublabel}</span>
+              <span className="text-[10px] text-slate-500 mt-0.5">{opt.sublabel}</span>
             </button>
           );
         })}

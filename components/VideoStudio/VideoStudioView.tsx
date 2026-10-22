@@ -513,27 +513,27 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner / Studio Command Center */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-900/40 via-studio-900 to-rose-950/40 border border-white/10 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-500/10 via-rose-500/10 to-amber-500/10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-[11px] font-bold tracking-wider uppercase border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
-              <Film className="w-3.5 h-3.5 text-purple-400" />
+            <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold tracking-wider uppercase border border-indigo-200 flex items-center gap-1.5 shadow-xs">
+              <Film className="w-3.5 h-3.5 text-indigo-500" />
               Reels & Story Studio
             </span>
-            <span className="text-xs text-white/50">• 9:16 Vertical HD (1080×1920)</span>
-            <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30 flex items-center gap-1">
-              <Music className="w-3 h-3 text-rose-400" />
-              Tamil Cinema Piano BGM
+            <span className="text-xs text-slate-500">• 9:16 Vertical HD (1080×1920)</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[11px] font-bold border border-rose-200 flex items-center gap-1 shadow-xs">
+              <Music className="w-3 h-3 text-rose-500" />
+              Cinema Piano BGM
             </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-bold border border-emerald-500/30 flex items-center gap-1">
-              <Headphones className="w-3 h-3 text-emerald-400" />
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold border border-emerald-200 flex items-center gap-1 shadow-xs">
+              <Headphones className="w-3 h-3 text-emerald-600" />
               Neural Synchronized Voiceover
             </span>
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             Viral Story Passage & Reel Studio
           </h2>
-          <p className="text-xs text-white/60 mt-1 max-w-xl leading-relaxed">
+          <p className="text-xs text-slate-600 mt-1 max-w-xl leading-relaxed">
             Create high-engagement 6–8 slide POV stories with frame-by-frame synchronized voiceover,
             emotional Tamil piano chords, breathing anime characters, and Instagram story progress bars.
           </p>
@@ -543,29 +543,29 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         <div className="flex items-center gap-2.5 flex-wrap shrink-0">
           <button
             onClick={handleAutoCreateTamilReel}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/25 to-rose-500/25 hover:from-amber-500/35 hover:to-rose-500/35 border border-amber-400/40 text-amber-300 text-xs font-bold shadow-lg shadow-amber-500/10 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold shadow-xs transition-all cursor-pointer"
             title="Generate an aesthetic Tamil Story Reel with synchronized voice & emotional piano BGM"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
+            <Sparkles className="w-4 h-4 text-amber-500" />
             <span>⚡ 1-Click Tamil Reel</span>
           </button>
 
           <button
             onClick={handleAutoCreateEnglishReel}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-purple-500/25 to-rose-500/25 hover:from-purple-500/35 hover:to-rose-500/35 border border-purple-400/40 text-purple-300 text-xs font-bold shadow-lg shadow-purple-500/10 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-300 text-indigo-800 text-xs font-bold shadow-xs transition-all cursor-pointer"
             title="Generate an English POV Story Reel with synchronized voice & warm piano music"
           >
-            <Sparkles className="w-4 h-4 text-purple-400" />
+            <Sparkles className="w-4 h-4 text-indigo-500" />
             <span>⚡ 1-Click English Reel</span>
           </button>
 
           <button
             onClick={handlePostDirectToInstagram}
             disabled={isExporting}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500/25 to-purple-600/25 hover:from-rose-500/35 hover:to-purple-600/35 border border-rose-400/40 text-rose-300 text-xs font-bold shadow-lg transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
             title="Copy caption, download reel with voice & BGM, and open Instagram"
           >
-            <Send className="w-4 h-4 text-rose-400" />
+            <Send className="w-4 h-4 text-rose-500" />
             <span>📱 Post to Instagram</span>
           </button>
 
@@ -652,10 +652,10 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             </div>
 
             {/* Timeline Controls */}
-            <div className="w-full p-4 rounded-2xl bg-studio-900/90 backdrop-blur-md border border-white/10 space-y-3 shadow-lg">
+            <div className="w-full p-4 rounded-2xl bg-white border border-slate-200/90 space-y-3 shadow-sm">
               {/* Scrub Slider */}
               <div className="space-y-1">
-                <div className="flex justify-between text-[11px] font-mono text-white/60">
+                <div className="flex justify-between text-[11px] font-mono text-slate-600 font-bold">
                   <span>{currentTime.toFixed(1)}s</span>
                   <span>{totalDuration.toFixed(1)}s</span>
                 </div>
@@ -671,7 +671,7 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                     setIsPlaying(false);
                     studioAudioEngine.stopPlayback();
                   }}
-                  className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                  className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
                 />
               </div>
 
@@ -680,14 +680,14 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={togglePlay}
-                    className="p-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:opacity-90 text-white font-bold transition-all shadow-md shadow-rose-500/20 cursor-pointer"
+                    className="p-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:opacity-95 text-white font-bold transition-all shadow-md shadow-rose-500/20 cursor-pointer"
                   >
                     {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </button>
 
                   <button
                     onClick={handleReset}
-                    className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white transition-all cursor-pointer"
+                    className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-slate-700 hover:text-slate-900 transition-all cursor-pointer shadow-xs"
                     title="Reset to beginning"
                   >
                     <RotateCcw className="w-4 h-4" />
@@ -710,10 +710,10 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                         });
                       }
                     }}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
                       isVoiceoverActive
-                        ? 'bg-rose-500/20 border-rose-400/40 text-rose-300 shadow-sm'
-                        : 'bg-white/5 border-white/10 text-white/40'
+                        ? 'bg-rose-50 border-rose-300 text-rose-700 shadow-xs'
+                        : 'bg-slate-100 border-slate-200 text-slate-600'
                     }`}
                   >
                     <Volume2 className="w-3.5 h-3.5" />
@@ -734,10 +734,10 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                         });
                       }
                     }}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition-all cursor-pointer ${
                       isMusicActive && ambientType !== 'none'
-                        ? 'bg-purple-500/20 border-purple-400/40 text-purple-300 shadow-sm'
-                        : 'bg-white/5 border-white/10 text-white/40'
+                        ? 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-xs'
+                        : 'bg-slate-100 border-slate-200 text-slate-600'
                     }`}
                   >
                     <Music className="w-3.5 h-3.5" />
@@ -752,17 +752,17 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
         {/* Right: Customization & Story Controls */}
         <div className="lg:w-[58%] w-full space-y-5">
           {/* Format Mode Switcher: 6-8 Slide Story vs Single Quote */}
-          <div className="p-4 rounded-2xl bg-studio-900 border border-white/10 flex items-center justify-between gap-3 flex-wrap">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/90 flex items-center justify-between gap-3 flex-wrap shadow-sm">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-white uppercase tracking-wider">வடிவம் (Format):</span>
+              <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">வடிவம் (Format):</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handleSwitchMode('passage')}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                   videoMode === 'passage'
-                    ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-amber-400 shadow-md'
-                    : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                    ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200/80'
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
@@ -773,8 +773,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 onClick={() => handleSwitchMode('quote')}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                   videoMode === 'quote'
-                    ? 'bg-gradient-to-r from-purple-500 to-rose-500 text-white border-purple-400 shadow-md'
-                    : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                    ? 'bg-gradient-to-r from-indigo-500 to-rose-500 text-white border-transparent shadow-xs'
+                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200/80'
                 }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -784,11 +784,11 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           </div>
 
           {/* Language Switcher & Story Passages Container */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Radio className="w-4 h-4 text-amber-400" />
-                <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider">மொழி (Language):</span>
+                <Radio className="w-4 h-4 text-amber-500" />
+                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider">மொழி (Language):</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -796,8 +796,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                   onClick={() => handleSwitchLanguage('ta')}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     quoteLanguage === 'ta'
-                      ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-amber-400 shadow-sm'
-                      : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                      ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   🌾 தமிழ் (Tamil)
@@ -807,8 +807,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                   onClick={() => handleSwitchLanguage('en')}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                     quoteLanguage === 'en'
-                      ? 'bg-gradient-to-r from-rose-500 to-purple-600 text-white border-rose-400 shadow-sm'
-                      : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                      ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   🇺🇸 English
@@ -1019,15 +1019,15 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           </div>
 
           {/* Section: Audio Mixing Console (Voiceover + BGM Control) */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-purple-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                <Sliders className="w-4 h-4 text-indigo-500" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                   ஸ்டுடியோ ஆடியோ மிக்ஸர் (Audio Console)
                 </h3>
               </div>
-              <span className="text-[10px] text-purple-300 font-mono">
+              <span className="text-[10px] text-indigo-600 font-mono font-bold">
                 Auto-Ducking: BGM dips smoothly during speech
               </span>
             </div>
@@ -1035,11 +1035,11 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
             {/* Voiceover Volume Control */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/80 font-semibold flex items-center gap-1.5">
-                  <Volume2 className="w-3.5 h-3.5 text-rose-400" />
+                <span className="text-slate-800 font-bold flex items-center gap-1.5">
+                  <Volume2 className="w-3.5 h-3.5 text-rose-500" />
                   குரல் ஒலி அளவு (Voiceover Volume)
                 </span>
-                <span className="font-mono text-rose-300 font-bold">{Math.round(voiceVolume * 100)}%</span>
+                <span className="font-mono text-rose-600 font-bold">{Math.round(voiceVolume * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -1048,18 +1048,18 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 step={0.05}
                 value={voiceVolume}
                 onChange={(e) => setVoiceVolume(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-rose-500"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
               />
             </div>
 
             {/* Background BGM Volume Control */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-white/80 font-semibold flex items-center gap-1.5">
-                  <Music className="w-3.5 h-3.5 text-purple-400" />
+                <span className="text-slate-800 font-bold flex items-center gap-1.5">
+                  <Music className="w-3.5 h-3.5 text-indigo-500" />
                   பின்னணி இசை ஒலி அளவு (BGM Music Volume)
                 </span>
-                <span className="font-mono text-purple-300 font-bold">{Math.round(musicVolume * 100)}%</span>
+                <span className="font-mono text-indigo-600 font-bold">{Math.round(musicVolume * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -1068,13 +1068,13 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                 step={0.05}
                 value={musicVolume}
                 onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-500"
               />
             </div>
 
             {/* BGM Track Selector */}
             <div className="pt-1">
-              <span className="text-[11px] font-bold text-white/60 uppercase tracking-wider block mb-2">
+              <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider block mb-2">
                 பின்னணி இசை தேர்வு (Select BGM Track):
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1098,21 +1098,21 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                       }}
                       className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-1 ${
                         isSelected
-                          ? 'bg-purple-500/20 border-purple-400 text-white shadow-md'
-                          : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
+                          ? 'bg-indigo-50 border-indigo-300 text-slate-900 shadow-xs ring-1 ring-indigo-300'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">{sound.name}</span>
+                        <span className="text-xs font-bold text-slate-900">{sound.name}</span>
                         <span
-                          className={`text-[9px] px-1.5 py-0.5 rounded font-mono ${
-                            isSelected ? 'bg-purple-500/30 text-purple-300' : 'bg-white/10 text-white/40'
+                          className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${
+                            isSelected ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-600'
                           }`}
                         >
                           {sound.badge}
                         </span>
                       </div>
-                      <span className="text-[10px] text-white/40 line-clamp-2">{sound.description}</span>
+                      <span className="text-[10px] text-slate-500 line-clamp-2">{sound.description}</span>
                     </button>
                   );
                 })}
@@ -1121,8 +1121,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
           </div>
 
           {/* Character Avatar Picker */}
-          <div className="p-5 rounded-2xl bg-studio-900 border border-white/10 space-y-3">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               கார்ட்டூன் அவதார் (Character Avatar)
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -1132,8 +1132,8 @@ export const VideoStudioView: React.FC<VideoStudioViewProps> = ({
                   onClick={() => setSelectedCharacter(char.id as any)}
                   className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
                     selectedCharacter === char.id
-                      ? 'bg-amber-500/20 border-amber-400 text-white shadow-md'
-                      : 'bg-white/[0.02] border-white/10 text-white/60 hover:bg-white/[0.05]'
+                      ? 'bg-amber-50 border-amber-300 text-slate-900 shadow-xs ring-1 ring-amber-300 font-bold'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <span className="text-base block mb-1">
