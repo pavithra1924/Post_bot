@@ -14,6 +14,7 @@ export interface InstagramPublishResult {
   success: boolean;
   creationId?: string;
   postId?: string;
+  permalink?: string;
   error?: string;
 }
 
@@ -415,10 +416,22 @@ export async function publishToInstagram({
       };
     }
 
+    // Step 3: Fetch the direct public permalink so the user can immediately click and view it on Instagram
+    let permalink: string | undefined;
+    try {
+      const infoUrl = `https://graph.facebook.com/v21.0/${publishData.id}?fields=permalink&access_token=${accessToken}`;
+      const infoRes = await fetch(infoUrl);
+      const infoData = await infoRes.json();
+      if (infoData.permalink) {
+        permalink = infoData.permalink;
+      }
+    } catch (_) {}
+
     return {
       success: true,
       creationId,
       postId: publishData.id,
+      permalink,
     };
   } catch (err: any) {
     return {

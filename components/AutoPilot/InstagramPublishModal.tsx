@@ -52,6 +52,7 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
   const [showPermanentHelper, setShowPermanentHelper] = useState(false);
   const [isExtending, setIsExtending] = useState(false);
   const [verifiedAccount, setVerifiedAccount] = useState<{ username: string } | null>(null);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   if (!isOpen) return null;
@@ -252,6 +253,9 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
       if (res.ok && data.success) {
         localStorage.setItem('ig_access_token', accessToken.trim());
         if (igUserId) localStorage.setItem('ig_user_id', igUserId.trim());
+
+        const liveUrl = data.permalink || `https://www.instagram.com/_sparkwithin_hub_/`;
+        setPublishedUrl(liveUrl);
 
         setStatusMessage({
           type: 'success',
@@ -506,18 +510,34 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
         {/* Status Message */}
         {statusMessage && (
           <div
-            className={`p-3 rounded-xl border text-xs flex items-start gap-2 ${
+            className={`p-3.5 rounded-2xl border text-xs flex flex-col gap-2 ${
               statusMessage.type === 'success'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900 shadow-sm'
+                : 'bg-rose-50 border-rose-200 text-rose-900'
             }`}
           >
-            {statusMessage.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
-            ) : (
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2">
+              {statusMessage.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              )}
+              <p className="leading-relaxed font-medium">{statusMessage.text}</p>
+            </div>
+
+            {statusMessage.type === 'success' && publishedUrl && (
+              <div className="pt-1">
+                <a
+                  href={publishedUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer"
+                >
+                  <span>👀 Open & View Post on Instagram</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             )}
-            <p className="leading-relaxed">{statusMessage.text}</p>
           </div>
         )}
       </div>
