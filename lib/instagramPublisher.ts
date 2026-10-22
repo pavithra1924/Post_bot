@@ -196,7 +196,7 @@ export async function autoDiscoverInstagramAccount(
 export async function ensurePublicImageUrl(imageUrl: string): Promise<string> {
   if (!imageUrl) throw new Error('Image URL is required for publishing.');
 
-  // If it's already an external public HTTP/HTTPS URL (not localhost), return it directly
+  // If it's already an external public HTTP/HTTPS URL (not localhost or data url), return it directly
   if (
     (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) &&
     !imageUrl.includes('localhost') &&
@@ -205,29 +205,27 @@ export async function ensurePublicImageUrl(imageUrl: string): Promise<string> {
     return imageUrl;
   }
 
-  // If it is a data URL or base64, upload to freeimage.host
+  // If it is a data URL or base64, upload to Uguu (free, direct HTTPS image hosting)
   try {
     const base64Data = imageUrl.includes('base64,')
       ? imageUrl.split('base64,')[1]
       : imageUrl;
 
-    const body = new URLSearchParams();
-    body.append('key', '6d207e02198a847aa98d0a2a901485a5');
-    body.append('action', 'upload');
-    body.append('format', 'json');
-    body.append('source', base64Data);
+    const buffer = Buffer.from(base64Data, 'base64');
+    const blob = new Blob([buffer], { type: 'image/png' });
+    const formData = new FormData();
+    formData.append('files[]', blob, `sparkwithin-${Date.now()}.png`);
 
-    const res = await fetch('https://freeimage.host/api/1/upload', {
+    const res = await fetch('https://uguu.se/upload.php', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
+      body: formData,
     });
 
     const data = await res.json();
-    if (res.ok && data?.image?.url) {
-      return data.image.url;
+    if (res.ok && data?.success && data?.files?.[0]?.url) {
+      return data.files[0].url;
     }
-    throw new Error(data?.error?.message || 'Image host service returned an error.');
+    throw new Error(data?.errors?.[0] || 'Image hosting service failed to store graphic.');
   } catch (err: any) {
     console.error('ensurePublicImageUrl error:', err);
     throw new Error(`Could not prepare image for Instagram: ${err.message}`);
@@ -236,7 +234,7 @@ export async function ensurePublicImageUrl(imageUrl: string): Promise<string> {
 
 /**
  * Publishes an image post to Instagram via Meta's 2-step Content Publishing API.
- * Handles automatic image hosting, container readiness polling, and direct publishing.
+ * Uses official x-www-form-urlencoded payloads for reliable parameter parsing by Meta servers.
  */
 export async function publishToInstagram({
   igUserId,
@@ -245,29 +243,39 @@ export async function publishToInstagram({
   caption,
 }: InstagramPublishParams): Promise<InstagramPublishResult> {
   try {
-    // Step 0: Ensure the image is a publicly accessible URL on the internet
+    // Step 0: Ensure the image is a direct public URL
     const publicImageUrl = await ensurePublicImageUrl(imageUrl);
 
-    // Step 1: Create the media container
+    // Step 1: Create the media container using form-urlencoded parameters
     const createUrl = `https://graph.facebook.com/v21.0/${igUserId}/media`;
+    const containerParams = new URLSearchParams();
+    containerParams.append('image_url', publicImageUrl);
+    containerParams.append('caption', caption);
+    containerParams.append('access_token', accessToken);
+
     const containerRes = await fetch(createUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image_url: publicImageUrl,
-        caption: caption,
-        access_token: accessToken,
-      }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: containerParams.toString(),
     });
 
     const containerData = await containerRes.json();
     if (!containerRes.ok || containerData.error) {
-      const msg = containerData.error?.message || 'Failed to create Instagram media container.';
+      const err = containerData.error || {};
+      let msg = err.message || 'Failed to create Instagram media container.';
+      if (err.error_user_msg) msg += ` — ${err.error_user_msg}`;
+      if (err.error_subcode) msg += ` (Subcode: ${err.error_subcode})`;
+      if (err.code) msg += ` (Code: ${err.code})`;
+
+      if (msg.includes('unknown error') || err.code === 1) {
+        msg += ' • Tip: Check that your token was generated under "Page Access Tokens" with instagram_content_publish enabled, and ensure @_sparkwithin_hub_ is added under Meta App Roles > Roles > Instagram Testers.';
+      } else if (msg.includes('access token')) {
+        msg = 'Your Meta Access Token is expired or invalid. Please refresh it in the Meta Developer Portal.';
+      }
+
       return {
         success: false,
-        error: msg.includes('access token')
-          ? 'Your Meta Access Token is expired or invalid. Please refresh it in the Meta Developer Portal.'
-          : msg,
+        error: msg,
       };
     }
 
@@ -275,7 +283,7 @@ export async function publishToInstagram({
 
     // Step 1.5: Poll container status until ready (Meta image ingestion)
     let isReady = false;
-    for (let attempt = 0; attempt < 6; attempt++) {
+    for (let attempt = 0; attempt < 8; attempt++) {
       try {
         const statusUrl = `https://graph.facebook.com/v21.0/${creationId}?fields=status_code&access_token=${accessToken}`;
         const statusRes = await fetch(statusUrl);
@@ -288,32 +296,39 @@ export async function publishToInstagram({
           return {
             success: false,
             creationId,
-            error: 'Instagram rejected the media processing. Please verify the image dimensions.',
+            error: 'Instagram rejected the media processing. Please check image aspect ratio (1:1, 4:5, or 9:16 recommended).',
           };
         }
       } catch (_) {}
 
-      // Wait 1.2s before next check
-      await new Promise((r) => setTimeout(r, 1200));
+      // Wait 1.5s before next check
+      await new Promise((r) => setTimeout(r, 1500));
     }
 
     // Step 2: Publish the media container
     const publishUrl = `https://graph.facebook.com/v21.0/${igUserId}/media_publish`;
+    const publishParams = new URLSearchParams();
+    publishParams.append('creation_id', creationId);
+    publishParams.append('access_token', accessToken);
+
     const publishRes = await fetch(publishUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        creation_id: creationId,
-        access_token: accessToken,
-      }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: publishParams.toString(),
     });
 
     const publishData = await publishRes.json();
     if (!publishRes.ok || publishData.error) {
+      const err = publishData.error || {};
+      let msg = err.message || 'Media created, but failed to publish container.';
+      if (err.error_user_msg) msg += ` — ${err.error_user_msg}`;
+      if (err.error_subcode) msg += ` (Subcode: ${err.error_subcode})`;
+      if (err.code) msg += ` (Code: ${err.code})`;
+
       return {
         success: false,
         creationId,
-        error: publishData.error?.message || 'Media created, but failed to publish container.',
+        error: msg,
       };
     }
 
