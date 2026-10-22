@@ -3,6 +3,7 @@ import {
   publishToInstagram,
   verifyInstagramAccount,
   autoDiscoverInstagramAccount,
+  extendToLongLivedToken,
 } from '@/lib/instagramPublisher';
 
 export async function POST(req: NextRequest) {
@@ -15,6 +16,28 @@ export async function POST(req: NextRequest) {
     let igUserId = (body.igUserId || process.env.INSTAGRAM_USER_ID || '').trim();
     const imageUrl = body.imageUrl || body.imageBase64 || '';
     const caption = body.caption || '';
+
+    // Action: Convert to Permanent Long-Lived Token (Never Expires)
+    if (action === 'extend') {
+      const appId = (body.appId || '874796342388798').trim();
+      const appSecret = (body.appSecret || '').trim();
+
+      if (!accessToken) {
+        return NextResponse.json(
+          { error: 'Meta Access Token is required to extend.' },
+          { status: 400 }
+        );
+      }
+      if (!appSecret) {
+        return NextResponse.json(
+          { error: 'Meta App Secret is required. Find it in Meta Dashboard > App Settings > Basic.' },
+          { status: 400 }
+        );
+      }
+
+      const extendResult = await extendToLongLivedToken({ accessToken, appId, appSecret });
+      return NextResponse.json(extendResult);
+    }
 
     // Action: Auto-Discover Account from Access Token
     if (action === 'discover') {

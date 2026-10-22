@@ -48,10 +48,63 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [appSecret, setAppSecret] = useState('');
+  const [showPermanentHelper, setShowPermanentHelper] = useState(false);
+  const [isExtending, setIsExtending] = useState(false);
   const [verifiedAccount, setVerifiedAccount] = useState<{ username: string } | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   if (!isOpen) return null;
+
+  // Exchange short-lived token for Permanent (Never-Expiring) Page Token
+  const handleExtendToken = async () => {
+    if (!accessToken.trim()) {
+      setStatusMessage({ type: 'error', text: 'Please paste your current Access Token first.' });
+      return;
+    }
+    if (!appSecret.trim()) {
+      setStatusMessage({
+        type: 'error',
+        text: 'Please enter your Meta App Secret (from Meta Dashboard > App Settings > Basic).',
+      });
+      return;
+    }
+    setIsExtending(true);
+    setStatusMessage(null);
+
+    try {
+      const res = await fetch('/api/instagram/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'extend',
+          accessToken: accessToken.trim(),
+          appId: '874796342388798',
+          appSecret: appSecret.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.permanentToken) {
+        setAccessToken(data.permanentToken);
+        localStorage.setItem('ig_access_token', data.permanentToken);
+        setStatusMessage({
+          type: 'success',
+          text: `🎉 Permanent Token Activated! (${data.expires || 'Never Expires'}). Saved for future posts.`,
+        });
+        setShowPermanentHelper(false);
+      } else {
+        setStatusMessage({
+          type: 'error',
+          text: data.error || 'Failed to exchange token with Meta.',
+        });
+      }
+    } catch (err: any) {
+      setStatusMessage({ type: 'error', text: err.message || 'Token exchange failed.' });
+    } finally {
+      setIsExtending(false);
+    }
+  };
 
   // 1-Click Fast Post Handler (Native Mobile Share or Web Workflow)
   const handleFastShare = async () => {
@@ -356,6 +409,66 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
                 {isDiscovering ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-600" /> : <Sparkles className="w-3.5 h-3.5 text-amber-600" />}
                 <span>{isDiscovering ? 'Detecting your Instagram page...' : '✨ Auto-Detect My Instagram Account ID'}</span>
               </button>
+
+              {/* Permanent Token Extender Tool (Never Expire) */}
+              <div className="pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setShowPermanentHelper(!showPermanentHelper)}
+                  className="text-[11px] text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3 text-indigo-500" />
+                  <span>{showPermanentHelper ? '▲ Hide Permanent Token Tool' : '⚡ Make Token Never Expire (Permanent)'}</span>
+                </button>
+
+                {showPermanentHelper && (
+                  <div className="mt-2 p-3 rounded-2xl bg-indigo-50/80 border border-indigo-200/90 space-y-2.5 text-xs">
+                    <p className="text-[11px] text-slate-700 leading-snug">
+                      Graph API Explorer creates 1-hour temporary tokens. Paste your <strong>Meta App Secret</strong> below to instantly generate a <strong>Permanent Page Token (Never Expires)</strong>!
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] text-slate-500">
+                        <span className="font-semibold text-slate-700">Meta App Secret:</span>
+                        <a
+                          href="https://developers.facebook.com/apps/874796342388798/settings/basic/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-indigo-600 hover:underline flex items-center gap-0.5 font-medium"
+                        >
+                          Find in Meta Dashboard <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      </div>
+                      <input
+                        type="password"
+                        value={appSecret}
+                        onChange={(e) => setAppSecret(e.target.value)}
+                        placeholder="Paste App Secret here"
+                        className="w-full bg-white border border-indigo-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleExtendToken}
+                      disabled={isExtending || !accessToken.trim() || !appSecret.trim()}
+                      className="w-full py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-rose-600 hover:opacity-95 text-white font-bold text-xs transition-opacity flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 shadow-sm"
+                    >
+                      {isExtending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      <span>{isExtending ? 'Generating Permanent Token...' : 'Convert to Permanent Token (Never Expires)'}</span>
+                    </button>
+                    <p className="text-[10px] text-slate-500 text-center">
+                      Or extend it for free in 1 click at{' '}
+                      <a
+                        href="https://developers.facebook.com/tools/debug/accesstoken/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-indigo-600 underline font-medium"
+                      >
+                        Meta Token Debugger
+                      </a>
+                    </p>
+                  </div>
+                )}
+              </div>
 
               <div className="space-y-1">
                 <label className="text-[11px] font-semibold text-slate-700">Instagram Account ID</label>

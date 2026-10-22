@@ -189,6 +189,89 @@ export async function autoDiscoverInstagramAccount(
   }
 }
 
+export interface ExtendTokenResult {
+  success: boolean;
+  permanentToken?: string;
+  pageName?: string;
+  expires?: string;
+  error?: string;
+}
+
+/**
+ * Exchanges a short-lived Meta User/Page Access Token for a permanent (never-expiring)
+ * Page Access Token using Meta's fb_exchange_token endpoint and /me/accounts.
+ */
+export async function extendToLongLivedToken({
+  accessToken,
+  appId,
+  appSecret,
+}: {
+  accessToken: string;
+  appId: string;
+  appSecret: string;
+}): Promise<ExtendTokenResult> {
+  try {
+    const cleanToken = accessToken.trim();
+    const cleanAppId = (appId || '874796342388798').trim();
+    const cleanSecret = appSecret.trim();
+
+    if (!cleanToken) {
+      return { success: false, error: 'Current Access Token is required.' };
+    }
+    if (!cleanSecret) {
+      return { success: false, error: 'Meta App Secret is required. Find it in Meta Dashboard > App Settings > Basic.' };
+    }
+
+    // 1. Exchange short-lived token for long-lived user token (valid 60 days)
+    const exchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${cleanAppId}&client_secret=${cleanSecret}&fb_exchange_token=${cleanToken}`;
+    const exchangeRes = await fetch(exchangeUrl);
+    const exchangeData = await exchangeRes.json();
+
+    if (!exchangeRes.ok || exchangeData.error) {
+      const msg = exchangeData.error?.message || 'Meta rejected token exchange.';
+      return {
+        success: false,
+        error: `Meta Token Exchange failed: ${msg}`,
+      };
+    }
+
+    const longLivedUserToken = exchangeData.access_token;
+
+    // 2. Query /me/accounts with the long-lived token to get NEVER-EXPIRING Page Access Tokens!
+    const accountsUrl = `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,access_token,instagram_business_account{id,username,name}&access_token=${longLivedUserToken}`;
+    const accountsRes = await fetch(accountsUrl);
+    const accountsData = await accountsRes.json();
+
+    if (accountsRes.ok && Array.isArray(accountsData.data) && accountsData.data.length > 0) {
+      // Find the page linked to Instagram, or the first page
+      const pageWithIg =
+        accountsData.data.find((p: any) => p.instagram_business_account) ||
+        accountsData.data[0];
+
+      if (pageWithIg && pageWithIg.access_token) {
+        return {
+          success: true,
+          permanentToken: pageWithIg.access_token,
+          pageName: pageWithIg.name,
+          expires: 'Never (Permanent Page Token)',
+        };
+      }
+    }
+
+    // Fallback: Return the 60-day long-lived token
+    return {
+      success: true,
+      permanentToken: longLivedUserToken,
+      expires: '60 Days (Long-Lived User Token)',
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Network error exchanging token with Meta.',
+    };
+  }
+}
+
 /**
  * Ensures the image URL is a publicly accessible HTTPS link for Meta Graph API.
  * If a data URL or base64 string is provided, uploads it to get a direct public image URL.
