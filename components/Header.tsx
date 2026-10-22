@@ -4,8 +4,8 @@ import React from 'react';
 import { Sparkles, Key, RotateCcw, Send, Calendar, Globe } from 'lucide-react';
 
 interface HeaderProps {
-  currentTab: 'studio' | 'autopilot' | 'video' | 'tamil';
-  onChangeTab: (tab: 'studio' | 'autopilot' | 'video' | 'tamil') => void;
+  currentTab: 'studio' | 'autopilot' | 'video' | 'tamil' | 'carousel';
+  onChangeTab: (tab: 'studio' | 'autopilot' | 'video' | 'tamil' | 'carousel') => void;
   hasApiKey: boolean;
   onOpenApiKeyModal: () => void;
   onOpenPublishModal: () => void;
@@ -73,6 +73,20 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <span>🌾</span>
             <span>தமிழ் Post</span>
+          </button>
+
+          <button
+            onClick={() => onChangeTab('carousel')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              currentTab === 'carousel'
+                ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-md shadow-rose-500/20 font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+            }`}
+            title="Create 4-Slide Instagram Carousel Packs (Multi-Slide)"
+          >
+            <span>📑</span>
+            <span>Carousel</span>
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-700 font-bold">Pack</span>
           </button>
 
           <button

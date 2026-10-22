@@ -25,12 +25,16 @@ import {
   Sliders,
   Film,
   Send,
+  BookOpen,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { ThirukkuralLibraryModal } from './ThirukkuralLibraryModal';
+import { ThirukkuralItem } from '@/lib/tamilWisdomLibrary';
 
 interface TamilStudioViewProps {
   onSendToVideoStudio?: (quote: string, author: string) => void;
   onOpenPublishModal?: (imageUrl: string, caption: string) => void;
+  onOpenCarouselWithKural?: (kural: ThirukkuralItem) => void;
   initialQuote?: string;
   initialAuthor?: string;
 }
@@ -38,9 +42,12 @@ interface TamilStudioViewProps {
 export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
   onSendToVideoStudio,
   onOpenPublishModal,
+  onOpenCarouselWithKural,
   initialQuote,
   initialAuthor,
 }) => {
+  // Library Modal State
+  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
   // Category filter
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [quoteIndex, setQuoteIndex] = useState<number>(0);
@@ -99,6 +106,23 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
       setTextAlign('left');
     }
     markTamilQuoteAsUsed(item.id);
+  };
+
+  const handleSelectFromLibrary = (kural: ThirukkuralItem) => {
+    setCustomQuote(kural.verse);
+    setCustomAuthor('Spark Within');
+    setTextAlign('left');
+    setSelectedCategory('thirukkural');
+    setActiveQuoteItem({
+      id: kural.id,
+      category: 'thirukkural',
+      categoryTamil: '💎 வாழ்வியல் தத்துவம்',
+      quote: kural.verse,
+      author: 'Spark Within',
+      explanationTamil: kural.explanation,
+      bgKeyword: kural.bgKeyword,
+    });
+    confetti({ particleCount: 70, spread: 60, origin: { y: 0.7 } });
   };
 
   const handleShuffleQuote = () => {
@@ -417,8 +441,16 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
         </div>
       </div>
 
-      {/* Quote Category Filter Pills */}
+      {/* Quote Category Filter Pills + Wisdom Library Trigger */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <button
+          onClick={() => setIsLibraryModalOpen(true)}
+          className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white text-xs font-bold shadow-md shadow-rose-500/20 hover:opacity-95 transition-all cursor-pointer shrink-0"
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>📚 100+ திருக்குறள் நூலகம் (Wisdom Library)</span>
+        </button>
+
         {[
           { id: 'all', label: '🌟 அனைத்தும் (All 40+)' },
           { id: 'thirukkural', label: '📜 திருக்குறள்' },
@@ -795,6 +827,14 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Thirukkural Wisdom Library Modal */}
+      <ThirukkuralLibraryModal
+        isOpen={isLibraryModalOpen}
+        onClose={() => setIsLibraryModalOpen(false)}
+        onSelectKural={handleSelectFromLibrary}
+        onOpenCarouselWithKural={onOpenCarouselWithKural}
+      />
     </div>
   );
 };

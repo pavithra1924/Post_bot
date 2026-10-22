@@ -33,11 +33,14 @@ import { VideoStudioView } from '@/components/VideoStudio/VideoStudioView';
 import { TamilStudioView } from '@/components/TamilStudio/TamilStudioView';
 import { InstagramStoriesBar } from '@/components/Instagram/InstagramStoriesBar';
 import { ShareModal } from '@/components/ShareModal';
+import { CarouselStudio } from '@/components/Carousel/CarouselStudio';
+import { ThirukkuralItem } from '@/lib/tamilWisdomLibrary';
 
 export default function Home() {
-  // Navigation: 'studio' vs 'autopilot' vs 'video' vs 'tamil'
-  const [currentTab, setCurrentTab] = useState<'studio' | 'autopilot' | 'video' | 'tamil'>('studio');
+  // Navigation: 'studio' vs 'autopilot' vs 'video' vs 'tamil' vs 'carousel'
+  const [currentTab, setCurrentTab] = useState<'studio' | 'autopilot' | 'video' | 'tamil' | 'carousel'>('studio');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [carouselKural, setCarouselKural] = useState<ThirukkuralItem | undefined>();
 
   // 1. Core Quote State
   const [quote, setQuote] = useState('Do not let anyone put out your spark. Even the smallest ember can set the world on fire.');
@@ -424,7 +427,13 @@ export default function Home() {
 
       {/* Main Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        {currentTab === 'autopilot' ? (
+        {currentTab === 'carousel' ? (
+          /* Multi-Slide Instagram Carousel Studio */
+          <CarouselStudio
+            initialKural={carouselKural}
+            onOpenPublishModal={handleOpenPublishModal}
+          />
+        ) : currentTab === 'autopilot' ? (
           /* 7-Day Auto-Pilot Viral Scheduler */
           <BatchScheduler
             onLoadPostToStudio={handleLoadPostToStudio}
@@ -444,6 +453,10 @@ export default function Home() {
             initialAuthor={tamilInitialAuthor}
             onSendToVideoStudio={handleSendToVideoStudio}
             onOpenPublishModal={handleOpenPublishModal}
+            onOpenCarouselWithKural={(kural) => {
+              setCarouselKural(kural);
+              setCurrentTab('carousel');
+            }}
           />
         ) : (
           /* Live Studio Editor */
