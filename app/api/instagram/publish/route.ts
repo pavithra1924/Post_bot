@@ -8,7 +8,13 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, igUserId, accessToken, imageUrl, caption } = body;
+    const action = body.action || 'publish';
+
+    // Support payload or server environment variables
+    const accessToken = (body.accessToken || process.env.INSTAGRAM_ACCESS_TOKEN || '').trim();
+    let igUserId = (body.igUserId || process.env.INSTAGRAM_USER_ID || '').trim();
+    const imageUrl = body.imageUrl || body.imageBase64 || '';
+    const caption = body.caption || '';
 
     // Action: Auto-Discover Account from Access Token
     if (action === 'discover') {
@@ -24,29 +30,61 @@ export async function POST(req: NextRequest) {
 
     // Action: Verify Account
     if (action === 'verify') {
-      if (!igUserId || !accessToken) {
+      if (!accessToken) {
         return NextResponse.json(
-          { error: 'Instagram Account ID and Access Token are required.' },
+          { error: 'Meta Access Token is required.' },
           { status: 400 }
         );
+      }
+      // If igUserId is missing, attempt auto-discovery first
+      if (!igUserId) {
+        const auto = await autoDiscoverInstagramAccount(accessToken);
+        if (auto.success && auto.account?.id) {
+          igUserId = auto.account.id;
+        } else {
+          return NextResponse.json(
+            { error: auto.error || 'Instagram Account ID and Access Token are required.' },
+            { status: 400 }
+          );
+        }
       }
       const verification = await verifyInstagramAccount(igUserId, accessToken);
       return NextResponse.json(verification);
     }
 
     // Action: Publish Post
-    if (!igUserId || !accessToken || !imageUrl || !caption) {
+    if (!accessToken) {
       return NextResponse.json(
-        { error: 'igUserId, accessToken, imageUrl, and caption are all required to publish.' },
+        { error: 'Meta Access Token is required to publish.' },
         { status: 400 }
       );
+    }
+
+    if (!imageUrl) {
+      return NextResponse.json(
+        { error: 'Generated post image is required to publish.' },
+        { status: 400 }
+      );
+    }
+
+    // If igUserId is not provided, automatically discover it from the Access Token!
+    if (!igUserId) {
+      const discovery = await autoDiscoverInstagramAccount(accessToken);
+      if (discovery.success && discovery.account?.id) {
+        igUserId = discovery.account.id;
+      } else {
+        return NextResponse.json(
+          { error: discovery.error || 'Could not auto-detect connected Instagram page. Please verify your Facebook page link.' },
+          { status: 400 }
+        );
+      }
     }
 
     const publishResult = await publishToInstagram({
       igUserId,
       accessToken,
       imageUrl,
-      caption,
+      caption: caption || 'Spark Within',
     });
 
     return NextResponse.json(publishResult);

@@ -56,8 +56,8 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
   const [layoutStyle, setLayoutStyle] = useState<'luxury-gold' | 'frosted-glass' | 'magazine-frame' | 'minimal-dark'>('luxury-gold');
   const [showWatermark, setShowWatermark] = useState<boolean>(true);
 
-  // Typography & Text Alignment
-  const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>('center');
+  // Typography & Text Alignment (Defaulted to 'left' for Thirukkural)
+  const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>('left');
   const [fontSize, setFontSize] = useState<number>(42);
   const [fontFamily, setFontFamily] = useState<string>('Mukta Malar');
   const [lineSpacing, setLineSpacing] = useState<number>(1.55);
@@ -71,7 +71,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
   useEffect(() => {
     if (initialQuote) {
       setCustomQuote(initialQuote);
-      if (initialAuthor) setCustomAuthor(initialAuthor);
+      if (initialAuthor) setCustomAuthor(initialAuthor.replace(/\(?உள்\s*ஒளி\)?/g, '').trim());
     }
   }, [initialQuote, initialAuthor]);
 
@@ -92,7 +92,12 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
   const handleSelectQuote = (item: TamilQuoteItem) => {
     setActiveQuoteItem(item);
     setCustomQuote(item.quote);
-    setCustomAuthor(item.author);
+    const isKural = item.category === 'thirukkural' || item.category === 'wisdom' || item.categoryTamil.includes('வாழ்வியல்');
+    const authorToSet = isKural ? 'Spark Within' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+    setCustomAuthor(authorToSet);
+    if (isKural) {
+      setTextAlign('left');
+    }
     markTamilQuoteAsUsed(item.id);
   };
 
@@ -190,11 +195,21 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
       ctx.strokeRect(55, 55, width - 110, height - 110);
     }
 
-    // 4. Top Category Tag
+    // 4. Top Category Tag (Requirement 3: Keep 💎 வாழ்வியல் தத்துவம் heading exactly as it is)
+    const isThirukkuralOrWisdom =
+      activeQuoteItem.category === 'thirukkural' ||
+      activeQuoteItem.category === 'wisdom' ||
+      activeQuoteItem.categoryTamil.includes('வாழ்வியல்') ||
+      activeQuoteItem.categoryTamil.includes('திருக்குறள்');
+
+    const displayedHeading = isThirukkuralOrWisdom
+      ? '💎 வாழ்வியல் தத்துவம்'
+      : activeQuoteItem.categoryTamil;
+
     ctx.fillStyle = layoutStyle === 'luxury-gold' ? '#FBBF24' : '#E2E8F0';
     ctx.font = 'bold 22px "Noto Sans Tamil", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(activeQuoteItem.categoryTamil, width / 2, 135);
+    ctx.fillText(displayedHeading, width / 2, 135);
 
     // 5. Decorative Quote Mark
     ctx.fillStyle = layoutStyle === 'luxury-gold' ? 'rgba(251, 191, 36, 0.22)' : 'rgba(255, 255, 255, 0.15)';
@@ -280,12 +295,16 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
 
     ctx.shadowBlur = 0;
 
-    // 7. Author Line
+    // 7. Author Line (Requirement 4 & 5: Below content display only Spark Within, remove Tamil author & (உள் ஒளி))
+    const displayedAuthor = isThirukkuralOrWisdom
+      ? 'Spark Within'
+      : (customAuthor || 'Spark Within').replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+
     ctx.fillStyle = layoutStyle === 'luxury-gold' ? '#F59E0B' : '#94A3B8';
     ctx.font = `600 ${authorFontSize}px "${fontFamily}", "Noto Sans Tamil", sans-serif`;
     ctx.textAlign = textAlign;
     const authorY = startY + (wrappedLines.length * lineHeight) + authorGap;
-    ctx.fillText(`— ${customAuthor}`, textX, authorY);
+    ctx.fillText(`— ${displayedAuthor}`, textX, authorY);
 
     // 8. Watermark
     if (showWatermark) {
@@ -539,7 +558,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 type="text"
                 value={customAuthor}
                 onChange={(e) => setCustomAuthor(e.target.value)}
-                placeholder="ஆசிரியர் பெயர் (எ.கா. திருவள்ளுவர், பாரதியார்)"
+                placeholder="ஆசிரியர் பெயர் (Spark Within)"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500"
               />
             </div>
@@ -553,7 +572,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">எழுத்து சீரமைப்பு & வடிவமைப்பு (Alignment & Fonts)</h3>
               </div>
               <button
-                onClick={() => { setTextAlign('center'); setFontSize(42); setFontFamily('Mukta Malar'); setLineSpacing(1.55); }}
+                onClick={() => { setTextAlign('left'); setFontSize(42); setFontFamily('Mukta Malar'); setLineSpacing(1.55); }}
                 className="text-[11px] text-amber-600 hover:text-amber-700 font-bold cursor-pointer"
               >
                 இயல்புநிலை (Reset)

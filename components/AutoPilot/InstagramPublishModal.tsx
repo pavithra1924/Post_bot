@@ -176,8 +176,8 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
   };
 
   const handlePublish = async () => {
-    if (!igUserId || !accessToken) {
-      setStatusMessage({ type: 'error', text: 'Please connect your Instagram account first.' });
+    if (!accessToken.trim()) {
+      setStatusMessage({ type: 'error', text: 'Please enter your Meta Graph API Access Token.' });
       return;
     }
     setIsPublishing(true);
@@ -197,14 +197,18 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
 
       const data = await res.json();
       if (res.ok && data.success) {
+        localStorage.setItem('ig_access_token', accessToken.trim());
+        if (igUserId) localStorage.setItem('ig_user_id', igUserId.trim());
+
         setStatusMessage({
           type: 'success',
-          text: `🎉 Post published successfully to Instagram! Post ID: ${data.postId}`,
+          text: `🎉 Post published successfully to @_sparkwithin_hub_! (Post ID: ${data.postId})`,
         });
         confetti({
           particleCount: 120,
           spread: 80,
           origin: { y: 0.6 },
+          colors: ['#F59E0B', '#F43F5E', '#8B5CF6', '#10B981'],
         });
       } else {
         setStatusMessage({
@@ -366,7 +370,7 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
 
               <button
                 onClick={handleVerify}
-                disabled={isVerifying || !igUserId || !accessToken}
+                disabled={isVerifying || !accessToken.trim()}
                 className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isVerifying ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-slate-600" /> : null}
@@ -376,11 +380,11 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
               {/* Direct Publish Button */}
               <button
                 onClick={handlePublish}
-                disabled={isPublishing || !igUserId || !accessToken}
+                disabled={isPublishing || !accessToken.trim()}
                 className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white text-xs font-bold shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isPublishing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                <span>{isPublishing ? 'Publishing to Instagram...' : 'Publish to Instagram Now'}</span>
+                <span>{isPublishing ? 'Publishing to Instagram...' : 'Publish Directly to Instagram Now'}</span>
               </button>
             </div>
           </div>

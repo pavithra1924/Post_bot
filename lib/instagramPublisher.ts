@@ -190,7 +190,53 @@ export async function autoDiscoverInstagramAccount(
 }
 
 /**
+ * Ensures the image URL is a publicly accessible HTTPS link for Meta Graph API.
+ * If a data URL or base64 string is provided, uploads it to get a direct public image URL.
+ */
+export async function ensurePublicImageUrl(imageUrl: string): Promise<string> {
+  if (!imageUrl) throw new Error('Image URL is required for publishing.');
+
+  // If it's already an external public HTTP/HTTPS URL (not localhost), return it directly
+  if (
+    (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) &&
+    !imageUrl.includes('localhost') &&
+    !imageUrl.includes('127.0.0.1')
+  ) {
+    return imageUrl;
+  }
+
+  // If it is a data URL or base64, upload to freeimage.host
+  try {
+    const base64Data = imageUrl.includes('base64,')
+      ? imageUrl.split('base64,')[1]
+      : imageUrl;
+
+    const body = new URLSearchParams();
+    body.append('key', '6d207e02198a847aa98d0a2a901485a5');
+    body.append('action', 'upload');
+    body.append('format', 'json');
+    body.append('source', base64Data);
+
+    const res = await fetch('https://freeimage.host/api/1/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+
+    const data = await res.json();
+    if (res.ok && data?.image?.url) {
+      return data.image.url;
+    }
+    throw new Error(data?.error?.message || 'Image host service returned an error.');
+  } catch (err: any) {
+    console.error('ensurePublicImageUrl error:', err);
+    throw new Error(`Could not prepare image for Instagram: ${err.message}`);
+  }
+}
+
+/**
  * Publishes an image post to Instagram via Meta's 2-step Content Publishing API.
+ * Handles automatic image hosting, container readiness polling, and direct publishing.
  */
 export async function publishToInstagram({
   igUserId,
@@ -199,13 +245,16 @@ export async function publishToInstagram({
   caption,
 }: InstagramPublishParams): Promise<InstagramPublishResult> {
   try {
+    // Step 0: Ensure the image is a publicly accessible URL on the internet
+    const publicImageUrl = await ensurePublicImageUrl(imageUrl);
+
     // Step 1: Create the media container
     const createUrl = `https://graph.facebook.com/v21.0/${igUserId}/media`;
     const containerRes = await fetch(createUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        image_url: imageUrl,
+        image_url: publicImageUrl,
         caption: caption,
         access_token: accessToken,
       }),
@@ -213,13 +262,40 @@ export async function publishToInstagram({
 
     const containerData = await containerRes.json();
     if (!containerRes.ok || containerData.error) {
+      const msg = containerData.error?.message || 'Failed to create Instagram media container.';
       return {
         success: false,
-        error: containerData.error?.message || 'Failed to create Instagram media container.',
+        error: msg.includes('access token')
+          ? 'Your Meta Access Token is expired or invalid. Please refresh it in the Meta Developer Portal.'
+          : msg,
       };
     }
 
     const creationId = containerData.id;
+
+    // Step 1.5: Poll container status until ready (Meta image ingestion)
+    let isReady = false;
+    for (let attempt = 0; attempt < 6; attempt++) {
+      try {
+        const statusUrl = `https://graph.facebook.com/v21.0/${creationId}?fields=status_code&access_token=${accessToken}`;
+        const statusRes = await fetch(statusUrl);
+        const statusData = await statusRes.json();
+
+        if (statusData.status_code === 'FINISHED') {
+          isReady = true;
+          break;
+        } else if (statusData.status_code === 'ERROR') {
+          return {
+            success: false,
+            creationId,
+            error: 'Instagram rejected the media processing. Please verify the image dimensions.',
+          };
+        }
+      } catch (_) {}
+
+      // Wait 1.2s before next check
+      await new Promise((r) => setTimeout(r, 1200));
+    }
 
     // Step 2: Publish the media container
     const publishUrl = `https://graph.facebook.com/v21.0/${igUserId}/media_publish`;

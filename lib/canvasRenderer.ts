@@ -272,12 +272,22 @@ export async function renderQuoteToCanvas(
     ctx.restore();
   }
 
-  // 7. Category Badge / Header Tag
+  // 7. Category Badge / Header Tag (Requirement 3: Keep 💎 வாழ்வியல் தத்துவம் exactly as it is)
   const badgeY = safeMargin + 54;
   if (options.showCategoryBadge) {
     ctx.save();
-    const badgeText = (options.categoryBadgeText || options.theme.badge).toUpperCase();
-    ctx.font = `700 20px "${options.theme.secondaryFont}", sans-serif`;
+    let rawBadge = options.categoryBadgeText || options.theme.badge;
+    const isKuralOrWisdom =
+      rawBadge.includes('வாழ்வியல்') ||
+      rawBadge.includes('திருக்குறள்') ||
+      options.quote.includes('முயற்சி திருவினை') ||
+      options.quote.includes('உள்ளுவதெல்லாம்') ||
+      options.quote.includes('வெள்ளத் தனைய') ||
+      options.quote.includes('தெய்வத்தான்') ||
+      options.quote.includes('இடும்பைக்கு');
+
+    const badgeText = isKuralOrWisdom ? '💎 வாழ்வியல் தத்துவம்' : rawBadge.toUpperCase();
+    ctx.font = `700 20px "${options.theme.secondaryFont}", "Noto Sans Tamil", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -407,15 +417,29 @@ export async function renderQuoteToCanvas(
     ctx.restore();
   }
 
+  // Requirement 2: For all Thirukkural posts, keep the Tamil text left-aligned by default
+  const isKuralOrWisdomText =
+    options.categoryBadgeText?.includes('வாழ்வியல்') ||
+    options.categoryBadgeText?.includes('திருக்குறள்') ||
+    options.quote.includes('முயற்சி திருவினை') ||
+    options.quote.includes('உள்ளுவதெல்லாம்') ||
+    options.quote.includes('வெள்ளத் தனைய') ||
+    options.quote.includes('தெய்வத்தான்') ||
+    options.quote.includes('இடும்பைக்கு');
+
+  const effectiveTextAlign = isKuralOrWisdomText
+    ? (options.textAlign === 'center' ? 'left' : options.textAlign)
+    : options.textAlign;
+
   // 11. Subtle Quotation Marks in Background
   if (options.showQuoteMarks && options.theme.quoteMarkStyle !== 'none' && layout !== 'minimal-badge') {
     ctx.save();
     ctx.font = `900 240px "${options.theme.primaryFont}", serif`;
     ctx.fillStyle = options.accentColor;
     ctx.globalAlpha = 0.12;
-    ctx.textAlign = options.textAlign === 'center' ? 'center' : 'left';
+    ctx.textAlign = effectiveTextAlign === 'center' ? 'center' : 'left';
     ctx.textBaseline = 'top';
-    const qX = options.textAlign === 'center' ? width / 2 : safeMargin + 50;
+    const qX = effectiveTextAlign === 'center' ? width / 2 : safeMargin + 50;
     ctx.fillText('“', qX, centerY - totalContentHeight / 2 - 80);
     ctx.restore();
   }
@@ -424,7 +448,7 @@ export async function renderQuoteToCanvas(
   ctx.save();
   ctx.font = `${options.theme.fontWeight} ${effectiveFontSize}px "${options.fontFamily}", sans-serif`;
   ctx.fillStyle = options.textColor || '#FFFFFF';
-  ctx.textAlign = options.textAlign;
+  ctx.textAlign = effectiveTextAlign;
   ctx.textBaseline = 'middle';
 
   // Multi-stop crisp drop shadow for editorial contrast
@@ -433,7 +457,7 @@ export async function renderQuoteToCanvas(
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 4;
 
-  const quoteX = options.textAlign === 'center' ? width / 2 : safeMargin + 60;
+  const quoteX = effectiveTextAlign === 'center' ? width / 2 : safeMargin + 60;
 
   // Minimal Badge vertical accent line
   if (layout === 'minimal-badge') {
@@ -453,20 +477,24 @@ export async function renderQuoteToCanvas(
   });
   ctx.restore();
 
-  // 13. Render Author Attribution (Clean, verified, and consistent)
+  // 13. Render Author Attribution (Requirement 4 & 5: Below content display only Spark Within, remove Tamil author & (உள் ஒளி))
   if (hasAuthorToRender) {
     ctx.save();
     const authorY = startY + lines.length * lineHeightPx + authorGap;
     ctx.font = `600 ${authorFontSize}px "${options.theme.secondaryFont}", sans-serif`;
     ctx.fillStyle = options.accentColor;
-    ctx.textAlign = options.textAlign;
+    ctx.textAlign = effectiveTextAlign;
     ctx.textBaseline = 'middle';
 
     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
     ctx.shadowBlur = 12;
     ctx.shadowOffsetY = 2;
 
-    const authorClean = options.author.trim();
+    let authorClean = options.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+    if (isKuralOrWisdomText || authorClean.includes('திருவள்ளுவர்')) {
+      authorClean = 'Spark Within';
+    }
+
     let authorText = `— ${authorClean}`;
     if (options.theme.id === 'cyber_midnight') {
       authorText = `// SOURCE: ${authorClean.toUpperCase()}`;

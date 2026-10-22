@@ -5,7 +5,7 @@ import { getNonRepeatingWeek, PRESET_QUOTES } from '@/lib/presets';
 import { getNonRepeatingTamilWeek, TAMIL_PRESET_QUOTES } from '@/lib/tamilPresets';
 import { generateTamilViralCaption, TamilCaptionResult } from '@/lib/tamilCaptionGenerator';
 import { THEMES, ThemeId } from '@/lib/themes';
-import { LayoutStyle, AspectRatio } from '@/lib/canvasRenderer';
+import { LayoutStyle, AspectRatio, renderQuoteToCanvas } from '@/lib/canvasRenderer';
 import { Calendar, Sparkles, ArrowRight, Dices, Send, RefreshCw, Flame, Check, ShieldCheck, UserCheck, Film } from 'lucide-react';
 import { generateViralCaption, ViralCaptionResult } from '@/lib/captionGenerator';
 import { BatchCardCanvas } from './BatchCardCanvas';
@@ -62,13 +62,17 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
           item.layoutStyle === 'frosted-glass' ? 'glass-card' :
           item.layoutStyle === 'magazine-frame' ? 'editorial-frame' : 'centered-hero') as LayoutStyle;
 
+        const isKural = item.category === 'thirukkural' || item.category === 'wisdom' || item.categoryTamil.includes('வாழ்வியல்');
+        const authorClean = isKural ? 'Spark Within' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+        const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : item.categoryTamil;
+
         return {
           day: item.day,
           quote: item.quote,
-          author: item.author,
+          author: authorClean,
           isOriginalSpark: false,
           theme: tId,
-          badge: item.categoryTamil,
+          badge: badgeClean,
           layoutStyle: layout,
           backgroundImage: bg,
           caption: null,
@@ -201,6 +205,49 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
       }
       return copy;
     });
+  };
+
+  const handlePublishDayPost = async (item: ScheduledDayPost) => {
+    try {
+      const offscreen = document.createElement('canvas');
+      const theme = THEMES[item.theme];
+      const isTamil = item.language === 'ta' || /[\u0B80-\u0BFF]/.test(item.quote);
+      const isKural = item.badge?.includes('வாழ்வியல்') || item.badge?.includes('திருக்குறள்');
+      const authorClean = isKural ? 'Spark Within' : (item.author || 'Spark Within').replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+      const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : item.badge;
+
+      await renderQuoteToCanvas(offscreen, {
+        quote: item.quote,
+        author: authorClean,
+        showAuthor: showAuthorAttribution,
+        isOriginalSpark: item.isOriginalSpark,
+        theme,
+        aspectRatio: aspectRatio,
+        layoutStyle: item.layoutStyle,
+        backgroundImageUrl: item.backgroundImage,
+        fontFamily: isTamil ? 'Mukta Malar' : theme.primaryFont,
+        fontSize: aspectRatio === '4:5' ? (isTamil ? 44 : 52) : (isTamil ? 46 : 56),
+        textAlign: isKural ? 'left' : (item.layoutStyle === 'minimal-badge' ? 'left' : 'center'),
+        textColor: theme.defaultTextColor,
+        accentColor: theme.accentColor,
+        overlayOpacity: theme.overlayOpacity,
+        overlayColor: theme.overlayColor,
+        showQuoteMarks: true,
+        showBorder: true,
+        showCategoryBadge: true,
+        categoryBadgeText: badgeClean,
+        grainIntensity: theme.grainIntensity,
+        vignette: theme.vignette,
+        handle: '@_sparkwithin_hub_',
+        showHandle: true,
+        handlePosition: 'bottom-center',
+        showGlassCard: item.layoutStyle === 'glass-card',
+      });
+      const dataUrl = offscreen.toDataURL('image/png');
+      onOpenPublishModal(dataUrl, item.caption?.fullCaption || `"${item.quote}" — ${authorClean}`);
+    } catch {
+      onOpenPublishModal(item.backgroundImage, item.caption?.fullCaption || item.quote);
+    }
   };
 
   return (
@@ -410,7 +457,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
                 )}
 
                 <button
-                  onClick={() => onOpenPublishModal(item.backgroundImage, item.caption?.fullCaption || item.quote)}
+                  onClick={() => handlePublishDayPost(item)}
                   className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 transition-colors cursor-pointer shadow-xs"
                   title="Direct Post to Instagram"
                 >

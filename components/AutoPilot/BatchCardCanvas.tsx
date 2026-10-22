@@ -23,9 +23,14 @@ export const BatchCardCanvas: React.FC<BatchCardCanvasProps> = ({
     const theme = THEMES[post.theme];
 
     const isTamil = (post as any).language === 'ta' || /[\u0B80-\u0BFF]/.test(post.quote);
+    const isKural = post.badge?.includes('வாழ்வியல்') || post.badge?.includes('திருக்குறள்') || (post as any).category === 'thirukkural';
+    const authorClean = isKural ? 'Spark Within' : (post.author || 'Spark Within').replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+    const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : post.badge;
+    const effectiveAlign = isKural ? 'left' : (post.layoutStyle === 'minimal-badge' ? 'left' : 'center');
+
     const renderOpts: RenderQuoteOptions = {
       quote: post.quote,
-      author: post.author,
+      author: authorClean,
       showAuthor: showAuthor,
       isOriginalSpark: post.isOriginalSpark,
       theme,
@@ -34,7 +39,7 @@ export const BatchCardCanvas: React.FC<BatchCardCanvasProps> = ({
       backgroundImageUrl: post.backgroundImage,
       fontFamily: isTamil ? 'Mukta Malar' : theme.primaryFont,
       fontSize: aspectRatio === '4:5' ? (isTamil ? 44 : 52) : (isTamil ? 46 : 56),
-      textAlign: post.layoutStyle === 'minimal-badge' ? 'left' : 'center',
+      textAlign: effectiveAlign,
       textColor: theme.defaultTextColor,
       accentColor: theme.accentColor,
       overlayOpacity: theme.overlayOpacity,
@@ -42,7 +47,7 @@ export const BatchCardCanvas: React.FC<BatchCardCanvasProps> = ({
       showQuoteMarks: true,
       showBorder: true,
       showCategoryBadge: true,
-      categoryBadgeText: post.badge,
+      categoryBadgeText: badgeClean,
       grainIntensity: theme.grainIntensity,
       vignette: theme.vignette,
       handle: '@_sparkwithin_hub_',

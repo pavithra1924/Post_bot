@@ -18,11 +18,15 @@ import confetti from 'canvas-confetti';
 interface CanvasPreviewProps {
   renderOptions: RenderQuoteOptions;
   isGeneratingBg?: boolean;
+  onOpenPublishModal?: (imageUrl: string, caption?: string) => void;
+  currentCaption?: string;
 }
 
 export const CanvasPreview: React.FC<CanvasPreviewProps> = ({
   renderOptions,
   isGeneratingBg,
+  onOpenPublishModal,
+  currentCaption,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
@@ -71,6 +75,12 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handlePostToInstagram = () => {
+    if (!canvasRef.current || !onOpenPublishModal) return;
+    const dataUrl = canvasRef.current.toDataURL('image/png');
+    onOpenPublishModal(dataUrl, currentCaption);
   };
 
   const handleToggleLike = () => {
@@ -176,7 +186,11 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({
               </button>
 
               {/* Share Paperplane */}
-              <button className="hover:text-slate-900 transition-colors cursor-pointer" title="Share">
+              <button
+                onClick={handlePostToInstagram}
+                className="hover:text-slate-900 transition-colors cursor-pointer"
+                title="Post to Instagram"
+              >
                 <Send className="w-5 h-5 text-slate-700" />
               </button>
             </div>
@@ -213,18 +227,28 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({
       </div>
 
       {/* Export Action Bar (Positive Uplifting Gradients) */}
-      <div className="flex items-center gap-3 mt-4 w-full max-w-[480px]">
+      <div className="flex flex-col sm:flex-row items-center gap-2.5 mt-4 w-full max-w-[480px]">
+        {onOpenPublishModal && (
+          <button
+            onClick={handlePostToInstagram}
+            className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white font-extrabold text-xs shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+          >
+            <Send className="w-4 h-4" />
+            <span>Post to Instagram</span>
+          </button>
+        )}
+
         <button
           onClick={handleDownload}
-          className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 hover:opacity-95 text-white font-extrabold text-xs shadow-lg shadow-rose-500/20 transition-all cursor-pointer"
+          className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-xs shadow-xs transition-colors cursor-pointer"
         >
-          <Download className="w-4 h-4" />
-          <span>Download High-Res PNG</span>
+          <Download className="w-4 h-4 text-slate-600" />
+          <span>Download PNG</span>
         </button>
 
         <button
           onClick={handleCopy}
-          className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-colors cursor-pointer"
+          className="w-full sm:w-auto flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-colors cursor-pointer"
           title="Copy Image to Clipboard"
         >
           {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-600" />}

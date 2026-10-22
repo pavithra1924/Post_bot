@@ -7,6 +7,7 @@ import {
   preloadImage,
   AspectRatio,
   LayoutStyle,
+  renderQuoteToCanvas,
 } from '@/lib/canvasRenderer';
 import { QuotePreset } from '@/lib/presets';
 import { buildPollinationsUrl } from '@/lib/imageFetcher';
@@ -300,9 +301,19 @@ export default function Home() {
     }
   };
 
-  // Open Direct Publish Modal
-  const handleOpenPublishModal = (imageUrl?: string, caption?: string) => {
-    setPublishImageUrl(imageUrl || backgroundImageUrl);
+  // Open Direct Publish Modal (renders complete generated graphic post)
+  const handleOpenPublishModal = async (imageUrl?: string, caption?: string) => {
+    let finalImageUrl = imageUrl;
+    if (!finalImageUrl) {
+      try {
+        const offscreen = document.createElement('canvas');
+        await renderQuoteToCanvas(offscreen, renderOptions);
+        finalImageUrl = offscreen.toDataURL('image/png');
+      } catch {
+        finalImageUrl = backgroundImageUrl;
+      }
+    }
+    setPublishImageUrl(finalImageUrl || backgroundImageUrl);
     setPublishCaption(caption || captionData?.fullCaption || `"${quote}" — ${author}`);
     setIsInstagramModalOpen(true);
   };
@@ -443,6 +454,8 @@ export default function Home() {
                 <CanvasPreview
                   renderOptions={renderOptions}
                   isGeneratingBg={isGeneratingBg}
+                  onOpenPublishModal={handleOpenPublishModal}
+                  currentCaption={captionData?.fullCaption}
                 />
 
                 {/* Viral Caption & Trending Hashtags Box */}
