@@ -23,8 +23,8 @@ export const BatchCardCanvas: React.FC<BatchCardCanvasProps> = ({
     const theme = THEMES[post.theme];
 
     const isTamil = (post as any).language === 'ta' || /[\u0B80-\u0BFF]/.test(post.quote);
-    const isKural = post.badge?.includes('வாழ்வியல்') || post.badge?.includes('திருக்குறள்') || (post as any).category === 'thirukkural';
-    const authorClean = isKural ? 'Spark Within' : (post.author || 'Spark Within').replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+    const isKural = post.badge?.includes('திருக்குறள்') || (post as any).category === 'thirukkural' || post.author?.includes('வள்ளுவர்');
+    const authorClean = isKural ? 'திருவள்ளுவர்' : (post.author || 'Spark Within').replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
     const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : post.badge;
     const effectiveAlign = isKural ? 'left' : (post.layoutStyle === 'minimal-badge' ? 'left' : 'center');
 

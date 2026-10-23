@@ -62,8 +62,8 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
           item.layoutStyle === 'frosted-glass' ? 'glass-card' :
           item.layoutStyle === 'magazine-frame' ? 'editorial-frame' : 'centered-hero') as LayoutStyle;
 
-        const isKural = item.category === 'thirukkural' || item.category === 'wisdom' || item.categoryTamil.includes('வாழ்வியல்');
-        const authorClean = isKural ? 'Spark Within' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+        const isKural = item.category === 'thirukkural' || item.categoryTamil.includes('திருக்குறள்');
+        const authorClean = isKural ? 'திருவள்ளுவர்' : (item.author === 'Spark Within' ? 'Spark Within' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim());
         const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : item.categoryTamil;
 
         return {

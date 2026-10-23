@@ -491,7 +491,10 @@ export async function renderQuoteToCanvas(
     ctx.shadowOffsetY = 2;
 
     let authorClean = options.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
-    if (isKuralOrWisdomText || authorClean.includes('திருவள்ளுவர்')) {
+    // If it's a Thirukkural, author must strictly be திருவள்ளுவர்
+    if (authorClean.includes('வள்ளுவர்') || (isKuralOrWisdomText && !authorClean)) {
+      authorClean = 'திருவள்ளுவர்';
+    } else if (!authorClean) {
       authorClean = 'Spark Within';
     }
 

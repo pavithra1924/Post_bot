@@ -45,7 +45,7 @@ export const ThirukkuralLibraryModal: React.FC<ThirukkuralLibraryModalProps> = (
 
       const matchesText =
         item.verse.toLowerCase().includes(q) ||
-        item.explanation.toLowerCase().includes(q) ||
+        item.simpleExplanation.toLowerCase().includes(q) ||
         item.chapter.toLowerCase().includes(q) ||
         item.number.toString().includes(q) ||
         item.hookTitle.toLowerCase().includes(q);
@@ -83,7 +83,7 @@ export const ThirukkuralLibraryModal: React.FC<ThirukkuralLibraryModalProps> = (
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Author: <strong>Spark Within</strong> • Heading: <strong>💎 வாழ்வியல் தத்துவம்</strong>
+                ஆசிரியர்: <strong>திருவள்ளுவர்</strong> • தொகுப்பு: <strong>Spark Within</strong>
               </p>
             </div>
           </div>
@@ -187,7 +187,7 @@ export const ThirukkuralLibraryModal: React.FC<ThirukkuralLibraryModalProps> = (
                         வாழ்வியல் உரை:
                       </span>
                       <p className="text-xs text-slate-600 leading-relaxed text-left">
-                        {item.explanation}
+                        {item.simpleExplanation}
                       </p>
                     </div>
                   </div>
@@ -209,7 +209,7 @@ export const ThirukkuralLibraryModal: React.FC<ThirukkuralLibraryModalProps> = (
                           onClose();
                         }}
                         className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-                        title="Create 4-Slide Carousel Pack"
+                        title="Create 5-Slide Instagram Carousel Pack"
                       >
                         <Layers className="w-4 h-4 text-indigo-600" />
                       </button>

@@ -13,7 +13,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'kural-1',
     quote: 'முயற்சி திருவினை ஆக்கும் முயற்றின்மை\nஇன்மை புகுத்தி விடும்.',
-    author: 'Spark Within',
+    author: 'திருவள்ளுவர்',
     category: 'thirukkural',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'விடாமுயற்சி ஒருவருக்கு அளவற்ற செல்வத்தையும் வெற்றியையும் தரும்; முயற்சியற்ற சோம்பல் ஒருவனை வறுமையிலும் தோல்வியிலும் தள்ளிவிடும்.',
@@ -22,7 +22,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'kural-2',
     quote: 'உள்ளுவதெல்லாம் உயர்வுள்ளல் மற்றது\nதள்ளினும் தள்ளாமை நீர்த்து.',
-    author: 'Spark Within',
+    author: 'திருவள்ளுவர்',
     category: 'thirukkural',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'எப்போதும் உயர்ந்த லட்சியங்களையே எண்ணுங்கள்; ஒருவேளை அந்த லட்சியம் உடனடியாக கைகூடாவிட்டாலும் கூட, அந்த உயர்ந்த எண்ணமே உங்களை வெற்றியாளராக மாற்றும்.',
@@ -31,7 +31,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'kural-3',
     quote: 'வெள்ளத் தனைய மலர்நீட்டம் மாந்தர்தம்\nஉள்ளத் தனைய துயர்வு.',
-    author: 'Spark Within',
+    author: 'திருவள்ளுவர்',
     category: 'thirukkural',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'நீரின் உயரத்திற்கு ஏற்பவே தாமரை மலர் உயர்ந்து நிற்கும்; அதுபோல ஒரு மனிதனின் மன உறுதியின் அளவிற்கு ஏற்பவே அவனது வாழ்க்கை உயரும்.',
@@ -40,7 +40,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'kural-4',
     quote: 'தெய்வத்தான் ஆகா தெனினும் முயற்சிதன்\nமெய்வருத்தக் கூலி தரும்.',
-    author: 'Spark Within',
+    author: 'திருவள்ளுவர்',
     category: 'thirukkural',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'விதியே உங்களை தடுத்தாலும் கூட, உங்கள் உடலை வருத்தி நீங்கள் செய்யும் உழைப்பு அதற்கான பலனை ஒருபோதும் கொடுக்காமல் போகாது.',
@@ -49,7 +49,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'kural-5',
     quote: 'இடும்பைக்கு இடும்பை படுப்பர் இடும்பைக்கு\nஇடும்பை படாஅ தவர்.',
-    author: 'Spark Within',
+    author: 'திருவள்ளுவர்',
     category: 'thirukkural',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'துன்பம் வரும் போது துவண்டு போகாத மன உறுதி கொண்டவர்கள், அந்த துன்பத்திற்கே துன்பத்தை உண்டாக்கி அதை வெற்றி கொள்வார்கள்.',
