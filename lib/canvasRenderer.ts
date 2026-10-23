@@ -501,11 +501,8 @@ export async function renderQuoteToCanvas(
       ctx.shadowBlur = 12;
       ctx.shadowOffsetY = 2;
 
-      let authorText = `— ${authorClean}`;
-      if (options.theme.id === 'cyber_midnight') {
-        authorText = `// SOURCE: ${authorClean.toUpperCase()}`;
-      }
-
+      // Always render a clean, respectful author attribution (no "// SOURCE:" labels)
+      const authorText = `— ${authorClean}`;
       ctx.fillText(authorText, quoteX, authorY);
       ctx.restore();
     }

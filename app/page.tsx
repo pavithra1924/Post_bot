@@ -34,12 +34,13 @@ import { TamilStudioView } from '@/components/TamilStudio/TamilStudioView';
 import { ShareModal } from '@/components/ShareModal';
 import { CarouselStudio } from '@/components/Carousel/CarouselStudio';
 import { ThirukkuralItem } from '@/lib/tamilWisdomLibrary';
+import { Thirukkural1330Item } from '@/lib/thirukkural1330';
 
 export default function Home() {
   // Navigation: 'studio' vs 'autopilot' vs 'video' vs 'tamil' vs 'carousel'
   const [currentTab, setCurrentTab] = useState<'studio' | 'autopilot' | 'video' | 'tamil' | 'carousel'>('studio');
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [carouselKural, setCarouselKural] = useState<ThirukkuralItem | undefined>();
+  const [carouselKural, setCarouselKural] = useState<Thirukkural1330Item | ThirukkuralItem | undefined>();
 
   // 1. Core Quote State
   const [quote, setQuote] = useState('You have power over your mind - not outside events. Realize this, and you will find strength.');

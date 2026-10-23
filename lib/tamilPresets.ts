@@ -2,58 +2,58 @@ export interface TamilQuoteItem {
   id: string;
   quote: string;
   author: string;
-  category: 'thirukkural' | 'bharathiyar' | 'kalam' | 'vivekananda' | 'wisdom' | 'cinema';
+  category: 'thirukkural' | 'bharathiyar' | 'kalam' | 'vivekananda' | 'avvaiyar' | 'wisdom' | 'cinema' | 'self_confidence';
   categoryTamil: string;
   explanationTamil: string;
   bgKeyword: string;
 }
 
 export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
-  // 1. திருக்குறள் (Thirukkural)
+  // 1. ஔவையார் அமுதமொழிகள் (Avvaiyar - Aathichudi & Moodhurai)
   {
-    id: 'kural-1',
-    quote: 'முயற்சி திருவினை ஆக்கும் முயற்றின்மை\nஇன்மை புகுத்தி விடும்.',
-    author: 'திருவள்ளுவர்',
-    category: 'thirukkural',
-    categoryTamil: '💎 வாழ்வியல் தத்துவம்',
-    explanationTamil: 'விடாமுயற்சி ஒருவருக்கு அளவற்ற செல்வத்தையும் வெற்றியையும் தரும்; முயற்சியற்ற சோம்பல் ஒருவனை வறுமையிலும் தோல்வியிலும் தள்ளிவிடும்.',
+    id: 'avvai-1',
+    quote: 'கற்றது கைம்மண் அளவு,\nகல்லாதது உலகளவு!',
+    author: 'ஔவையார்',
+    category: 'avvaiyar',
+    categoryTamil: '🌸 ஔவையார் அமுதமொழிகள்',
+    explanationTamil: 'நாம் கற்றுக் கொண்டது ஒரு கைப்பிடி மண் அளவுதான்; நாம் இன்னும் கற்க வேண்டியது இந்த உலகளவு பெரிது என்பதை உணர்ந்து என்றும் பணிவோடு கற்போம்.',
     bgKeyword: 'temple-stone',
   },
   {
-    id: 'kural-2',
-    quote: 'உள்ளுவதெல்லாம் உயர்வுள்ளல் மற்றது\nதள்ளினும் தள்ளாமை நீர்த்து.',
-    author: 'திருவள்ளுவர்',
-    category: 'thirukkural',
-    categoryTamil: '💎 வாழ்வியல் தத்துவம்',
-    explanationTamil: 'எப்போதும் உயர்ந்த லட்சியங்களையே எண்ணுங்கள்; ஒருவேளை அந்த லட்சியம் உடனடியாக கைகூடாவிட்டாலும் கூட, அந்த உயர்ந்த எண்ணமே உங்களை வெற்றியாளராக மாற்றும்.',
-    bgKeyword: 'gold-mountain',
+    id: 'avvai-2',
+    quote: 'அறஞ்செய விரும்பு;\nஆறுவது சினம்;\nஇயல்வது கரவேல்!',
+    author: 'ஔவையார்',
+    category: 'avvaiyar',
+    categoryTamil: '🌸 ஔவையார் அமுதமொழிகள்',
+    explanationTamil: 'எப்போதும் நற்செயல்களைச் செய்ய விரும்புங்கள். அழிவை தரும் கோபத்தை உடனே தணித்துக் கொள்ளுங்கள். உங்களால் முடிந்த உதவியை எவருக்கும் மறைக்காமல் செய்யுங்கள்.',
+    bgKeyword: 'ancient-scroll',
   },
   {
-    id: 'kural-3',
-    quote: 'வெள்ளத் தனைய மலர்நீட்டம் மாந்தர்தம்\nஉள்ளத் தனைய துயர்வு.',
-    author: 'திருவள்ளுவர்',
-    category: 'thirukkural',
-    categoryTamil: '💎 வாழ்வியல் தத்துவம்',
-    explanationTamil: 'நீரின் உயரத்திற்கு ஏற்பவே தாமரை மலர் உயர்ந்து நிற்கும்; அதுபோல ஒரு மனிதனின் மன உறுதியின் அளவிற்கு ஏற்பவே அவனது வாழ்க்கை உயரும்.',
+    id: 'avvai-3',
+    quote: 'நல்லாரைக் காண்பதும் நன்றே\nநலமிக்க நல்லார்சொல் கேட்பதும் நன்றே!',
+    author: 'ஔவையார்',
+    category: 'avvaiyar',
+    categoryTamil: '🌸 ஔவையார் அமுதமொழிகள்',
+    explanationTamil: 'நல்ல குணம் உடைய சான்றோர்களை நேரில் காண்பதும் நன்மை; அவர்களின் அறிவுரைகளையும் நல்வார்த்தைகளையும் கேட்பது அதைவிடப் பெரிய நன்மையாகும்.',
     bgKeyword: 'lotus-water',
   },
   {
-    id: 'kural-4',
-    quote: 'தெய்வத்தான் ஆகா தெனினும் முயற்சிதன்\nமெய்வருத்தக் கூலி தரும்.',
-    author: 'திருவள்ளுவர்',
-    category: 'thirukkural',
-    categoryTamil: '💎 வாழ்வியல் தத்துவம்',
-    explanationTamil: 'விதியே உங்களை தடுத்தாலும் கூட, உங்கள் உடலை வருத்தி நீங்கள் செய்யும் உழைப்பு அதற்கான பலனை ஒருபோதும் கொடுக்காமல் போகாது.',
-    bgKeyword: 'fire-forge',
+    id: 'avvai-4',
+    quote: 'நன்றி ஒருவருக்குச் செய்தக்கால் அந்நன்றி\nஎன்று தருங்கொல் எனவேண்டா!',
+    author: 'ஔவையார்',
+    category: 'avvaiyar',
+    categoryTamil: '🌸 ஔவையார் அமுதமொழிகள்',
+    explanationTamil: 'ஒருவருக்கு நாம் செய்யும் உதவியை எப்போது திரும்பத் தருவார் என்று எதிர்பார்த்து செய்யக்கூடாது. தென்னை மரத்திற்கு ஊற்றிய நீர் தலைமேல் இளநீராய் பொழிவது போல் நற்செயல் தாமே பலன் தரும்.',
+    bgKeyword: 'gold-mountain',
   },
   {
-    id: 'kural-5',
-    quote: 'இடும்பைக்கு இடும்பை படுப்பர் இடும்பைக்கு\nஇடும்பை படாஅ தவர்.',
-    author: 'திருவள்ளுவர்',
-    category: 'thirukkural',
-    categoryTamil: '💎 வாழ்வியல் தத்துவம்',
-    explanationTamil: 'துன்பம் வரும் போது துவண்டு போகாத மன உறுதி கொண்டவர்கள், அந்த துன்பத்திற்கே துன்பத்தை உண்டாக்கி அதை வெற்றி கொள்வார்கள்.',
-    bgKeyword: 'storm-cliff',
+    id: 'avvai-5',
+    quote: 'ஊக்கமது கைவிடேல்;\nஎண்ணும் எழுத்தும் கண் எனத் தகும்!',
+    author: 'ஔவையார்',
+    category: 'avvaiyar',
+    categoryTamil: '🌸 ஔவையார் அமுதமொழிகள்',
+    explanationTamil: 'எந்தச் சூழ்நிலையிலும் உங்கள் மன ஊக்கத்தையும் நம்பிக்கையையும் கைவிட்டுவிடாதீர்கள். கல்வியும் அறிவும் மனிதனின் இரு கண்கள் போன்றவை.',
+    bgKeyword: 'dawn-sun',
   },
 
   // 2. மகாகவி பாரதியார் (Bharathiyar)
@@ -227,6 +227,35 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
     explanationTamil: 'வீழ்ச்சிகளை கண்டு ஒருபோதும் மண்டியிடாதீர்கள். எழுந்து நில்லுங்கள், உங்களை வீழ்த்திய தடைகளையே உங்கள் அடுத்த வெற்றிக்கான படிக்கட்டுகளாக மாற்றுங்கள்.',
     bgKeyword: 'bullet-speed',
   },
+
+  // 7. வெற்றி & தன்னம்பிக்கை (Self-Confidence & Daily Motivation)
+  {
+    id: 'conf-1',
+    quote: 'உன்னால் முடியும் என்று நம்பு;\nஉலகமே உன் பின்னால் வரும்!',
+    author: 'சுவாமி விவேகானந்தர்',
+    category: 'self_confidence',
+    categoryTamil: '🌟 வெற்றி & தன்னம்பிக்கை',
+    explanationTamil: 'உங்கள் மீது நீங்கள் வைக்கும் அசைக்க முடியாத நம்பிக்கையே வெற்றியின் முதல் வித்து. பயத்தை உதறிவிட்டு உறுதியுடன் முன்னேறுங்கள்.',
+    bgKeyword: 'storm-cliff',
+  },
+  {
+    id: 'conf-2',
+    quote: 'உழைப்புதான் ஒரு மனிதனை உயர்த்தும்;\nநேர்மையும் கடின உழைப்பும் என்றும் வீண்போகாது!',
+    author: 'கர்மவீரர் காமராஜர்',
+    category: 'self_confidence',
+    categoryTamil: '🌟 வெற்றி & தன்னம்பிக்கை',
+    explanationTamil: 'எளிய மனிதனையும் சிகரத்திற்கு கொண்டு செல்லும் சக்தி கடின உழைப்பிற்கு உண்டு. நேர்மையுடன் செய்யும் உழைப்பு ஒருபோதும் தோற்பதில்லை.',
+    bgKeyword: 'fire-forge',
+  },
+  {
+    id: 'conf-3',
+    quote: 'எதையும் தாங்கும் இதயம் வேண்டும்;\nகடமை, கண்ணியம், கட்டுப்பாடு!',
+    author: 'பேரறிஞர் அண்ணா',
+    category: 'self_confidence',
+    categoryTamil: '🌟 வெற்றி & தன்னம்பிக்கை',
+    explanationTamil: 'வாழ்க்கையின் எந்த சவாலையும் எதிர்கொள்ளும் மனப்பக்குவத்தை வளர்த்துக் கொள்ளுங்கள். ஒழுக்கமும் கடமையுணர்வும் உங்களை வழிநடத்தும்.',
+    bgKeyword: 'gold-mountain',
+  },
 ];
 
 // 52 Curated Tamil Viral Hashtags
@@ -300,13 +329,13 @@ export function getNonRepeatingTamilWeek(offset: number = 0): (TamilQuoteItem & 
   ];
 
   const categories: TamilQuoteItem['category'][] = [
-    'thirukkural',
-    'bharathiyar',
-    'kalam',
-    'vivekananda',
-    'wisdom',
-    'cinema',
-    'thirukkural'
+    'bharathiyar',     // Monday: பாரதியார் வரிகள்
+    'kalam',           // Tuesday: அப்துல் கலாம் வரிகள்
+    'vivekananda',     // Wednesday: விவேகானந்தர் பொன்மொழிகள்
+    'avvaiyar',        // Thursday: ஔவையார் அமுதமொழிகள்
+    'wisdom',          // Friday: தமிழறிஞர்கள் சிந்தனைகள்
+    'cinema',          // Saturday: சினிமா வாழ்வியல் தத்துவம்
+    'self_confidence'  // Sunday: வெற்றி & தன்னம்பிக்கை
   ];
 
   return TAMIL_WEEK_DAYS.map((day, idx) => {

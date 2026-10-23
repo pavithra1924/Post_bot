@@ -2,6 +2,13 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
+  ALL_1330_KURALS,
+  Thirukkural1330Item,
+  getKuralByNumber,
+  ALL_133_CHAPTERS,
+  THIRUKKURAL_SECTIONS,
+} from '@/lib/thirukkural1330';
+import {
   THIRUKKURAL_LIBRARY,
   ThirukkuralItem,
   TAMIL_WISDOM_CATEGORIES,
@@ -26,7 +33,7 @@ import {
 import confetti from 'canvas-confetti';
 
 interface CarouselStudioProps {
-  initialKural?: ThirukkuralItem;
+  initialKural?: Thirukkural1330Item | ThirukkuralItem;
   onOpenPublishModal?: (imageUrl: string, caption: string) => void;
   onOpenLibraryModal?: () => void;
 }
@@ -83,26 +90,58 @@ export interface FiveSlidePack {
 }
 
 export const CarouselStudio: React.FC<CarouselStudioProps> = ({
-  initialKural = THIRUKKURAL_LIBRARY[0],
+  initialKural = ALL_1330_KURALS[0],
   onOpenPublishModal,
   onOpenLibraryModal,
 }) => {
-  const [activeKural, setActiveKural] = useState<ThirukkuralItem>(initialKural);
+  const [activeKural, setActiveKural] = useState<Thirukkural1330Item | ThirukkuralItem>(initialKural);
   const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
   const [aspectRatio, setAspectRatio] = useState<'4:5' | '1:1'>('4:5');
   const [themeStyle, setThemeStyle] = useState<CarouselTheme>('gold_luxury');
   const [copiedCaption, setCopiedCaption] = useState(false);
   const [isExportingAll, setIsExportingAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedSection, setSelectedSection] = useState<string>('all');
+  const [selectedChapter, setSelectedChapter] = useState<number | 'all'>('all');
+  const [kuralNumberInput, setKuralNumberInput] = useState<string>(initialKural.number.toString());
   const [kuralFontSize, setKuralFontSize] = useState<number>(40);
 
   // Sync when initialKural changes externally
   useEffect(() => {
     if (initialKural) {
       setActiveKural(initialKural);
+      setKuralNumberInput(initialKural.number.toString());
     }
   }, [initialKural]);
+
+  const handleGoToKuralNumber = (num: number) => {
+    const target = getKuralByNumber(num);
+    setActiveKural(target);
+    setKuralNumberInput(target.number.toString());
+  };
+
+  const handlePrevKural = () => {
+    const prevNum = activeKural.number > 1 ? activeKural.number - 1 : 1330;
+    handleGoToKuralNumber(prevNum);
+  };
+
+  const handleNextKural = () => {
+    const nextNum = activeKural.number < 1330 ? activeKural.number + 1 : 1;
+    handleGoToKuralNumber(nextNum);
+  };
+
+  const handleRandomKural = () => {
+    const randNum = Math.floor(Math.random() * 1330) + 1;
+    handleGoToKuralNumber(randNum);
+  };
+
+  const handleNumberInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const val = parseInt(kuralNumberInput.trim(), 10);
+    if (!isNaN(val) && val >= 1 && val <= 1330) {
+      handleGoToKuralNumber(val);
+    }
+  };
 
   // Maintain editable 5-slide data pack for the active Kural
   const [slidePack, setSlidePack] = useState<FiveSlidePack>(() => ({
@@ -723,22 +762,27 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
     setTimeout(() => setCopiedCaption(false), 2000);
   };
 
-  // Filtered Kurals for Search
+  // Filter all 1330 Kurals by Section, Chapter, and Search Query (strictly in order 1, 2, 3...)
   const filteredKurals = useMemo(() => {
-    return THIRUKKURAL_LIBRARY.filter((item) => {
-      const matchesCategory =
-        selectedCategory === 'all' || item.category === selectedCategory;
+    return ALL_1330_KURALS.filter((item) => {
+      if (selectedSection !== 'all' && item.section !== selectedSection) {
+        return false;
+      }
+      if (selectedChapter !== 'all' && item.chapterNumber !== selectedChapter) {
+        return false;
+      }
       const q = searchQuery.trim().toLowerCase();
-      if (!q) return matchesCategory;
+      if (!q) return true;
       return (
-        matchesCategory &&
-        (item.verse.toLowerCase().includes(q) ||
-          item.simpleExplanation.toLowerCase().includes(q) ||
-          item.number.toString().includes(q) ||
-          item.chapter.toLowerCase().includes(q))
+        item.number.toString() === q ||
+        item.number.toString().includes(q) ||
+        item.verse.toLowerCase().includes(q) ||
+        item.chapter.toLowerCase().includes(q) ||
+        item.simpleExplanation.toLowerCase().includes(q) ||
+        item.translation.toLowerCase().includes(q)
       );
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedSection, selectedChapter]);
 
   const slideTabs = [
     { idx: 0, title: '1. குறள் (Verse)', desc: 'திருக்குறள் & ஆசிரியர் திருவள்ளுவர்' },
@@ -900,41 +944,160 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         {/* Right Column: 5-Slide Content Editor & Theme Configuration */}
         <div className="lg:w-[52%] w-full space-y-5">
-          {/* 1. Kural Quick Search & Selector (Full width, no clipped titles) */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
-            <div className="flex items-center justify-between">
+          {/* 1. Complete 1,330 Thirukkural Selector & Sequential Navigator */}
+          <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
               <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                 <BookOpen className="w-4 h-4 text-amber-500" />
-                <span>திருக்குறள் தேர்வு (Select Kural)</span>
+                <span>1330 திருக்குறள்கள் வரிசைப்படி (All 1,330 Kurals)</span>
               </span>
-              <span className="text-[11px] font-semibold text-slate-500">
-                {THIRUKKURAL_LIBRARY.length} தேர்ந்தெடுக்கப்பட்ட குறள்கள்
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-bold">
+                  குறள் #{activeKural.number} / 1330
+                </span>
+                <span className="text-[11px] font-medium text-slate-500">
+                  {activeKural.chapter}
+                </span>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            {/* Sequential Stepper & Direct Jump Form */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handlePrevKural}
+                className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-xs"
+                title="முந்தைய குறள் (Previous Kural)"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>#{activeKural.number > 1 ? activeKural.number - 1 : 1330}</span>
+              </button>
+
+              <form onSubmit={handleNumberInputSubmit} className="flex items-center gap-1.5 flex-1 min-w-[150px]">
                 <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="குறள் எண், அதிகாரம் அல்லது சொல் தேடுக... (Search Kural)"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500 transition-all"
+                  type="number"
+                  min={1}
+                  max={1330}
+                  value={kuralNumberInput}
+                  onChange={(e) => setKuralNumberInput(e.target.value)}
+                  placeholder="குறள் எண் (1-1330)"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500 transition-all text-center"
                 />
+                <button
+                  type="submit"
+                  className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-xs whitespace-nowrap"
+                >
+                  செல் (Go)
+                </button>
+              </form>
+
+              <button
+                type="button"
+                onClick={handleNextKural}
+                className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-xs"
+                title="அடுத்த குறள் (Next Kural)"
+              >
+                <span>#{activeKural.number < 1330 ? activeKural.number + 1 : 1}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRandomKural}
+                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-xs"
+                title="ஏதேனும் ஒரு குறள் (Random Kural)"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span>🎲 ஏதேனும் ஒன்று</span>
+              </button>
+            </div>
+
+            {/* Section (பால்) Tabs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-100 rounded-xl">
+              {THIRUKKURAL_SECTIONS.map((sec) => (
+                <button
+                  key={sec.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedSection(sec.id);
+                    setSelectedChapter('all');
+                  }}
+                  className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center truncate cursor-pointer ${
+                    selectedSection === sec.id
+                      ? 'bg-white text-amber-900 shadow-xs ring-1 ring-slate-200/60'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  }`}
+                >
+                  {sec.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Chapter (அதிகாரம்) Filter & Search */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                  133 அதிகாரங்கள் (Filter by Chapter):
+                </label>
+                <select
+                  value={selectedChapter}
+                  onChange={(e) => {
+                    const val = e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10);
+                    setSelectedChapter(val);
+                    if (val !== 'all') {
+                      const firstKuralOfChapter = (val - 1) * 10 + 1;
+                      handleGoToKuralNumber(firstKuralOfChapter);
+                    }
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500 cursor-pointer transition-all"
+                >
+                  <option value="all">அனைத்து 133 அதிகாரங்கள் (All Chapters)</option>
+                  {ALL_133_CHAPTERS
+                    .filter((ch) => selectedSection === 'all' || ch.section === selectedSection)
+                    .map((ch) => (
+                      <option key={ch.number} value={ch.number}>
+                        {ch.number}. {ch.name} (குறள் {ch.startNumber}-{ch.endNumber})
+                      </option>
+                    ))}
+                </select>
               </div>
 
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                  சொல் / எண் தேடுக (Quick Search):
+                </label>
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="எ.கா: 1, 619, முயற்சி, அறிவு..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Kural Dropdown in Strict Order 1, 2, 3... 1330 */}
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                குறள் தேர்வு ({filteredKurals.length} குறள்கள் வரிசையில்):
+              </label>
               <select
                 value={activeKural.id}
                 onChange={(e) => {
-                  const found = THIRUKKURAL_LIBRARY.find((k) => k.id === e.target.value);
-                  if (found) setActiveKural(found);
+                  const found = ALL_1330_KURALS.find((k) => k.id === e.target.value);
+                  if (found) {
+                    setActiveKural(found);
+                    setKuralNumberInput(found.number.toString());
+                  }
                 }}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-semibold focus:bg-white focus:outline-none focus:border-amber-500 cursor-pointer transition-all leading-normal"
               >
                 {filteredKurals.map((k) => (
                   <option key={k.id} value={k.id}>
-                    குறள் #{k.number} — {k.hookTitle}
+                    குறள் #{k.number} • {k.chapter} — {k.line1.length > 36 ? k.line1.slice(0, 36) + '...' : k.line1}
                   </option>
                 ))}
               </select>
