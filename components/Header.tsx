@@ -35,9 +35,9 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-6 lg:px-8 py-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
         {/* Brand: Positive Elegant Studio */}
-        <div className="w-full md:w-auto flex items-center justify-between md:justify-start gap-3">
+        <div className="w-full md:w-auto flex items-center justify-between md:justify-start gap-3 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 p-[2px] shadow-md shadow-rose-500/20 shrink-0">
               <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
@@ -45,16 +45,16 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
                   InstaQuote <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-rose-500 font-serif italic">Studio</span>
                 </h1>
-                <span className="text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs">
+                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs">
                   PRO
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] text-slate-500 hidden sm:block">
-                Inspiring Quotes, 5-Slide Carousels & Motivational 9:16 Reels
+              <p className="text-[10px] text-slate-500 hidden xl:block">
+                Inspiring Quotes, 5-Slide Carousels & Motivational Reels
               </p>
             </div>
           </div>
@@ -78,11 +78,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: Bright Elegant Tab Switcher (Horizontal scrollable on mobile) */}
-        <div className="w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-none flex items-center p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 gap-1">
+        {/* Center: Bright Elegant Tab Switcher (Never truncated) */}
+        <div className="w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-none flex items-center p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 gap-1 shrink-0">
           <button
             onClick={() => onChangeTab('studio')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               currentTab === 'studio'
                 ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-md shadow-rose-500/20 font-bold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
@@ -95,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => onChangeTab('tamil')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               currentTab === 'tamil'
                 ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-md shadow-rose-500/20 font-bold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
@@ -108,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => onChangeTab('carousel')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               currentTab === 'carousel'
                 ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-md shadow-rose-500/20 font-bold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
@@ -126,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => onChangeTab('autopilot')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               currentTab === 'autopilot'
                 ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-md shadow-rose-500/20 font-bold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
@@ -144,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => onChangeTab('video')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               currentTab === 'video'
                 ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-md shadow-rose-500/20 font-bold'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'

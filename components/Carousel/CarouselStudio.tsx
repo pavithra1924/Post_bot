@@ -95,6 +95,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
   const [isExportingAll, setIsExportingAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [kuralFontSize, setKuralFontSize] = useState<number>(40);
 
   // Sync when initialKural changes externally
   useEffect(() => {
@@ -300,23 +301,24 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
       ctx.lineWidth = 1;
       ctx.strokeRect(66, 66, width - 132, height - 132);
 
-      // 3. Top Header Bar: Slide Indicator (e.g. "SLIDE 1 OF 5") & Category Badge
-      const headerY = 120;
+      // 3. Top Header Bar: Slide Indicator & Category Badge (With safe vertical clearance)
+      const headerY = 145;
 
       // Category Badge (💎 வாழ்வியல் தத்துவம்)
       ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
       ctx.fillStyle = tc.accentBadge;
       ctx.font = '700 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillText('💎 வாழ்வியல் தத்துவம்', 96, headerY);
 
       // Slide Indicator (1 / 5, 2 / 5, etc.)
       ctx.textAlign = 'right';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.font = '600 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
       ctx.fillText(`${slideIndex + 1} / 5`, width - 96, headerY);
 
       // Top Divider Line
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(96, headerY + 28);
@@ -328,82 +330,104 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
       const contentRight = width - 96;
       const contentWidth = contentRight - contentLeft;
 
-      // Helper function to wrap text cleanly
-      const wrapText = (
-        text: string,
-        x: number,
-        startY: number,
-        maxW: number,
-        lineH: number,
-        align: CanvasTextAlign = 'left'
-      ): number => {
-        ctx.textAlign = align;
-        const paragraphs = text.split('\n');
-        let curY = startY;
+      // Safe vertical work area
+      const footerY = height - 90;
+      const topSafe = headerY + 50;
+      const bottomSafe = footerY - 50;
+      const availHeight = bottomSafe - topSafe;
 
+      // Helper function to wrap text cleanly into lines
+      const wrapTextLines = (text: string, maxW: number): string[] => {
+        const paragraphs = text.split(/\r?\n/);
+        const result: string[] = [];
         for (const para of paragraphs) {
-          if (!para.trim()) {
-            curY += lineH * 0.6;
-            continue;
-          }
-          const words = para.split(' ');
-          let line = '';
+          const trimmed = para.trim();
+          if (!trimmed) continue;
+          const words = trimmed.split(/\s+/);
+          let curLine = '';
           for (let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
+            const testLine = curLine ? `${curLine} ${words[n]}` : words[n];
             const metrics = ctx.measureText(testLine);
             if (metrics.width > maxW && n > 0) {
-              ctx.fillText(line.trim(), x, curY);
-              line = words[n] + ' ';
-              curY += lineH;
+              result.push(curLine.trim());
+              curLine = words[n] + ' ';
             } else {
-              line = testLine;
+              curLine = testLine + ' ';
             }
           }
-          ctx.fillText(line.trim(), x, curY);
-          curY += lineH;
+          if (curLine.trim()) result.push(curLine.trim());
         }
-        return curY;
+        return result;
       };
 
-      // 4. Slide Specific Rendering (Slides 1 to 5)
+      // 4. Slide Specific Rendering (Vertically Balanced & Optically Centered)
       if (slideIndex === 0) {
         // ==========================================
         // SLIDE 1 — திருக்குறள் (Original Couplet)
         // ==========================================
         const data = slidePack.slide1_verse;
+        const lines = data.verse.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
 
-        // Subheader: Chapter & Kural Number
+        // Kural verse font size: 40px default as requested
+        const verseFontSize = kuralFontSize;
+        const verseLineHeight = Math.round(verseFontSize * 1.68);
+        const verseBlockHeight = lines.length * verseLineHeight;
+
+        // Heights of components
+        const subheaderHeight = 36;
+        const accentBarGap = 16;
+        const accentBarHeight = 4;
+        const gapToVerse = 45;
+        const gapToAuthor = 45;
+        const authorLineHeight = 36;
+        const gapToBrand = 18;
+        const brandLineHeight = 26;
+
+        const totalBlockHeight =
+          subheaderHeight +
+          accentBarGap +
+          accentBarHeight +
+          gapToVerse +
+          verseBlockHeight +
+          gapToAuthor +
+          authorLineHeight +
+          gapToBrand +
+          brandLineHeight;
+
+        // Perfectly centered vertically
+        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+
+        // 1. Subheader: Chapter & Kural Number
         ctx.fillStyle = tc.accentSub;
-        ctx.font = '600 32px "Mukta Malar", -apple-system, sans-serif';
+        ctx.font = '600 30px "Mukta Malar", -apple-system, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(`குறள் #${data.kuralNumber} • அதிகாரம்: ${data.chapter}`, contentLeft, 320);
+        ctx.textBaseline = 'top';
+        ctx.fillText(`குறள் #${data.kuralNumber} • அதிகாரம்: ${data.chapter}`, contentLeft, startY);
 
-        // Decorative horizontal accent
+        // 2. Decorative horizontal accent line
         ctx.fillStyle = tc.accentBadge;
-        ctx.fillRect(contentLeft, 345, 80, 4);
+        ctx.fillRect(contentLeft, startY + subheaderHeight + accentBarGap, 84, accentBarHeight);
 
-        // The Authentic Two-Line Couplet (Left-aligned, prominent typography)
+        // 3. The Authentic Two-Line Couplet (Strictly 40px default)
         ctx.fillStyle = tc.textColor;
-        ctx.font = 'bold 50px "Mukta Malar", -apple-system, sans-serif';
-        const lines = data.verse.split('\n');
-        let verseY = 460;
-        ctx.textAlign = 'left';
+        ctx.font = `bold ${verseFontSize}px "Mukta Malar", -apple-system, sans-serif`;
+        let curVerseY = startY + subheaderHeight + accentBarGap + accentBarHeight + gapToVerse;
         for (const l of lines) {
-          ctx.fillText(l.trim(), contentLeft, verseY);
-          verseY += 92;
+          ctx.fillText(l, contentLeft, curVerseY);
+          curVerseY += verseLineHeight;
         }
 
-        // Mandatory Author Attribution: திருவள்ளுவர் (Strictly Thiruvalluvar!)
-        verseY += 60;
+        // 4. Mandatory Author Attribution: திருவள்ளுவர்
+        const authorY = curVerseY - verseLineHeight + gapToAuthor;
         ctx.fillStyle = tc.authorColor;
-        ctx.font = 'bold 36px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(`— ஆசிரியர்: ${data.author}`, contentLeft, verseY);
+        ctx.font = 'bold 34px "Mukta Malar", -apple-system, sans-serif';
+        ctx.fillText(`— ஆசிரியர்: ${data.author}`, contentLeft, authorY);
 
-        // Creator Brand Attribution: Spark Within (Separated clearly!)
-        verseY += 50;
+        // 5. Creator Brand Attribution: Spark Within
+        const brandY = authorY + authorLineHeight + gapToBrand;
         ctx.fillStyle = tc.brandColor;
-        ctx.font = '500 24px -apple-system, sans-serif';
-        ctx.fillText(`வழங்குபவர்: ${data.brand} (${data.handle})`, contentLeft, verseY);
+        ctx.font = '500 22px -apple-system, sans-serif';
+        ctx.fillText(`வழங்குபவர்: ${data.brand} (${data.handle})`, contentLeft, brandY);
 
       } else if (slideIndex === 1) {
         // ==========================================
@@ -411,29 +435,48 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         // ==========================================
         const data = slidePack.slide2_simpleMeaning;
 
+        ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
+        const explLines = wrapTextLines(data.content, contentWidth);
+        const explLineH = 66;
+        const textHeight = explLines.length * explLineH;
+
+        const headerHeight = 44 + 14 + 26 + 18 + 4;
+        const gap1 = 40;
+        const gap2 = 45;
+        const attrHeight = 36;
+        const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + attrHeight;
+
+        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+
         // Title Header
         ctx.fillStyle = tc.accentSub;
         ctx.font = 'bold 42px "Mukta Malar", -apple-system, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(data.title, contentLeft, 320);
+        ctx.textBaseline = 'top';
+        ctx.fillText(data.title, contentLeft, startY);
 
         // Kural reference tag
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
         ctx.font = '500 24px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(data.kuralRef, contentLeft, 365);
+        ctx.fillText(data.kuralRef, contentLeft, startY + 54);
 
+        // Accent line
         ctx.fillStyle = tc.accentBadge;
-        ctx.fillRect(contentLeft, 385, 80, 4);
+        ctx.fillRect(contentLeft, startY + 92, 84, 4);
 
-        // Explanation Body (Short, clean, easily understandable sentences)
+        // Explanation Body
         ctx.fillStyle = tc.textColor;
-        ctx.font = '500 42px "Mukta Malar", -apple-system, sans-serif';
-        const nextY = wrapText(data.content, contentLeft, 470, contentWidth, 76, 'left');
+        ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
+        let textY = startY + headerHeight + gap1;
+        for (const l of explLines) {
+          ctx.fillText(l, contentLeft, textY);
+          textY += explLineH;
+        }
 
         // Attribution
         ctx.fillStyle = tc.authorColor;
-        ctx.font = '600 30px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(`— ஆசிரியர்: ${data.author} • தொகுப்பு: ${data.brand}`, contentLeft, nextY + 60);
+        ctx.font = '600 28px "Mukta Malar", -apple-system, sans-serif';
+        ctx.fillText(`— ஆசிரியர்: ${data.author} • தொகுப்பு: ${data.brand}`, contentLeft, textY + gap2);
 
       } else if (slideIndex === 2) {
         // ==========================================
@@ -441,28 +484,46 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         // ==========================================
         const data = slidePack.slide3_deepMeaning;
 
+        ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
+        const deepLines = wrapTextLines(data.content, contentWidth);
+        const deepLineH = 66;
+        const textHeight = deepLines.length * deepLineH;
+
+        const headerHeight = 44 + 14 + 26 + 18 + 4;
+        const gap1 = 40;
+        const gap2 = 45;
+        const attrHeight = 36;
+        const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + attrHeight;
+
+        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+
         // Title Header
         ctx.fillStyle = tc.accentSub;
         ctx.font = 'bold 42px "Mukta Malar", -apple-system, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(data.title, contentLeft, 320);
+        ctx.textBaseline = 'top';
+        ctx.fillText(data.title, contentLeft, startY);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
         ctx.font = '500 24px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText('தத்துவ மற்றும் வாழ்வியல் உள்நோக்கம்', contentLeft, 365);
+        ctx.fillText('தத்துவ மற்றும் வாழ்வியல் உள்நோக்கம்', contentLeft, startY + 54);
 
         ctx.fillStyle = tc.accentBadge;
-        ctx.fillRect(contentLeft, 385, 80, 4);
+        ctx.fillRect(contentLeft, startY + 92, 84, 4);
 
         // Deep Meaning Content
         ctx.fillStyle = tc.textColor;
-        ctx.font = '500 40px "Mukta Malar", -apple-system, sans-serif';
-        const nextY = wrapText(data.content, contentLeft, 470, contentWidth, 74, 'left');
+        ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
+        let textY = startY + headerHeight + gap1;
+        for (const l of deepLines) {
+          ctx.fillText(l, contentLeft, textY);
+          textY += deepLineH;
+        }
 
         // Wisdom Note
         ctx.fillStyle = tc.authorColor;
-        ctx.font = '600 30px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(`— ஆசிரியர்: ${data.author} • வாழ்வியல் தொகுப்பு: ${data.brand}`, contentLeft, nextY + 60);
+        ctx.font = '600 28px "Mukta Malar", -apple-system, sans-serif';
+        ctx.fillText(`— ஆசிரியர்: ${data.author} • வாழ்வியல் தொகுப்பு: ${data.brand}`, contentLeft, textY + gap2);
 
       } else if (slideIndex === 3) {
         // ==========================================
@@ -470,28 +531,46 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         // ==========================================
         const data = slidePack.slide4_lifeExample;
 
+        ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
+        const lifeLines = wrapTextLines(data.content, contentWidth);
+        const lifeLineH = 66;
+        const textHeight = lifeLines.length * lifeLineH;
+
+        const headerHeight = 44 + 14 + 26 + 18 + 4;
+        const gap1 = 40;
+        const gap2 = 45;
+        const attrHeight = 36;
+        const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + attrHeight;
+
+        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+
         // Title Header
         ctx.fillStyle = tc.accentSub;
         ctx.font = 'bold 42px "Mukta Malar", -apple-system, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(data.title, contentLeft, 320);
+        ctx.textBaseline = 'top';
+        ctx.fillText(data.title, contentLeft, startY);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
         ctx.font = '500 24px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText('அன்றாட வாழ்க்கையில் நடைமுறை பயன்பாடு', contentLeft, 365);
+        ctx.fillText('அன்றாட வாழ்க்கையில் நடைமுறை பயன்பாடு', contentLeft, startY + 54);
 
         ctx.fillStyle = tc.accentBadge;
-        ctx.fillRect(contentLeft, 385, 80, 4);
+        ctx.fillRect(contentLeft, startY + 92, 84, 4);
 
         // Relatable Example Text
         ctx.fillStyle = tc.textColor;
-        ctx.font = '500 40px "Mukta Malar", -apple-system, sans-serif';
-        const nextY = wrapText(data.content, contentLeft, 470, contentWidth, 74, 'left');
+        ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
+        let textY = startY + headerHeight + gap1;
+        for (const l of lifeLines) {
+          ctx.fillText(l, contentLeft, textY);
+          textY += lifeLineH;
+        }
 
         // Context Footer
         ctx.fillStyle = tc.authorColor;
-        ctx.font = '600 30px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(`— ஆசிரியர்: ${data.author} • நடைமுறை விளக்கம்: ${data.brand}`, contentLeft, nextY + 60);
+        ctx.font = '600 28px "Mukta Malar", -apple-system, sans-serif';
+        ctx.fillText(`— ஆசிரியர்: ${data.author} • நடைமுறை விளக்கம்: ${data.brand}`, contentLeft, textY + gap2);
 
       } else {
         // ==========================================
@@ -499,40 +578,59 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         // ==========================================
         const data = slidePack.slide5_dailyThought;
 
+        ctx.font = '500 36px "Mukta Malar", -apple-system, sans-serif';
+        const thoughtLines = wrapTextLines(data.content, contentWidth);
+        const thoughtLineH = 62;
+        const textHeight = thoughtLines.length * thoughtLineH;
+
+        const headerHeight = 44 + 18 + 4;
+        const gap1 = 36;
+        const gap2 = 40;
+        const ctaBoxHeight = 110;
+        const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + ctaBoxHeight;
+
+        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+
         // Title Header
         ctx.fillStyle = tc.accentSub;
         ctx.font = 'bold 42px "Mukta Malar", -apple-system, sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(data.title, contentLeft, 300);
+        ctx.textBaseline = 'top';
+        ctx.fillText(data.title, contentLeft, startY);
 
         ctx.fillStyle = tc.accentBadge;
-        ctx.fillRect(contentLeft, 335, 80, 4);
+        ctx.fillRect(contentLeft, startY + 54, 84, 4);
 
         // Daily Takeaway Content
         ctx.fillStyle = tc.textColor;
-        ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
-        const nextY = wrapText(data.content, contentLeft, 410, contentWidth, 70, 'left');
+        ctx.font = '500 36px "Mukta Malar", -apple-system, sans-serif';
+        let textY = startY + headerHeight + gap1;
+        for (const l of thoughtLines) {
+          ctx.fillText(l, contentLeft, textY);
+          textY += thoughtLineH;
+        }
 
         // Brand CTA Box
-        const boxY = Math.min(nextY + 40, height - 280);
+        const boxY = textY + gap2;
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-        ctx.fillRect(contentLeft, boxY, contentWidth, 120);
+        ctx.fillRect(contentLeft, boxY, contentWidth, ctaBoxHeight);
         ctx.strokeStyle = tc.borderOuter;
         ctx.lineWidth = 1.5;
-        ctx.strokeRect(contentLeft, boxY, contentWidth, 120);
+        ctx.strokeRect(contentLeft, boxY, contentWidth, ctaBoxHeight);
 
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 28px -apple-system, sans-serif';
+        ctx.font = 'bold 26px -apple-system, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Spark Within • @_sparkwithin_hub_', width / 2, boxY + 52);
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Spark Within • @_sparkwithin_hub_', width / 2, boxY + 45);
 
         ctx.fillStyle = tc.accentBadge;
-        ctx.font = '600 22px -apple-system, sans-serif';
-        ctx.fillText('Follow for Daily Tamil Wisdom & Inspiration', width / 2, boxY + 92);
+        ctx.font = '600 20px -apple-system, sans-serif';
+        ctx.fillText('Follow for Daily Tamil Wisdom & Inspiration', width / 2, boxY + 80);
       }
 
-      // 5. Bottom Brand & Swipe Prompt
-      const footerY = height - 90;
+      // 5. Bottom Brand & Swipe Prompt (With clean vertical baseline)
+      ctx.textBaseline = 'middle';
 
       // Brand signature in bottom-left
       ctx.textAlign = 'left';
@@ -549,7 +647,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
       for (let i = 0; i < dotCount; i++) {
         ctx.beginPath();
-        ctx.arc(dotStartX + i * dotGap, footerY - 5, dotRadius, 0, Math.PI * 2);
+        ctx.arc(dotStartX + i * dotGap, footerY, dotRadius, 0, Math.PI * 2);
         if (i === slideIndex) {
           ctx.fillStyle = tc.accentBadge;
         } else {
@@ -568,7 +666,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         ctx.fillText('Save & Share 🔖', contentRight, footerY);
       }
     },
-    [slidePack, aspectRatio, themeConfig]
+    [slidePack, aspectRatio, themeConfig, kuralFontSize]
   );
 
   // Redraw preview whenever state changes
@@ -710,9 +808,9 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
       <div className="flex flex-col lg:flex-row gap-8 items-start">
         {/* Left Column: Live 5-Slide Canvas Preview */}
         <div className="lg:w-[48%] w-full flex flex-col items-center">
-          <div className="sticky top-20 w-full max-w-[440px] flex flex-col items-center gap-4">
+          <div className="sticky top-24 w-full max-w-[440px] flex flex-col items-center gap-4">
             {/* The Screen Canvas */}
-            <div className="w-full rounded-3xl overflow-hidden bg-slate-950 p-2.5 border border-slate-800 shadow-2xl relative">
+            <div className="w-full rounded-3xl overflow-hidden bg-slate-950 p-3 border border-slate-800 shadow-2xl relative ring-1 ring-slate-800/60">
               <div
                 className={`w-full ${
                   aspectRatio === '4:5' ? 'aspect-[4/5]' : 'aspect-square'
@@ -725,11 +823,11 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
               </div>
 
               {/* In-Canvas Slide Navigation Bar */}
-              <div className="p-3 bg-slate-900/95 rounded-2xl mt-2 flex items-center justify-between text-white text-xs">
+              <div className="p-3 bg-slate-900/95 rounded-2xl mt-2.5 flex items-center justify-between text-white text-xs">
                 <button
                   onClick={() => setActiveSlideIndex((prev) => Math.max(0, prev - 1))}
                   disabled={activeSlideIndex === 0}
-                  className="p-1.5 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-25 cursor-pointer flex items-center gap-1"
+                  className="p-1.5 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-25 cursor-pointer flex items-center gap-1 font-semibold"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span>முந்தைய (Prev)</span>
@@ -754,7 +852,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
                 <button
                   onClick={() => setActiveSlideIndex((prev) => Math.min(4, prev + 1))}
                   disabled={activeSlideIndex === 4}
-                  className="p-1.5 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-25 cursor-pointer flex items-center gap-1"
+                  className="p-1.5 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-25 cursor-pointer flex items-center gap-1 font-semibold"
                 >
                   <span>அடுத்த (Next)</span>
                   <ChevronRight className="w-4 h-4" />
@@ -814,7 +912,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         {/* Right Column: 5-Slide Content Editor & Theme Configuration */}
         <div className="lg:w-[52%] w-full space-y-5">
-          {/* 1. Kural Quick Search & Selector */}
+          {/* 1. Kural Quick Search & Selector (Full width, no clipped titles) */}
           <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
@@ -826,15 +924,15 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="space-y-2">
               <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="குறள் எண் அல்லது சொல் தேடுக..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500"
+                  placeholder="குறள் எண், அதிகாரம் அல்லது சொல் தேடுக... (Search Kural)"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500 transition-all"
                 />
               </div>
 
@@ -844,11 +942,11 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
                   const found = THIRUKKURAL_LIBRARY.find((k) => k.id === e.target.value);
                   if (found) setActiveKural(found);
                 }}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:bg-white focus:outline-none focus:border-amber-500 cursor-pointer"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 font-semibold focus:bg-white focus:outline-none focus:border-amber-500 cursor-pointer transition-all leading-normal"
               >
                 {filteredKurals.map((k) => (
                   <option key={k.id} value={k.id}>
-                    குறள் #{k.number}: {k.chapter}
+                    குறள் #{k.number} • {k.chapter} — {k.hookTitle}
                   </option>
                 ))}
               </select>
@@ -873,7 +971,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
                   onClick={() => setThemeStyle(theme.id as CarouselTheme)}
                   className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all ${
                     themeStyle === theme.id
-                      ? 'border-amber-500 bg-amber-50/60 text-slate-900 font-bold shadow-xs'
+                      ? 'border-amber-500 bg-amber-50/60 text-slate-900 font-bold shadow-xs ring-1 ring-amber-400'
                       : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -884,27 +982,32 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
             </div>
           </div>
 
-          {/* 3. The 5 Slides Selector Strip */}
+          {/* 3. The 5 Slides Selector Strip (Clear, readable, no ellipsis truncation) */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
               <span>5 ஸ்லைடு தேர்வு & திருத்தம் (Slide 1 to 5):</span>
               <span className="text-[11px] font-normal text-slate-500">
-                ஸ்லைடைக் கிளிக் செய்து உள்ளடக்கத்தை மாற்றலாம்
+                கிளிக் செய்து உள்ளடக்கத்தை மாற்றலாம்
               </span>
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-              {slideTabs.map((tab) => (
+            <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200/80 overflow-x-auto scrollbar-none">
+              {[
+                { idx: 0, title: '1. குறள் (Verse)' },
+                { idx: 1, title: '2. எளிய உரை' },
+                { idx: 2, title: '3. ஆழமான பொருள்' },
+                { idx: 3, title: '4. உதாரணம்' },
+                { idx: 4, title: '5. சிந்தனை' },
+              ].map((tab) => (
                 <button
                   key={tab.idx}
                   onClick={() => setActiveSlideIndex(tab.idx)}
-                  className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex-1 text-center ${
                     activeSlideIndex === tab.idx
-                      ? 'border-amber-500 bg-amber-50/70 shadow-xs'
-                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                      ? 'bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 text-white shadow-xs'
+                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/80'
                   }`}
                 >
-                  <p className="text-[11px] font-bold text-slate-900 truncate">{tab.title}</p>
-                  <p className="text-[9px] text-slate-500 truncate mt-0.5">{tab.desc}</p>
+                  {tab.title}
                 </button>
               ))}
             </div>
@@ -915,20 +1018,60 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <span className="text-xs font-bold text-slate-900">
-                  {slideTabs[activeSlideIndex].title} — உள்ளடக்கம் (Edit Slide {activeSlideIndex + 1})
+                  Slide {activeSlideIndex + 1} — உள்ளடக்கம் (Edit Slide Content)
                 </span>
                 <p className="text-[11px] text-slate-500">
-                  {slideTabs[activeSlideIndex].desc}
+                  {activeSlideIndex === 0
+                    ? 'திருக்குறள் 2 வரிகள் & ஆசிரியர் திருவள்ளுவர்'
+                    : activeSlideIndex === 1
+                    ? 'எளிய தமிழ் விளக்கம் (Short & Clear Sentences)'
+                    : activeSlideIndex === 2
+                    ? 'ஆழமான பொருள் (Deep Philosophical Meaning)'
+                    : activeSlideIndex === 3
+                    ? 'நடைமுறை வாழ்க்கை உதாரணம் (Practical Life Scenario)'
+                    : 'இன்றைய சிந்தனை & சமூகப் பகிர்வு (Daily CTA)'}
                 </p>
               </div>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold border border-slate-200/60">
                 Slide {activeSlideIndex + 1} of 5
               </span>
             </div>
 
             {/* Slide 1 Editor (Verse) */}
             {activeSlideIndex === 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3.5">
+                {/* Font Size Selector for Kural Verse: Default 40px */}
+                <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                      <span>🔤 குறள் எழுத்து அளவு (Font Size):</span>
+                      <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white font-mono text-[11px] font-bold">
+                        {kuralFontSize}px
+                      </span>
+                    </span>
+                    <span className="text-[10px] text-amber-800 block">
+                      பரிந்துரைக்கப்பட்ட இயல்புநிலை அளவு: <strong>40px</strong>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {[36, 38, 40, 42, 44].map((sz) => (
+                      <button
+                        key={sz}
+                        type="button"
+                        onClick={() => setKuralFontSize(sz)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                          kuralFontSize === sz
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-xs ring-1 ring-amber-400'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-amber-100/50'
+                        }`}
+                      >
+                        {sz}px{sz === 40 ? ' ★' : ''}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-slate-700">திருக்குறள் (2 வரிகள்):</label>
                   <textarea

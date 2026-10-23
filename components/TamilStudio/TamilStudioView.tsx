@@ -63,9 +63,9 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
   const [layoutStyle, setLayoutStyle] = useState<'luxury-gold' | 'frosted-glass' | 'magazine-frame' | 'minimal-dark'>('luxury-gold');
   const [showWatermark, setShowWatermark] = useState<boolean>(true);
 
-  // Typography & Text Alignment (Defaulted to 'left' for Thirukkural)
+  // Typography & Text Alignment (Defaulted to 40px for Thirukkural)
   const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>('left');
-  const [fontSize, setFontSize] = useState<number>(42);
+  const [fontSize, setFontSize] = useState<number>(40);
   const [fontFamily, setFontFamily] = useState<string>('Mukta Malar');
   const [lineSpacing, setLineSpacing] = useState<number>(1.55);
 
@@ -610,10 +610,10 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">எழுத்து சீரமைப்பு & வடிவமைப்பு (Alignment & Fonts)</h3>
               </div>
               <button
-                onClick={() => { setTextAlign('left'); setFontSize(42); setFontFamily('Mukta Malar'); setLineSpacing(1.55); }}
+                onClick={() => { setTextAlign('left'); setFontSize(40); setFontFamily('Mukta Malar'); setLineSpacing(1.55); }}
                 className="text-[11px] text-amber-600 hover:text-amber-700 font-bold cursor-pointer"
               >
-                இயல்புநிலை (Reset)
+                இயல்புநிலை (Reset 40px)
               </button>
             </div>
 

@@ -31,7 +31,6 @@ import { BatchScheduler, ScheduledDayPost } from '@/components/AutoPilot/BatchSc
 import { InstagramPublishModal } from '@/components/AutoPilot/InstagramPublishModal';
 import { VideoStudioView } from '@/components/VideoStudio/VideoStudioView';
 import { TamilStudioView } from '@/components/TamilStudio/TamilStudioView';
-import { InstagramStoriesBar } from '@/components/Instagram/InstagramStoriesBar';
 import { ShareModal } from '@/components/ShareModal';
 import { CarouselStudio } from '@/components/Carousel/CarouselStudio';
 import { ThirukkuralItem } from '@/lib/tamilWisdomLibrary';
@@ -411,18 +410,6 @@ export default function Home() {
         onChangeTab={setCurrentTab}
         onOpenPublishModal={() => handleOpenPublishModal()}
         onOpenShareModal={() => setIsShareModalOpen(true)}
-      />
-
-      {/* Instagram Stories Highlights Bar */}
-      <InstagramStoriesBar
-        currentThemeId={themeId}
-        onSelectTheme={(id) => {
-          applyTheme(id);
-          setCurrentTab('studio');
-        }}
-        onOpenVideoTab={() => setCurrentTab('video')}
-        onOpenTamilTab={() => setCurrentTab('tamil')}
-        handle={handle}
       />
 
       {/* Main Workspace */}

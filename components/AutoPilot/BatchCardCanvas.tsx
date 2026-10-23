@@ -38,7 +38,7 @@ export const BatchCardCanvas: React.FC<BatchCardCanvasProps> = ({
       layoutStyle: post.layoutStyle,
       backgroundImageUrl: post.backgroundImage,
       fontFamily: isTamil ? 'Mukta Malar' : theme.primaryFont,
-      fontSize: aspectRatio === '4:5' ? (isTamil ? 44 : 52) : (isTamil ? 46 : 56),
+      fontSize: aspectRatio === '4:5' ? (isTamil ? 40 : 52) : (isTamil ? 40 : 56),
       textAlign: effectiveAlign,
       textColor: theme.defaultTextColor,
       accentColor: theme.accentColor,
