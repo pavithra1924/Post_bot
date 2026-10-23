@@ -63,7 +63,9 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
           item.layoutStyle === 'magazine-frame' ? 'editorial-frame' : 'centered-hero') as LayoutStyle;
 
         const isKural = item.category === 'thirukkural' || item.categoryTamil.includes('திருக்குறள்');
-        const authorClean = isKural ? 'திருவள்ளுவர்' : (item.author === 'Spark Within' ? 'Spark Within' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim());
+        const authorClean = isKural 
+          ? 'திருவள்ளுவர்' 
+          : (item.author === 'Spark Within' ? 'பொன்மொழி' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim());
         const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : item.categoryTamil;
 
         return {
@@ -213,7 +215,9 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
       const theme = THEMES[item.theme];
       const isTamil = item.language === 'ta' || /[\u0B80-\u0BFF]/.test(item.quote);
       const isKural = item.badge?.includes('வாழ்வியல்') || item.badge?.includes('திருக்குறள்');
-      const authorClean = isKural ? 'Spark Within' : (item.author || 'Spark Within').replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
+      const authorClean = isKural 
+        ? 'திருவள்ளுவர்' 
+        : (item.author && item.author !== 'Spark Within' ? item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim() : '');
       const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : item.badge;
 
       await renderQuoteToCanvas(offscreen, {

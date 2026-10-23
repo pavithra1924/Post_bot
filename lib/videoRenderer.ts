@@ -372,15 +372,21 @@ export function renderVideoFrame(
     ctx.restore();
   }
 
-  // Author Attribution
-  ctx.save();
-  const authorY = height * 0.89;
-  ctx.font = isTamil ? '700 30px "Noto Sans Tamil", sans-serif' : '700 32px "Cinzel", serif';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(`— ${config.author}`, width / 2, authorY);
-  ctx.restore();
+  // Author Attribution (Never render Spark Within as author; Spark Within is the brand)
+  const isSparkBrand = config.author.toLowerCase().includes('spark within');
+  const isKural = config.author.includes('வள்ளுவர்') || config.quote.includes('முயற்சி') || config.quote.includes('உள்ளுவதெல்லாம்');
+  const cleanAuthor = isKural ? 'திருவள்ளுவர்' : (isSparkBrand ? '' : config.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim());
+
+  if (cleanAuthor) {
+    ctx.save();
+    const authorY = height * 0.89;
+    ctx.font = isTamil ? '700 30px "Noto Sans Tamil", sans-serif' : '700 32px "Cinzel", serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`— ${cleanAuthor}`, width / 2, authorY);
+    ctx.restore();
+  }
 
   // Bottom Brand Signature & Watermark
   ctx.save();

@@ -42,11 +42,11 @@ export default function Home() {
   const [carouselKural, setCarouselKural] = useState<ThirukkuralItem | undefined>();
 
   // 1. Core Quote State
-  const [quote, setQuote] = useState('Do not let anyone put out your spark. Even the smallest ember can set the world on fire.');
-  const [author, setAuthor] = useState('Spark Within');
+  const [quote, setQuote] = useState('You have power over your mind - not outside events. Realize this, and you will find strength.');
+  const [author, setAuthor] = useState('Marcus Aurelius');
   const [showAuthor, setShowAuthor] = useState(true);
-  const [isOriginalSpark, setIsOriginalSpark] = useState(true);
-  const [themeId, setThemeId] = useState<ThemeId>('fire_sunset');
+  const [isOriginalSpark, setIsOriginalSpark] = useState(false);
+  const [themeId, setThemeId] = useState<ThemeId>('stoic_marble');
 
   // 2. Canvas & Layout State
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('4:5');
@@ -322,11 +322,11 @@ export default function Home() {
 
   // Reset Studio
   const handleReset = () => {
-    setQuote('Do not let anyone put out your spark. Even the smallest ember can set the world on fire.');
-    setAuthor('Spark Within');
+    setQuote('You have power over your mind - not outside events. Realize this, and you will find strength.');
+    setAuthor('Marcus Aurelius');
     setShowAuthor(true);
-    setIsOriginalSpark(true);
-    applyTheme('fire_sunset');
+    setIsOriginalSpark(false);
+    applyTheme('stoic_marble');
     setAspectRatio('4:5');
     setLayoutStyle('pinterest-luxury');
     setFontSize(58);

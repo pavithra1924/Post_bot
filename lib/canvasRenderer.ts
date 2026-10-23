@@ -477,34 +477,38 @@ export async function renderQuoteToCanvas(
   });
   ctx.restore();
 
-  // 13. Render Author Attribution (Requirement 4 & 5: Below content display only Spark Within, remove Tamil author & (உள் ஒளி))
+  // 13. Render Author Attribution (Strict Rule: Spark Within is the BRAND name, NEVER the author name)
   if (hasAuthorToRender) {
-    ctx.save();
-    const authorY = startY + lines.length * lineHeightPx + authorGap;
-    ctx.font = `600 ${authorFontSize}px "${options.theme.secondaryFont}", sans-serif`;
-    ctx.fillStyle = options.accentColor;
-    ctx.textAlign = effectiveTextAlign;
-    ctx.textBaseline = 'middle';
-
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetY = 2;
-
     let authorClean = options.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
-    // If it's a Thirukkural, author must strictly be திருவள்ளுவர்
-    if (authorClean.includes('வள்ளுவர்') || (isKuralOrWisdomText && !authorClean)) {
+
+    // If author was mistakenly set to "Spark Within", remove it from author
+    if (authorClean.toLowerCase() === 'spark within') {
+      authorClean = isKuralOrWisdomText ? 'திருவள்ளுவர்' : '';
+    } else if (authorClean.includes('வள்ளுவர்') || (isKuralOrWisdomText && !authorClean)) {
       authorClean = 'திருவள்ளுவர்';
-    } else if (!authorClean) {
-      authorClean = 'Spark Within';
     }
 
-    let authorText = `— ${authorClean}`;
-    if (options.theme.id === 'cyber_midnight') {
-      authorText = `// SOURCE: ${authorClean.toUpperCase()}`;
-    }
+    // Only render the author line if a genuine author exists (never Spark Within)
+    if (authorClean && authorClean.toLowerCase() !== 'spark within') {
+      ctx.save();
+      const authorY = startY + lines.length * lineHeightPx + authorGap;
+      ctx.font = `600 ${authorFontSize}px "${options.theme.secondaryFont}", sans-serif`;
+      ctx.fillStyle = options.accentColor;
+      ctx.textAlign = effectiveTextAlign;
+      ctx.textBaseline = 'middle';
 
-    ctx.fillText(authorText, quoteX, authorY);
-    ctx.restore();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 2;
+
+      let authorText = `— ${authorClean}`;
+      if (options.theme.id === 'cyber_midnight') {
+        authorText = `// SOURCE: ${authorClean.toUpperCase()}`;
+      }
+
+      ctx.fillText(authorText, quoteX, authorY);
+      ctx.restore();
+    }
   }
 }
 

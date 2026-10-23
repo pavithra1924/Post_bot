@@ -165,7 +165,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'wisdom-1',
     quote: 'தீயில் விழுந்த விதை கூட\nமுளைக்கும் வரை சாம்பலை சுமக்கத்தான் வேண்டும்!',
-    author: 'Spark Within',
+    author: 'வாழ்வியல் தத்துவம்',
     category: 'wisdom',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'கஷ்டங்களும் அவமானங்களும் உங்களை அழிக்க வரவில்லை; அவை உங்களை செதுக்கி ஒரு வலிமையான விருட்சமாக மாற்றுவதற்காகவே வருகின்றன.',
@@ -174,7 +174,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'wisdom-2',
     quote: 'இருளில் இருக்கும் போது தான் நாம் எந்த அளவிற்கு\nவெளிச்சமாக மாற முடியும் என்று புரியும்!',
-    author: 'Spark Within',
+    author: 'தமிழ் பொன்மொழி',
     category: 'wisdom',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'வாழ்க்கையின் மிகக்கடினமான காலகட்டங்களே உங்கள் உண்மையான பலத்தை உங்களுக்குக் காட்டும் சிறந்த பாடசாலைகள். அமைதியாகப் போராடுங்கள்.',
@@ -183,7 +183,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'wisdom-3',
     quote: 'அமைதியாக உழை...\nஉன் வெற்றி உலகத்தின் காதுகளில்\nபேரிடியாய் முழங்கட்டும்!',
-    author: 'Spark Within',
+    author: 'வாழ்வியல் தத்துவம்',
     category: 'wisdom',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'உங்கள் திட்டங்களை யாரிடமும் விளக்கி நேரத்தை வீணடிக்காதீர்கள். எந்த சத்தமும் இல்லாமல் உங்கள் பாதையில் பயணியுங்கள்; உங்கள் வெற்றி பதில் சொல்லும்.',
@@ -192,7 +192,7 @@ export const TAMIL_PRESET_QUOTES: TamilQuoteItem[] = [
   {
     id: 'wisdom-4',
     quote: 'காயம் பட்ட இடத்திலிருந்து தான்\nவலிமையான மனிதன் பிறக்கிறான்!',
-    author: 'Spark Within',
+    author: 'கலீல் ஜிப்ரான் (Khalil Gibran)',
     category: 'wisdom',
     categoryTamil: '💎 வாழ்வியல் தத்துவம்',
     explanationTamil: 'வலி உங்களை பலவீனப்படுத்தாது; அந்த வலியை நீங்கள் எப்படி கடந்து வருகிறீர்கள் என்பதே உங்களை இந்த உலகத்தின் மாவீரனாக மாற்றும்.',

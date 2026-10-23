@@ -180,7 +180,7 @@ Format your response as valid JSON:
           const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
           const parsed = JSON.parse(cleaned);
 
-          const fullCaption = `${parsed.hook}\n\n${parsed.explanation}\n\n💡 DAILY CHALLENGE:\n${parsed.actionChallenge}\n\n${parsed.cta}\n\n—\nFollow @${author === 'Spark Within' ? '_sparkwithin_hub_' : '_sparkwithin_hub_'} for daily mindset transformation.\n\n${bank.caption.join(' ')}`;
+          const fullCaption = `${parsed.hook}\n\n${parsed.explanation}\n\n💡 DAILY CHALLENGE:\n${parsed.actionChallenge}\n\n${parsed.cta}\n\n—\nFollow @_sparkwithin_hub_ for daily mindset transformation.\n\n${bank.caption.join(' ')}`;
           const firstComment = `🚀 Growth Booster Tags:\n${bank.firstComment.join(' ')}`;
 
           return {
@@ -204,10 +204,10 @@ Format your response as valid JSON:
   }
 
   // High-Grade Heuristic Storytelling Generator
-  const isOriginal = author.toLowerCase().includes('spark within');
-  const cleanAuthor = author.trim() || 'Spark Within';
+  const isSparkBrand = author.toLowerCase().includes('spark within');
+  const cleanAuthor = isSparkBrand ? '' : author.trim();
 
-  const hook = isOriginal 
+  const hook = !cleanAuthor 
     ? "Read this twice before you move forward today 👇"
     : `What ${cleanAuthor} understood about human nature will change how you look at today 👇`;
 
@@ -217,7 +217,8 @@ Format your response as valid JSON:
 
   const cta = "📌 SAVE this post to re-read whenever you need to recalibrate your mindset.\n🚀 SHARE this with someone who needs this reminder today.";
 
-  const fullCaption = `${hook}\n\n"${quote}"\n— ${cleanAuthor}\n\n${explanation}\n\n💡 THE DAILY CHALLENGE:\n${actionChallenge}\n\n${cta}\n\n—\nFollow @_sparkwithin_hub_ for daily mindset shifts & inner mastery.\n\n${bank.caption.join(' ')}`;
+  const authorLine = cleanAuthor ? `\n— ${cleanAuthor}` : '';
+  const fullCaption = `${hook}\n\n"${quote}"${authorLine}\n\n${explanation}\n\n💡 THE DAILY CHALLENGE:\n${actionChallenge}\n\n${cta}\n\n—\nFollow @_sparkwithin_hub_ for daily mindset shifts & inner mastery.\n\n${bank.caption.join(' ')}`;
 
   const firstComment = `🚀 Growth Booster Tags:\n${bank.firstComment.join(' ')}`;
 

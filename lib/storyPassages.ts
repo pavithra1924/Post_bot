@@ -33,7 +33,7 @@ export const CURATED_PASSAGES: StoryPassageItem[] = [
       "Maybe you're just on your own timeline.",
       "Keep going. Your season is coming. 🌱"
     ],
-    author: "Spark Within ✨",
+    author: "Mindset Story",
     fullText: `POV: You're 25 and feel like everyone is ahead of you.
 
 Your friends are getting jobs.
@@ -44,9 +44,7 @@ And you're still trying to figure yourself out.
 Maybe you're not behind.
 Maybe you're just on your own timeline.
 
-Keep going. Your season is coming. 🌱
-
-— Spark Within ✨`
+Keep going. Your season is coming. 🌱`
   },
   {
     id: 'en-passage-2',
@@ -64,7 +62,7 @@ Keep going. Your season is coming. 🌱
       "You are not stuck. You are building roots.",
       "Stay patient. The world will see soon. ⚡"
     ],
-    author: "Spark Within ✨",
+    author: "Mindset Story",
     fullText: `They only see the success.
 They never saw the silent nights.
 
@@ -75,9 +73,7 @@ The sacrifices nobody will ever clap for.
 A bamboo tree grows for 5 years underground before rising 90 feet.
 You are not stuck. You are building roots.
 
-Stay patient. The world will see soon. ⚡
-
-— Spark Within ✨`
+Stay patient. The world will see soon. ⚡`
   },
   {
     id: 'en-passage-3',
@@ -95,7 +91,7 @@ Stay patient. The world will see soon. ⚡
       "Trust your pace.",
       "You are exactly where you need to be. 🌟"
     ],
-    author: "Spark Within ✨",
+    author: "Mindset Story",
     fullText: `Stop apologizing for taking longer to find your path.
 
 Some flowers bloom in spring, others bloom in winter.
@@ -106,9 +102,7 @@ Every detour taught you something that smooth roads never could.
 You didn't waste time. You gained wisdom.
 
 Trust your pace.
-You are exactly where you need to be. 🌟
-
-— Spark Within ✨`
+You are exactly where you need to be. 🌟`
   },
   {
     id: 'en-passage-4',
@@ -126,7 +120,7 @@ You are exactly where you need to be. 🌟
       "An eagle flies alone; pigeons fly in flocks.",
       "Protect your peace. You're building a masterpiece. 🦅"
     ],
-    author: "Spark Within ✨",
+    author: "Mindset Story",
     fullText: `Sometimes growth feels like loneliness.
 
 You outgrow places you once loved.
@@ -137,9 +131,7 @@ And on some weekends, it's just you and your goals.
 That's not isolation. That's elevation.
 An eagle flies alone; pigeons fly in flocks.
 
-Protect your peace. You're building a masterpiece. 🦅
-
-— Spark Within ✨`
+Protect your peace. You're building a masterpiece. 🦅`
   },
   {
     id: 'en-passage-5',
@@ -157,7 +149,7 @@ Protect your peace. You're building a masterpiece. 🦅
       "Don't look at how far you have to go.",
       "Look at how strong you had to be to get here. Keep pushing. 🔥"
     ],
-    author: "Spark Within ✨",
+    author: "Mindset Story",
     fullText: `To anyone starting over with zero: read this.
 
 Having zero money is temporary.
@@ -167,9 +159,7 @@ You are dangerous to your own limitations.
 
 Rock bottom is solid ground to build a skyscraper on.
 Don't look at how far you have to go.
-Look at how strong you had to be to get here. Keep pushing. 🔥
-
-— Spark Within ✨`
+Look at how strong you had to be to get here. Keep pushing. 🔥`
   },
 
   // =========================================================
@@ -191,7 +181,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
       "ஆனா நினைவில் வை... தாமதம் என்பது தோல்வி இல்லை.",
       "உனக்கான நேரம் இன்னும் வரவில்லை. நின்றுவிடாதே! தொடர்ந்து நட. 🌱"
     ],
-    author: "Spark Within ✨",
+    author: "வாழ்வியல் சிந்தனை",
     fullText: `சில நேரம்
 நம்ம வாழ்க்கை எங்கே போகுதுன்னே தெரியாது.
 
@@ -211,9 +201,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
 உனக்கான நேரம் இன்னும் வரவில்லை.
 
 நின்றுவிடாதே.
-உன் பாதையில் தொடர்ந்து நட. 🌱
-
-— Spark Within ✨`
+உன் பாதையில் தொடர்ந்து நட. 🌱`
   },
   {
     id: 'ta-passage-2',
@@ -230,7 +218,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
       "நீ இப்போது புதைக்கப்படவில்லை... விதைக்கப்பட்டிருக்கிறாய்!",
       "மௌனமாக உழை. உன் வெற்றி உலகையே பேச வைக்கட்டும். 🦁"
     ],
-    author: "Spark Within ✨",
+    author: "வாழ்வியல் சிந்தனை",
     fullText: `உன் கஷ்டத்தை யாரிடமும் சொல்லி புலம்பாதே.
 
 பலர் ஆறுதல் சொல்வது போல நடித்து
@@ -246,9 +234,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
 விதைக்கப்பட்டிருக்கிறாய்!
 
 மௌனமாக உழை.
-உன் வெற்றி உலகையே பேச வைக்கட்டும். 🦁
-
-— Spark Within ✨`
+உன் வெற்றி உலகையே பேச வைக்கட்டும். 🦁`
   },
   {
     id: 'ta-passage-3',
@@ -266,7 +252,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
       "நம்பிக்கையோடு காத்திரு.",
       "உன் காலம் வரும்போது நீயே பிரகாசிப்பாய்! 👑"
     ],
-    author: "Spark Within ✨",
+    author: "வாழ்வியல் சிந்தனை",
     fullText: `சூரியனும் சந்திரனும் ஒரே நேரத்தில் பிரகாசிப்பதில்லை.
 
 ஒவ்வொன்றுக்கும் அதற்கான நேரம் உண்டு.
@@ -278,9 +264,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
 உன்னை நீ செதுக்கிக் கொண்டிருக்கிறாய்.
 நம்பிக்கையோடு காத்திரு.
 
-உன் காலம் வரும்போது நீயே பிரகாசிப்பாய்! 👑
-
-— Spark Within ✨`
+உன் காலம் வரும்போது நீயே பிரகாசிப்பாய்! 👑`
   },
   {
     id: 'ta-passage-4',
@@ -298,7 +282,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
       "உன் இதயத்தில் அமைதியையும் தேடு.",
       "விலகி நடப்பதே பல நேரங்களில் பேரழகு. ✨"
     ],
-    author: "Spark Within ✨",
+    author: "வாழ்வியல் சிந்தனை",
     fullText: `உன்னை மதிக்காத இடத்தில் ஒரு வினாடி கூட இருக்காதே.
 
 உன் அருமை தெரியாதவர்களிடம் உன் தரத்தை நிரூபிக்காதே.
@@ -310,9 +294,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
 உன் பெற்றோரின் முகத்தில் புன்னகையையும்,
 உன் இதயத்தில் அமைதியையும் தேடு.
 
-விலகி நடப்பதே பல நேரங்களில் பேரழகு. ✨
-
-— Spark Within ✨`
+விலகி நடப்பதே பல நேரங்களில் பேரழகு. ✨`
   },
   {
     id: 'ta-passage-5',
@@ -330,7 +312,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
       "கண்களைத் துடை... தலையை நிமிர்த்து.",
       "ஆட்டத்தை மீண்டும் தொடங்கு! 🔥"
     ],
-    author: "Spark Within ✨",
+    author: "வாழ்வியல் சிந்தனை",
     fullText: `இழந்ததை நினைத்து கலங்காதே, எஞ்சியதை வைத்து எழுந்து நில்.
 
 அனைத்தும் முடிந்துவிட்டது என்று நினைத்த தருணங்கள் உனக்கு உண்டு.
@@ -342,9 +324,7 @@ Look at how strong you had to be to get here. Keep pushing. 🔥
 இந்தத் தோல்விகள் தான் உன் நாளைய சரித்திரத்தின் முகவுரை.
 
 கண்களைத் துடை... தலையை நிமிர்த்து.
-ஆட்டத்தை மீண்டும் தொடங்கு! 🔥
-
-— Spark Within ✨`
+ஆட்டத்தை மீண்டும் தொடங்கு! 🔥`
   }
 ];
 
@@ -509,7 +489,7 @@ export function generateInfinitePassage(lang: 'en' | 'ta'): StoryPassageItem {
     resolution
   ];
 
-  const fullText = slides.join('\n\n') + '\n\n— Spark Within ✨';
+  const fullText = slides.join('\n\n');
 
   return {
     id: `infinite-${lang}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -518,7 +498,7 @@ export function generateInfinitePassage(lang: 'en' | 'ta'): StoryPassageItem {
     categoryLabel: lang === 'en' ? 'POV: MOTIVATION 🌱' : 'உண்மை நிலை 🌱',
     hook,
     slides,
-    author: 'Spark Within ✨',
+    author: lang === 'en' ? 'Mindset Story' : 'வாழ்வியல் சிந்தனை',
     fullText,
   };
 }

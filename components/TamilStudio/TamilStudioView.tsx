@@ -100,7 +100,9 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
     setActiveQuoteItem(item);
     setCustomQuote(item.quote);
     const isKural = item.category === 'thirukkural' || item.categoryTamil.includes('திருக்குறள்');
-    const authorToSet = isKural ? 'திருவள்ளுவர்' : (item.author === 'Spark Within' ? 'Spark Within' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim());
+    const authorToSet = isKural 
+      ? 'திருவள்ளுவர்' 
+      : (item.author === 'Spark Within' ? 'பொன்மொழி' : item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim());
     setCustomAuthor(authorToSet);
     if (isKural) {
       setTextAlign('left');
@@ -319,22 +321,26 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
 
     ctx.shadowBlur = 0;
 
-    // 7. Author Line (Strictly திருவள்ளுவர் for Thirukkural, distinct from Spark Within brand)
+    // 7. Author Line (Strictly திருவள்ளுவர் for Thirukkural; real author for others; NEVER "Spark Within")
     const isThirukkuralPost =
       activeQuoteItem.category === 'thirukkural' ||
       activeQuoteItem.categoryTamil.includes('திருக்குறள்') ||
       customAuthor.includes('வள்ளுவர்');
 
     let displayedAuthor = customAuthor.replace(/\(?உள்\s*ஒளி\)?/g, '').trim();
-    if (isThirukkuralPost || !displayedAuthor) {
-      displayedAuthor = isThirukkuralPost ? 'திருவள்ளுவர்' : 'Spark Within';
+    if (displayedAuthor.toLowerCase() === 'spark within') {
+      displayedAuthor = isThirukkuralPost ? 'திருவள்ளுவர்' : (activeQuoteItem.author && activeQuoteItem.author !== 'Spark Within' ? activeQuoteItem.author : 'பொன்மொழி');
+    } else if (isThirukkuralPost || !displayedAuthor) {
+      displayedAuthor = isThirukkuralPost ? 'திருவள்ளுவர்' : (activeQuoteItem.author && activeQuoteItem.author !== 'Spark Within' ? activeQuoteItem.author : '');
     }
 
-    ctx.fillStyle = layoutStyle === 'luxury-gold' ? '#F59E0B' : '#94A3B8';
-    ctx.font = `600 ${authorFontSize}px "${fontFamily}", "Noto Sans Tamil", sans-serif`;
-    ctx.textAlign = textAlign;
-    const authorY = startY + (wrappedLines.length * lineHeight) + authorGap;
-    ctx.fillText(`— ஆசிரியர்: ${displayedAuthor}`, textX, authorY);
+    if (displayedAuthor && displayedAuthor.toLowerCase() !== 'spark within') {
+      ctx.fillStyle = layoutStyle === 'luxury-gold' ? '#F59E0B' : '#94A3B8';
+      ctx.font = `600 ${authorFontSize}px "${fontFamily}", "Noto Sans Tamil", sans-serif`;
+      ctx.textAlign = textAlign;
+      const authorY = startY + (wrappedLines.length * lineHeight) + authorGap;
+      ctx.fillText(`— ஆசிரியர்: ${displayedAuthor}`, textX, authorY);
+    }
 
     // 8. Watermark (Brand Attribution: Spark Within)
     if (showWatermark) {
@@ -596,7 +602,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 type="text"
                 value={customAuthor}
                 onChange={(e) => setCustomAuthor(e.target.value)}
-                placeholder="ஆசிரியர் பெயர் (Spark Within)"
+                placeholder="ஆசிரியர் பெயர் (எ.கா: திருவள்ளுவர், பாரதியார்)"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-amber-500"
               />
             </div>

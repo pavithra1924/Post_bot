@@ -99,7 +99,7 @@ export const QuickPresetsModal: React.FC<QuickPresetsModalProps> = ({
                     {preset.isOriginalSpark ? (
                       <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
                         <Flame className="w-2.5 h-2.5 text-rose-500" />
-                        Spark Within Original
+                        Curated Wisdom
                       </span>
                     ) : (
                       <span className="text-[9px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">

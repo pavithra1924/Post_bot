@@ -85,7 +85,7 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
               type="text"
               value={author}
               onChange={(e) => onChangeAuthor(e.target.value)}
-              placeholder="Author name (e.g. Marcus Aurelius, Spark Within)"
+              placeholder="Author name (e.g. திருவள்ளுவர், Marcus Aurelius, பாரதியார்)"
               className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all"
             />
           </div>
@@ -117,16 +117,26 @@ export const QuoteInput: React.FC<QuoteInputProps> = ({
 
         {/* Quick Attribution Pills */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <span className="text-[10px] text-slate-400 font-medium">Quick Attribution:</span>
+          <span className="text-[10px] text-slate-400 font-medium">Quick Authors:</span>
           <button
             type="button"
             onClick={() => {
-              onChangeAuthor('Spark Within');
+              onChangeAuthor('திருவள்ளுவர்');
               onToggleShowAuthor(true);
             }}
-            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] text-amber-700 font-semibold cursor-pointer transition-colors"
+            className="px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100/80 border border-amber-200 text-[10px] text-amber-800 font-semibold cursor-pointer transition-colors"
           >
-            Spark Within
+            திருவள்ளுவர்
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onChangeAuthor('மகாகவி பாரதியார்');
+              onToggleShowAuthor(true);
+            }}
+            className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-[10px] text-slate-700 font-medium cursor-pointer transition-colors"
+          >
+            பாரதியார்
           </button>
           <button
             type="button"
