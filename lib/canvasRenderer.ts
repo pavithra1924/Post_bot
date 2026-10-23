@@ -383,10 +383,10 @@ export async function renderQuoteToCanvas(
   }
 
   const isTamilQuote = /[\u0B80-\u0BFF]/.test(options.quote);
-  const effectiveLineHeight = isTamilQuote ? Math.max(1.52, options.theme.lineHeight) : options.theme.lineHeight;
+  const effectiveLineHeight = isTamilQuote ? Math.max(1.68, options.theme.lineHeight) : options.theme.lineHeight;
   const lineHeightPx = effectiveFontSize * effectiveLineHeight;
   const quoteBlockHeight = lines.length * lineHeightPx;
-  const authorGap = 44;
+  const authorGap = 54;
   const authorFontSize = Math.max(24, Math.min(34, Math.round(effectiveFontSize * 0.46)));
   
   const hasAuthorToRender = options.showAuthor !== false && Boolean(options.author);

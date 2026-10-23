@@ -67,7 +67,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
   const [textAlign, setTextAlign] = useState<'center' | 'left' | 'right'>('left');
   const [fontSize, setFontSize] = useState<number>(40);
   const [fontFamily, setFontFamily] = useState<string>('Mukta Malar');
-  const [lineSpacing, setLineSpacing] = useState<number>(1.55);
+  const [lineSpacing, setLineSpacing] = useState<number>(1.68);
 
   // Clipboard status
   const [copiedCaption, setCopiedCaption] = useState<boolean>(false);
@@ -288,7 +288,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
 
     const lineHeight = Math.round(effectiveFontSize * lineSpacing);
     const quoteBlockHeight = wrappedLines.length * lineHeight;
-    const authorGap = 46;
+    const authorGap = 55;
     const authorFontSize = Math.max(22, Math.min(30, Math.round(effectiveFontSize * 0.65)));
     const totalBlockHeight = quoteBlockHeight + authorGap + authorFontSize;
 
@@ -616,7 +616,7 @@ export const TamilStudioView: React.FC<TamilStudioViewProps> = ({
                 <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">எழுத்து சீரமைப்பு & வடிவமைப்பு (Alignment & Fonts)</h3>
               </div>
               <button
-                onClick={() => { setTextAlign('left'); setFontSize(40); setFontFamily('Mukta Malar'); setLineSpacing(1.55); }}
+                onClick={() => { setTextAlign('left'); setFontSize(40); setFontFamily('Mukta Malar'); setLineSpacing(1.68); }}
                 className="text-[11px] text-amber-600 hover:text-amber-700 font-bold cursor-pointer"
               >
                 இயல்புநிலை (Reset 40px)

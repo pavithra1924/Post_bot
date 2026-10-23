@@ -118,7 +118,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
     slide2_simpleMeaning: {
       badge: '💎 வாழ்வியல் தத்துவம்',
       title: 'எளிய தமிழ் விளக்கம்',
-      kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+      kuralRef: `குறள் #${activeKural.number}`,
       content: activeKural.simpleExplanation,
       author: 'திருவள்ளுவர்',
       brand: 'Spark Within',
@@ -127,7 +127,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
     slide3_deepMeaning: {
       badge: '💎 வாழ்வியல் தத்துவம்',
       title: 'ஆழமான பொருள்',
-      kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+      kuralRef: `குறள் #${activeKural.number}`,
       content: activeKural.deepMeaning,
       author: 'திருவள்ளுவர்',
       brand: 'Spark Within',
@@ -136,7 +136,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
     slide4_lifeExample: {
       badge: '💎 வாழ்வியல் தத்துவம்',
       title: 'வாழ்க்கையில் ஓர் உதாரணம்',
-      kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+      kuralRef: `குறள் #${activeKural.number}`,
       content: activeKural.lifeExample,
       author: 'திருவள்ளுவர்',
       brand: 'Spark Within',
@@ -145,7 +145,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
     slide5_dailyThought: {
       badge: '💎 வாழ்வியல் தத்துவம்',
       title: 'இன்றைய சிந்தனை',
-      kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+      kuralRef: `குறள் #${activeKural.number}`,
       content: activeKural.dailyThought,
       cta: 'Follow @_sparkwithin_hub_ for daily wisdom & inspiration',
       author: 'திருவள்ளுவர்',
@@ -169,7 +169,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
       slide2_simpleMeaning: {
         badge: '💎 வாழ்வியல் தத்துவம்',
         title: 'எளிய தமிழ் விளக்கம்',
-        kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+        kuralRef: `குறள் #${activeKural.number}`,
         content: activeKural.simpleExplanation,
         author: 'திருவள்ளுவர்',
         brand: 'Spark Within',
@@ -178,7 +178,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
       slide3_deepMeaning: {
         badge: '💎 வாழ்வியல் தத்துவம்',
         title: 'ஆழமான பொருள்',
-        kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+        kuralRef: `குறள் #${activeKural.number}`,
         content: activeKural.deepMeaning,
         author: 'திருவள்ளுவர்',
         brand: 'Spark Within',
@@ -187,7 +187,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
       slide4_lifeExample: {
         badge: '💎 வாழ்வியல் தத்துவம்',
         title: 'வாழ்க்கையில் ஓர் உதாரணம்',
-        kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+        kuralRef: `குறள் #${activeKural.number}`,
         content: activeKural.lifeExample,
         author: 'திருவள்ளுவர்',
         brand: 'Spark Within',
@@ -196,7 +196,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
       slide5_dailyThought: {
         badge: '💎 வாழ்வியல் தத்துவம்',
         title: 'இன்றைய சிந்தனை',
-        kuralRef: `குறள் #${activeKural.number} • ${activeKural.chapter}`,
+        kuralRef: `குறள் #${activeKural.number}`,
         content: activeKural.dailyThought,
         cta: 'Follow @_sparkwithin_hub_ for daily wisdom & inspiration',
         author: 'திருவள்ளுவர்',
@@ -368,20 +368,18 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         const data = slidePack.slide1_verse;
         const lines = data.verse.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
 
-        // Kural verse font size: 40px default as requested
+        // Kural verse font size: 40px default with clean line spacing
         const verseFontSize = kuralFontSize;
-        const verseLineHeight = Math.round(verseFontSize * 1.68);
+        const verseLineHeight = 72; // clean, readable line spacing for 40px Tamil font
         const verseBlockHeight = lines.length * verseLineHeight;
 
         // Heights of components
         const subheaderHeight = 36;
         const accentBarGap = 16;
         const accentBarHeight = 4;
-        const gapToVerse = 45;
-        const gapToAuthor = 45;
+        const gapToVerse = 55; // generous gap from subheader line to verse
+        const gapToAuthor = 65; // generous gap from verse to author
         const authorLineHeight = 36;
-        const gapToBrand = 18;
-        const brandLineHeight = 26;
 
         const totalBlockHeight =
           subheaderHeight +
@@ -390,44 +388,35 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
           gapToVerse +
           verseBlockHeight +
           gapToAuthor +
-          authorLineHeight +
-          gapToBrand +
-          brandLineHeight;
+          authorLineHeight;
 
         // Perfectly centered vertically
-        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+        const startY = topSafe + Math.max(30, (availHeight - totalBlockHeight) / 2);
 
-        // 1. Subheader: Chapter & Kural Number
+        // 1. Subheader: Just Kural Number (NO chapter name as requested)
         ctx.fillStyle = tc.accentSub;
-        ctx.font = '600 30px "Mukta Malar", -apple-system, sans-serif';
+        ctx.font = 'bold 32px "Mukta Malar", -apple-system, sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText(`குறள் #${data.kuralNumber} • அதிகாரம்: ${data.chapter}`, contentLeft, startY);
+        ctx.fillText(`குறள் #${data.kuralNumber}`, contentLeft, startY);
 
         // 2. Decorative horizontal accent line
         ctx.fillStyle = tc.accentBadge;
         ctx.fillRect(contentLeft, startY + subheaderHeight + accentBarGap, 84, accentBarHeight);
 
-        // 3. The Authentic Two-Line Couplet (Strictly 40px default)
+        // 3. The Authentic Two-Line Couplet (Strictly 40px default with proper line gaps)
         ctx.fillStyle = tc.textColor;
         ctx.font = `bold ${verseFontSize}px "Mukta Malar", -apple-system, sans-serif`;
-        let curVerseY = startY + subheaderHeight + accentBarGap + accentBarHeight + gapToVerse;
-        for (const l of lines) {
-          ctx.fillText(l, contentLeft, curVerseY);
-          curVerseY += verseLineHeight;
-        }
+        const verseStartY = startY + subheaderHeight + accentBarGap + accentBarHeight + gapToVerse;
+        lines.forEach((line, idx) => {
+          ctx.fillText(line, contentLeft, verseStartY + idx * verseLineHeight);
+        });
 
-        // 4. Mandatory Author Attribution: திருவள்ளுவர்
-        const authorY = curVerseY - verseLineHeight + gapToAuthor;
+        // 4. Mandatory Author Attribution: திருவள்ளுவர் (Strictly author only)
+        const authorY = verseStartY + (lines.length - 1) * verseLineHeight + verseFontSize + gapToAuthor;
         ctx.fillStyle = tc.authorColor;
         ctx.font = 'bold 34px "Mukta Malar", -apple-system, sans-serif';
         ctx.fillText(`— ஆசிரியர்: ${data.author}`, contentLeft, authorY);
-
-        // 5. Creator Brand Attribution: Spark Within
-        const brandY = authorY + authorLineHeight + gapToBrand;
-        ctx.fillStyle = tc.brandColor;
-        ctx.font = '500 22px -apple-system, sans-serif';
-        ctx.fillText(`வழங்குபவர்: ${data.brand} (${data.handle})`, contentLeft, brandY);
 
       } else if (slideIndex === 1) {
         // ==========================================
@@ -437,16 +426,16 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
         const explLines = wrapTextLines(data.content, contentWidth);
-        const explLineH = 66;
+        const explLineH = 68;
         const textHeight = explLines.length * explLineH;
 
         const headerHeight = 44 + 14 + 26 + 18 + 4;
-        const gap1 = 40;
-        const gap2 = 45;
+        const gap1 = 45;
+        const gap2 = 60;
         const attrHeight = 36;
         const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + attrHeight;
 
-        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+        const startY = topSafe + Math.max(30, (availHeight - totalBlockHeight) / 2);
 
         // Title Header
         ctx.fillStyle = tc.accentSub;
@@ -455,28 +444,28 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         ctx.textBaseline = 'top';
         ctx.fillText(data.title, contentLeft, startY);
 
-        // Kural reference tag
+        // Subtitle tag: Just Kural Number (NO chapter name)
         ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
         ctx.font = '500 24px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(data.kuralRef, contentLeft, startY + 54);
+        ctx.fillText(`குறள் #${slidePack.slide1_verse.kuralNumber}`, contentLeft, startY + 54);
 
         // Accent line
         ctx.fillStyle = tc.accentBadge;
         ctx.fillRect(contentLeft, startY + 92, 84, 4);
 
-        // Explanation Body
+        // Explanation Body with balanced line gaps
         ctx.fillStyle = tc.textColor;
         ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
-        let textY = startY + headerHeight + gap1;
-        for (const l of explLines) {
-          ctx.fillText(l, contentLeft, textY);
-          textY += explLineH;
-        }
+        const explStartY = startY + headerHeight + gap1;
+        explLines.forEach((l, idx) => {
+          ctx.fillText(l, contentLeft, explStartY + idx * explLineH);
+        });
 
-        // Attribution
+        // Attribution: Just author திருவள்ளுவர்
+        const authorY = explStartY + (explLines.length - 1) * explLineH + 38 + gap2;
         ctx.fillStyle = tc.authorColor;
-        ctx.font = '600 28px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(`— ஆசிரியர்: ${data.author} • தொகுப்பு: ${data.brand}`, contentLeft, textY + gap2);
+        ctx.font = 'bold 30px "Mukta Malar", -apple-system, sans-serif';
+        ctx.fillText(`— ஆசிரியர்: ${data.author}`, contentLeft, authorY);
 
       } else if (slideIndex === 2) {
         // ==========================================
@@ -486,16 +475,16 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
         const deepLines = wrapTextLines(data.content, contentWidth);
-        const deepLineH = 66;
+        const deepLineH = 68;
         const textHeight = deepLines.length * deepLineH;
 
         const headerHeight = 44 + 14 + 26 + 18 + 4;
-        const gap1 = 40;
-        const gap2 = 45;
+        const gap1 = 45;
+        const gap2 = 60;
         const attrHeight = 36;
         const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + attrHeight;
 
-        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+        const startY = topSafe + Math.max(30, (availHeight - totalBlockHeight) / 2);
 
         // Title Header
         ctx.fillStyle = tc.accentSub;
@@ -506,24 +495,24 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
         ctx.font = '500 24px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText('தத்துவ மற்றும் வாழ்வியல் உள்நோக்கம்', contentLeft, startY + 54);
+        ctx.fillText(`குறள் #${slidePack.slide1_verse.kuralNumber} • தத்துவ விளக்கம்`, contentLeft, startY + 54);
 
         ctx.fillStyle = tc.accentBadge;
         ctx.fillRect(contentLeft, startY + 92, 84, 4);
 
-        // Deep Meaning Content
+        // Deep Meaning Content with balanced line gaps
         ctx.fillStyle = tc.textColor;
         ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
-        let textY = startY + headerHeight + gap1;
-        for (const l of deepLines) {
-          ctx.fillText(l, contentLeft, textY);
-          textY += deepLineH;
-        }
+        const deepStartY = startY + headerHeight + gap1;
+        deepLines.forEach((l, idx) => {
+          ctx.fillText(l, contentLeft, deepStartY + idx * deepLineH);
+        });
 
-        // Wisdom Note
+        // Attribution: Just author திருவள்ளுவர்
+        const authorY = deepStartY + (deepLines.length - 1) * deepLineH + 38 + gap2;
         ctx.fillStyle = tc.authorColor;
-        ctx.font = '600 28px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(`— ஆசிரியர்: ${data.author} • வாழ்வியல் தொகுப்பு: ${data.brand}`, contentLeft, textY + gap2);
+        ctx.font = 'bold 30px "Mukta Malar", -apple-system, sans-serif';
+        ctx.fillText(`— ஆசிரியர்: ${data.author}`, contentLeft, authorY);
 
       } else if (slideIndex === 3) {
         // ==========================================
@@ -533,16 +522,16 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
         const lifeLines = wrapTextLines(data.content, contentWidth);
-        const lifeLineH = 66;
+        const lifeLineH = 68;
         const textHeight = lifeLines.length * lifeLineH;
 
         const headerHeight = 44 + 14 + 26 + 18 + 4;
-        const gap1 = 40;
-        const gap2 = 45;
+        const gap1 = 45;
+        const gap2 = 60;
         const attrHeight = 36;
         const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + attrHeight;
 
-        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+        const startY = topSafe + Math.max(30, (availHeight - totalBlockHeight) / 2);
 
         // Title Header
         ctx.fillStyle = tc.accentSub;
@@ -553,24 +542,24 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
         ctx.font = '500 24px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText('அன்றாட வாழ்க்கையில் நடைமுறை பயன்பாடு', contentLeft, startY + 54);
+        ctx.fillText(`குறள் #${slidePack.slide1_verse.kuralNumber} • நடைமுறை பயன்பாடு`, contentLeft, startY + 54);
 
         ctx.fillStyle = tc.accentBadge;
         ctx.fillRect(contentLeft, startY + 92, 84, 4);
 
-        // Relatable Example Text
+        // Relatable Example Text with balanced line gaps
         ctx.fillStyle = tc.textColor;
         ctx.font = '500 38px "Mukta Malar", -apple-system, sans-serif';
-        let textY = startY + headerHeight + gap1;
-        for (const l of lifeLines) {
-          ctx.fillText(l, contentLeft, textY);
-          textY += lifeLineH;
-        }
+        const lifeStartY = startY + headerHeight + gap1;
+        lifeLines.forEach((l, idx) => {
+          ctx.fillText(l, contentLeft, lifeStartY + idx * lifeLineH);
+        });
 
-        // Context Footer
+        // Attribution: Just author திருவள்ளுவர்
+        const authorY = lifeStartY + (lifeLines.length - 1) * lifeLineH + 38 + gap2;
         ctx.fillStyle = tc.authorColor;
-        ctx.font = '600 28px "Mukta Malar", -apple-system, sans-serif';
-        ctx.fillText(`— ஆசிரியர்: ${data.author} • நடைமுறை விளக்கம்: ${data.brand}`, contentLeft, textY + gap2);
+        ctx.font = 'bold 30px "Mukta Malar", -apple-system, sans-serif';
+        ctx.fillText(`— ஆசிரியர்: ${data.author}`, contentLeft, authorY);
 
       } else {
         // ==========================================
@@ -580,16 +569,16 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
 
         ctx.font = '500 36px "Mukta Malar", -apple-system, sans-serif';
         const thoughtLines = wrapTextLines(data.content, contentWidth);
-        const thoughtLineH = 62;
+        const thoughtLineH = 64;
         const textHeight = thoughtLines.length * thoughtLineH;
 
         const headerHeight = 44 + 18 + 4;
-        const gap1 = 36;
-        const gap2 = 40;
+        const gap1 = 40;
+        const gap2 = 48;
         const ctaBoxHeight = 110;
         const totalBlockHeight = headerHeight + gap1 + textHeight + gap2 + ctaBoxHeight;
 
-        const startY = topSafe + Math.max(20, (availHeight - totalBlockHeight) / 2);
+        const startY = topSafe + Math.max(30, (availHeight - totalBlockHeight) / 2);
 
         // Title Header
         ctx.fillStyle = tc.accentSub;
@@ -604,14 +593,13 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
         // Daily Takeaway Content
         ctx.fillStyle = tc.textColor;
         ctx.font = '500 36px "Mukta Malar", -apple-system, sans-serif';
-        let textY = startY + headerHeight + gap1;
-        for (const l of thoughtLines) {
-          ctx.fillText(l, contentLeft, textY);
-          textY += thoughtLineH;
-        }
+        const thoughtStartY = startY + headerHeight + gap1;
+        thoughtLines.forEach((l, idx) => {
+          ctx.fillText(l, contentLeft, thoughtStartY + idx * thoughtLineH);
+        });
 
         // Brand CTA Box
-        const boxY = textY + gap2;
+        const boxY = thoughtStartY + (thoughtLines.length - 1) * thoughtLineH + 36 + gap2;
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
         ctx.fillRect(contentLeft, boxY, contentWidth, ctaBoxHeight);
         ctx.strokeStyle = tc.borderOuter;
@@ -723,13 +711,13 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
   const handlePublishToInstagram = () => {
     if (!canvasRef.current || !onOpenPublishModal) return;
     const dataUrl = canvasRef.current.toDataURL('image/png');
-    const caption = `💎 வாழ்வியல் தத்துவம் • குறள் #${activeKural.number} (${activeKural.chapter})\n\n${activeKural.verse}\n\n— ஆசிரியர்: திருவள்ளுவர்\nவழங்குபவர்: Spark Within (@_sparkwithin_hub_)\n\n📌 எளிய விளக்கம்:\n${activeKural.simpleExplanation}\n\n💡 வாழ்க்கையில் ஓர் உதாரணம்:\n${activeKural.lifeExample}\n\n#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom #dailyquotes #kural #tamilnadu #inspiration`;
+    const caption = `💎 வாழ்வியல் தத்துவம் • குறள் #${activeKural.number}\n\n${activeKural.verse}\n\n— ஆசிரியர்: திருவள்ளுவர்\n\n📌 எளிய விளக்கம்:\n${activeKural.simpleExplanation}\n\n💡 வாழ்க்கையில் ஓர் உதாரணம்:\n${activeKural.lifeExample}\n\n#thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom #dailyquotes #kural #tamilnadu #inspiration`;
     onOpenPublishModal(dataUrl, caption);
   };
 
   // Copy Viral Caption to Clipboard
   const handleCopyCaption = () => {
-    const caption = `💎 வாழ்வியல் தத்துவம் • குறள் #${activeKural.number} (${activeKural.chapter})\n\n${activeKural.verse}\n\n— ஆசிரியர்: திருவள்ளுவர்\nவழங்குபவர்: Spark Within (@_sparkwithin_hub_)\n\n📌 எளிய விளக்கம்:\n${activeKural.simpleExplanation}\n\n💡 வாழ்க்கையில் ஓர் உதாரணம்:\n${activeKural.lifeExample}\n\n#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom #dailyquotes #kural #tamilnadu #inspiration`;
+    const caption = `💎 வாழ்வியல் தத்துவம் • குறள் #${activeKural.number}\n\n${activeKural.verse}\n\n— ஆசிரியர்: திருவள்ளுவர்\n\n📌 எளிய விளக்கம்:\n${activeKural.simpleExplanation}\n\n💡 வாழ்க்கையில் ஓர் உதாரணம்:\n${activeKural.lifeExample}\n\n#thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom #dailyquotes #kural #tamilnadu #inspiration`;
     navigator.clipboard.writeText(caption);
     setCopiedCaption(true);
     setTimeout(() => setCopiedCaption(false), 2000);
@@ -946,7 +934,7 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
               >
                 {filteredKurals.map((k) => (
                   <option key={k.id} value={k.id}>
-                    குறள் #{k.number} • {k.chapter} — {k.hookTitle}
+                    குறள் #{k.number} — {k.hookTitle}
                   </option>
                 ))}
               </select>
@@ -1305,16 +1293,15 @@ export const CarouselStudio: React.FC<CarouselStudioProps> = ({
               </button>
             </div>
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-h-[110px] overflow-y-auto whitespace-pre-line leading-relaxed font-sans">
-              💎 வாழ்வியல் தத்துவம் • குறள் #{activeKural.number} ({activeKural.chapter})
+              💎 வாழ்வியல் தத்துவம் • குறள் #{activeKural.number}
               {'\n\n'}
               {activeKural.verse}
               {'\n\n'}— ஆசிரியர்: திருவள்ளுவர்
-              {'\n'}வழங்குபவர்: Spark Within (@_sparkwithin_hub_)
               {'\n\n'}📌 எளிய விளக்கம்:
               {'\n'}{activeKural.simpleExplanation}
               {'\n\n'}💡 வாழ்க்கையில் ஓர் உதாரணம்:
               {'\n'}{activeKural.lifeExample}
-              {'\n\n'}#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom
+              {'\n\n'}#thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom #dailyquotes
             </div>
           </div>
         </div>
