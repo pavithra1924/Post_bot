@@ -40,8 +40,8 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
     return '17841412392890201';
   });
   const [accessToken, setAccessToken] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('ig_access_token') || 'EAAMbn2U9KD4BSZB1qQFH6kRZBCp4DRvzUDRoV1kq8JeYA99EOQckMei30jkbThuZBheA8SAXrSnM5b9yY36jSThqagKt3bQNmgvrvjFj5HOHCGgMaV3uv2ezZABQln71psryNIHdqNZA51JXMJWw6CS0TQADDmadZAoiRbJnq67PUb94KeaAsvccKajDXd59Qj34RQZBlPpQIJuieH3v1kZBKohd4T96TYmQGcZBdEe08kPJaR07NT68oliQyo25rFMyQJjFYlfMfhpAZD';
-    return 'EAAMbn2U9KD4BSZB1qQFH6kRZBCp4DRvzUDRoV1kq8JeYA99EOQckMei30jkbThuZBheA8SAXrSnM5b9yY36jSThqagKt3bQNmgvrvjFj5HOHCGgMaV3uv2ezZABQln71psryNIHdqNZA51JXMJWw6CS0TQADDmadZAoiRbJnq67PUb94KeaAsvccKajDXd59Qj34RQZBlPpQIJuieH3v1kZBKohd4T96TYmQGcZBdEe08kPJaR07NT68oliQyo25rFMyQJjFYlfMfhpAZD';
+    if (typeof window !== 'undefined') return localStorage.getItem('ig_access_token') || 'EAAMbn2U9KD4BSyaOjKRm33WyCaosjodaa3BG4kvq74Lcy4zW4DcSBurGZCsKScwQ5ilwNygtAEYZBZA6FqN7DDbZAoBxCpFL4ZA1sixmDcAr8Nf4KP26wZBELxFFM6inqQWkcwkdfYLQ6EADCtYel1Tp8qUK4IXqN4ptH0OHxkZBc1bW860bFEOVegYA3ZBZATjDl';
+    return 'EAAMbn2U9KD4BSyaOjKRm33WyCaosjodaa3BG4kvq74Lcy4zW4DcSBurGZCsKScwQ5ilwNygtAEYZBZA6FqN7DDbZAoBxCpFL4ZA1sixmDcAr8Nf4KP26wZBELxFFM6inqQWkcwkdfYLQ6EADCtYel1Tp8qUK4IXqN4ptH0OHxkZBc1bW860bFEOVegYA3ZBZATjDl';
   });
 
   const [isVerifying, setIsVerifying] = useState(false);
