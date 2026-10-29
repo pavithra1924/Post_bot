@@ -6,6 +6,7 @@ import { generateTamilViralCaption } from '@/lib/tamilCaptionGenerator';
 import { generateViralCaption } from '@/lib/captionGenerator';
 import { buildPollinationsUrl } from '@/lib/imageFetcher';
 import { publishToInstagram } from '@/lib/instagramPublisher';
+import { renderAndUploadCardGraphic } from '@/lib/cardRendererServer';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -75,7 +76,19 @@ async function executeCategoryPost({
       kural = ALL_1330_KURALS[dayOfYear % ALL_1330_KURALS.length];
     }
 
-    const imageUrl = KURAL_IMAGES[kural.number % KURAL_IMAGES.length];
+    const bgUrl = KURAL_IMAGES[kural.number % KURAL_IMAGES.length];
+    let imageUrl = bgUrl;
+    try {
+      imageUrl = await renderAndUploadCardGraphic({
+        quote: kural.verse,
+        author: 'திருவள்ளுவர்',
+        badge: `💎 வாழ்வியல் தத்துவம் • குறள் #${kural.number}`,
+        backgroundImageUrl: bgUrl,
+        language: 'ta',
+      });
+    } catch (e) {
+      console.warn('Card render fallback to stock:', e);
+    }
 
     const fullCaption = `💎 வாழ்வியல் தத்துவம் • குறள் #${kural.number}
 
@@ -125,7 +138,19 @@ ${kural.dailyThought}
       quoteItem = TAMIL_PRESET_QUOTES[dayOfYear % TAMIL_PRESET_QUOTES.length];
     }
 
-    const imageUrl = TAMIL_IMAGES[dayOfYear % TAMIL_IMAGES.length];
+    const bgUrl = TAMIL_IMAGES[dayOfYear % TAMIL_IMAGES.length];
+    let imageUrl = bgUrl;
+    try {
+      imageUrl = await renderAndUploadCardGraphic({
+        quote: quoteItem.quote,
+        author: quoteItem.author,
+        badge: quoteItem.categoryTamil,
+        backgroundImageUrl: bgUrl,
+        language: 'ta',
+      });
+    } catch (e) {
+      console.warn('Card render fallback to stock:', e);
+    }
     const captionResult = generateTamilViralCaption(quoteItem);
 
     const publishResult = await publishToInstagram({
@@ -158,7 +183,19 @@ ${kural.dailyThought}
       quoteItem = PRESET_QUOTES[dayOfYear % PRESET_QUOTES.length];
     }
 
-    const imageUrl = ENGLISH_IMAGES[dayOfYear % ENGLISH_IMAGES.length];
+    const bgUrl = ENGLISH_IMAGES[dayOfYear % ENGLISH_IMAGES.length];
+    let imageUrl = bgUrl;
+    try {
+      imageUrl = await renderAndUploadCardGraphic({
+        quote: quoteItem.quote,
+        author: quoteItem.author,
+        badge: quoteItem.badge,
+        backgroundImageUrl: bgUrl,
+        language: 'en',
+      });
+    } catch (e) {
+      console.warn('Card render fallback to stock:', e);
+    }
     const captionResult = await generateViralCaption(quoteItem.quote, quoteItem.author, quoteItem.theme);
 
     const publishResult = await publishToInstagram({
