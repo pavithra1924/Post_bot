@@ -22,31 +22,25 @@ interface PublishCategoryResult {
   publishResult: any;
 }
 
-/**
- * High-definition visual prompt pools tailored to each category
- */
-const KURAL_PROMPTS = [
-  'ancient majestic Tamil granite temple pillars golden morning sunrise dramatic god rays cinematic luxury aesthetic 8k',
-  'golden dawn breaking over misty sacred mountain spiritual peaceful serene aesthetic 8k wallpaper',
-  'ancient palm leaf manuscript sacred temple stone carved glowing warm diya lamp 8k',
-  'Thiruvalluvar silhouette against majestic golden sunrise horizon Tamil heritage cinematic aesthetic 8k',
-  'monolithic Dravidian temple gopuram illuminated by first golden morning light mystical atmosphere 8k',
+const KURAL_IMAGES = [
+  'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1609766857041-ed402ea8069a?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1080&auto=format&fit=crop&q=85',
 ];
 
-const TAMIL_PROMPTS = [
-  'majestic Tamil cultural heritage golden hour mist temple towers ancient stone courtyard cinematic 8k',
-  'warm golden sunrise over lush green Tamil Nadu landscape peaceful zen spiritual aesthetic 8k',
-  'antique Tamil literature scroll glowing brass lamp warm spiritual embers aesthetic 8k',
-  'golden sunrise breaking through mountain peaks heroic inspiring cinematic photography 8k',
-  'minimalist gold and deep obsidian zen podium sacred flame glowing warmly 8k',
+const TAMIL_IMAGES = [
+  'https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1080&auto=format&fit=crop&q=85',
 ];
 
-const ENGLISH_PROMPTS = [
-  'minimalist black onyx marble podium warm golden ambient glow dark moody luxury aesthetic 8k',
-  'stoic ancient Roman marble architecture dramatic golden shadows cinematic depth 8k',
-  'solitary glowing ember flame in obsidian darkness minimalist inspiring aesthetic 8k',
-  'modern luxury architectural concrete minimalist interior soft warm golden hour light 8k',
-  'majestic mountain peak bathed in golden sunrise clouds dark cinematic luxury 8k',
+const ENGLISH_IMAGES = [
+  'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1080&auto=format&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1080&auto=format&fit=crop&q=85',
 ];
 
 /**
@@ -81,8 +75,7 @@ async function executeCategoryPost({
       kural = ALL_1330_KURALS[dayOfYear % ALL_1330_KURALS.length];
     }
 
-    const prompt = KURAL_PROMPTS[kural.number % KURAL_PROMPTS.length];
-    const imageUrl = buildPollinationsUrl(prompt, '4:5', seed);
+    const imageUrl = KURAL_IMAGES[kural.number % KURAL_IMAGES.length];
 
     const fullCaption = `💎 வாழ்வியல் தத்துவம் • குறள் #${kural.number}
 
@@ -132,8 +125,7 @@ ${kural.dailyThought}
       quoteItem = TAMIL_PRESET_QUOTES[dayOfYear % TAMIL_PRESET_QUOTES.length];
     }
 
-    const prompt = TAMIL_PROMPTS[dayOfYear % TAMIL_PROMPTS.length];
-    const imageUrl = buildPollinationsUrl(prompt, '4:5', seed);
+    const imageUrl = TAMIL_IMAGES[dayOfYear % TAMIL_IMAGES.length];
     const captionResult = generateTamilViralCaption(quoteItem);
 
     const publishResult = await publishToInstagram({
@@ -166,8 +158,7 @@ ${kural.dailyThought}
       quoteItem = PRESET_QUOTES[dayOfYear % PRESET_QUOTES.length];
     }
 
-    const prompt = ENGLISH_PROMPTS[dayOfYear % ENGLISH_PROMPTS.length];
-    const imageUrl = buildPollinationsUrl(prompt, '4:5', seed);
+    const imageUrl = ENGLISH_IMAGES[dayOfYear % ENGLISH_IMAGES.length];
     const captionResult = await generateViralCaption(quoteItem.quote, quoteItem.author, quoteItem.theme);
 
     const publishResult = await publishToInstagram({
