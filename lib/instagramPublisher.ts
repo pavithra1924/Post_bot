@@ -468,3 +468,139 @@ export async function publishToInstagram({
     };
   }
 }
+
+export interface InstagramCarouselParams {
+  igUserId: string;
+  accessToken: string;
+  imageUrls: string[];
+  caption: string;
+}
+
+/**
+ * Publishes a Multi-Slide Carousel (2 to 10 images) to Instagram via Meta Graph API.
+ */
+export async function publishCarouselToInstagram({
+  igUserId,
+  accessToken,
+  imageUrls,
+  caption,
+}: InstagramCarouselParams): Promise<InstagramPublishResult> {
+  try {
+    if (!imageUrls || imageUrls.length < 2) {
+      throw new Error('Instagram Carousel requires at least 2 images.');
+    }
+
+    // Step 1: Ensure all slide image URLs are publicly reachable
+    const publicUrls = await Promise.all(imageUrls.map((url) => ensurePublicImageUrl(url)));
+
+    // Step 2: Create media item containers for each slide with is_carousel_item=true
+    const childContainerIds: string[] = [];
+
+    for (let i = 0; i < publicUrls.length; i++) {
+      const slideUrl = publicUrls[i];
+      const createItemUrl = `https://graph.facebook.com/v21.0/${igUserId}/media`;
+      const itemParams = new URLSearchParams();
+      itemParams.append('image_url', slideUrl);
+      itemParams.append('is_carousel_item', 'true');
+      itemParams.append('access_token', accessToken);
+
+      const res = await fetch(createItemUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: itemParams.toString(),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.id) {
+        throw new Error(data.error?.message || `Failed to create container for slide ${i + 1}`);
+      }
+      childContainerIds.push(data.id);
+    }
+
+    // Step 2.5: Verify all child containers are ready (status_code === 'FINISHED')
+    for (const childId of childContainerIds) {
+      for (let attempt = 0; attempt < 8; attempt++) {
+        try {
+          const statusUrl = `https://graph.facebook.com/v21.0/${childId}?fields=status_code&access_token=${accessToken}`;
+          const sRes = await fetch(statusUrl);
+          const sData = await sRes.json();
+          if (sData.status_code === 'FINISHED') break;
+        } catch (_) {}
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+    }
+
+    // Step 3: Create parent Carousel container
+    const createCarouselUrl = `https://graph.facebook.com/v21.0/${igUserId}/media`;
+    const carouselParams = new URLSearchParams();
+    carouselParams.append('media_type', 'CAROUSEL');
+    carouselParams.append('children', childContainerIds.join(','));
+    carouselParams.append('caption', caption);
+    carouselParams.append('access_token', accessToken);
+
+    const parentRes = await fetch(createCarouselUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: carouselParams.toString(),
+    });
+
+    const parentData = await parentRes.json();
+    if (!parentRes.ok || !parentData.id) {
+      throw new Error(parentData.error?.message || 'Failed to create Instagram Carousel parent container.');
+    }
+
+    const carouselCreationId = parentData.id;
+
+    // Step 3.5: Poll parent carousel container status
+    for (let attempt = 0; attempt < 8; attempt++) {
+      try {
+        const statusUrl = `https://graph.facebook.com/v21.0/${carouselCreationId}?fields=status_code&access_token=${accessToken}`;
+        const sRes = await fetch(statusUrl);
+        const sData = await sRes.json();
+        if (sData.status_code === 'FINISHED') break;
+      } catch (_) {}
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    // Step 4: Publish Carousel
+    const publishUrl = `https://graph.facebook.com/v21.0/${igUserId}/media_publish`;
+    const pubParams = new URLSearchParams();
+    pubParams.append('creation_id', carouselCreationId);
+    pubParams.append('access_token', accessToken);
+
+    const pubRes = await fetch(publishUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: pubParams.toString(),
+    });
+
+    const pubData = await pubRes.json();
+    if (!pubRes.ok || !pubData.id) {
+      throw new Error(pubData.error?.message || 'Failed to publish Carousel container.');
+    }
+
+    // Step 5: Get permalink
+    let permalink: string | undefined;
+    try {
+      const infoUrl = `https://graph.facebook.com/v21.0/${pubData.id}?fields=permalink&access_token=${accessToken}`;
+      const infoRes = await fetch(infoUrl);
+      const infoData = await infoRes.json();
+      if (infoData.permalink) {
+        permalink = infoData.permalink;
+      }
+    } catch (_) {}
+
+    return {
+      success: true,
+      creationId: carouselCreationId,
+      postId: pubData.id,
+      permalink,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || 'Unexpected error publishing Carousel to Instagram.',
+    };
+  }
+}
+

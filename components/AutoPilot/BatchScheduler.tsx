@@ -284,7 +284,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
   };
 
   // Instant Cloud Test Trigger for Thirukkural, Tamil Quotes, or English Mindset
-  const handleTriggerCloudPost = async (type: 'kural' | 'tamil' | 'english' | 'all') => {
+  const handleTriggerCloudPost = async (type: 'carousel' | 'kural' | 'tamil' | 'english' | 'all') => {
     setIsTestingCron(true);
     setCronStatusMsg({
       type: 'info',
@@ -359,12 +359,23 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
               Fully hands-free autonomous posting schedule for <strong>தமிழ் பொன்மொழிகள் (Tamil Quotes)</strong> மற்றும் <strong>English Mindset</strong> directly to your Instagram account.
             </p>
 
-            {/* 2 Scheduled Daily Slots for Single Posts */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            {/* 3 Scheduled Daily Slots */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>🌅 07:00 AM IST</span>
+                </div>
+                <div className="text-sm font-bold text-white flex items-center gap-1">
+                  <span>💎 திருக்குறள் (5-Slide Carousel)</span>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-0.5">குறள் + விளக்கம் + ஆழமான பொருள் + உதாரணம்</p>
+              </div>
+
               <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-1.5 text-rose-400 text-xs font-bold mb-1">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>☀️ 09:00 AM IST</span>
+                  <span>☀️ 01:00 PM IST</span>
                 </div>
                 <div className="text-sm font-bold text-white flex items-center gap-1">
                   <span>🔥 தமிழ் பொன்மொழிகள் (Single Post)</span>
@@ -378,18 +389,10 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
                   <span>🌙 07:00 PM IST</span>
                 </div>
                 <div className="text-sm font-bold text-white flex items-center gap-1">
-                  <span>🌍 English Mindset Quotes (Single Post)</span>
+                  <span>🌍 English Mindset (Single Post)</span>
                 </div>
                 <p className="text-[10px] text-slate-400 mt-0.5">Marcus Aurelius, Steve Jobs, Seneca, Bruce Lee</p>
               </div>
-            </div>
-
-            {/* Carousel Clarification Note */}
-            <div className="mt-3 p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[11px] text-amber-200 flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>
-                <strong>திருக்குறள் (5-Slide Carousels)</strong>: திருக்குறள் ஸ்லைடுகள் 5-Slide Carousel Studio பக்கத்தில் மட்டுமே உருவாக்கப்பட்டு பகிரப்படும்.
-              </span>
             </div>
           </div>
 
@@ -399,27 +402,34 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
               <Zap className="w-3.5 h-3.5 text-amber-400" />
               Instant 1-Click Trigger:
             </span>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
+              <button
+                onClick={() => handleTriggerCloudPost('carousel')}
+                disabled={isTestingCron}
+                className="px-3.5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+              >
+                💎 Post 5-Slide Carousel
+              </button>
               <button
                 onClick={() => handleTriggerCloudPost('tamil')}
                 disabled={isTestingCron}
-                className="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                className="px-3.5 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
               >
-                🔥 Post Tamil Quote Now
+                🔥 Post Tamil Single
               </button>
               <button
                 onClick={() => handleTriggerCloudPost('english')}
                 disabled={isTestingCron}
-                className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                className="px-3.5 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
               >
-                🌍 Post English Mindset Now
+                🌍 Post English Single
               </button>
               <button
                 onClick={() => handleTriggerCloudPost('all')}
                 disabled={isTestingCron}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-md"
+                className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-md"
               >
-                🚀 Post Both Categories
+                🚀 Post All 3 Slots
               </button>
             </div>
 

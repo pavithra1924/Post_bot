@@ -1,22 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TAMIL_PRESET_QUOTES, TamilQuoteItem } from '@/lib/tamilPresets';
 import { PRESET_QUOTES, QuotePreset } from '@/lib/presets';
+import { ALL_1330_KURALS, Thirukkural1330Item } from '@/lib/thirukkural1330';
 import { generateTamilViralCaption } from '@/lib/tamilCaptionGenerator';
 import { generateViralCaption } from '@/lib/captionGenerator';
-import { publishToInstagram } from '@/lib/instagramPublisher';
+import { publishToInstagram, publishCarouselToInstagram } from '@/lib/instagramPublisher';
 import { renderAndUploadCardGraphic } from '@/lib/cardRendererServer';
+import { renderThirukkuralCarouselSlides } from '@/lib/carouselRendererServer';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-type CategoryType = 'tamil' | 'english';
+type CategoryType = 'carousel' | 'tamil' | 'english';
 
 interface PublishCategoryResult {
   category: CategoryType;
   title: string;
   author: string;
   quote: string;
-  imageUrl: string;
+  imageUrl?: string;
+  slideUrls?: string[];
   caption: string;
   publishResult: any;
 }
@@ -37,7 +40,10 @@ const ENGLISH_IMAGES = [
 ];
 
 /**
- * Publishes a single category post (Tamil Quotes or English Mindset) to Instagram
+ * Publishes a category post to Instagram:
+ * - 'carousel': 5-Slide Thirukkural Carousel Pack (Couplet + Explanation + Meaning + Example + Daily Thought)
+ * - 'tamil': Single Post (Bharathiyar, Kalam, Avvaiyar, Vivekananda, Cinema)
+ * - 'english': Single Post (Marcus Aurelius, Steve Jobs, Seneca, Bruce Lee)
  */
 async function executeCategoryPost({
   category,
@@ -52,8 +58,42 @@ async function executeCategoryPost({
   searchParams: URLSearchParams;
   dayOfYear: number;
 }): Promise<PublishCategoryResult> {
-  if (category === 'tamil') {
-    // 1. Tamil Quotes (Bharathiyar, Kalam, Avvaiyar, Vivekananda, Leaders, Cinema motivation)
+  if (category === 'carousel') {
+    // 1. Thirukkural 5-Slide Carousel Pack
+    const requestedIndex = searchParams.get('index') || searchParams.get('kural');
+    let kuralItem: Thirukkural1330Item = ALL_1330_KURALS[dayOfYear % ALL_1330_KURALS.length];
+
+    if (requestedIndex) {
+      const parsed = parseInt(requestedIndex, 10);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= ALL_1330_KURALS.length) {
+        kuralItem = ALL_1330_KURALS[parsed - 1];
+      }
+    }
+
+    // Render all 5 high-resolution slides with HarfBuzz Tamil typography
+    const slideUrls = await renderThirukkuralCarouselSlides(kuralItem);
+
+    const fullCaption = `💎 வாழ்வியல் தத்துவம் • குறள் #${kuralItem.number} (${kuralItem.chapter})\n\n"${kuralItem.verse.replace(/\n/g, ' ')}"\n— ஆசிரியர்: திருவள்ளுவர்\nவழங்குபவர்: Spark Within (@_sparkwithin_hub_)\n\n📌 5-ஸ்லைடு வழிகாட்டி:\n1️⃣ குறள் & அதிகாரம்\n2️⃣ எளிய விளக்கம்: ${kuralItem.simpleExplanation}\n3️⃣ ஆழமான தத்துவம்: ${kuralItem.deepMeaning}\n4️⃣ வாழ்வில் ஓர் உதாரணம்: ${kuralItem.lifeExample}\n5️⃣ இன்றைய சிந்தனை: ${kuralItem.dailyThought}\n\n💬 உங்கள் நண்பர்களுக்கும் பயனுள்ளதாக இருக்க பகிருங்கள் (Share).\n📌 எதிர்கால சிந்தனைக்கு சேமித்து (Save) கொள்ளுங்கள்!\n\n.\n.\n.\n#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #kural #tamilnadu #dailyquotes #tamilliterature #mindset #tamillanguage #wisdom`;
+
+    const publishResult = await publishCarouselToInstagram({
+      igUserId,
+      accessToken,
+      imageUrls: slideUrls,
+      caption: fullCaption,
+    });
+
+    return {
+      category: 'carousel',
+      title: `💎 திருக்குறள் #${kuralItem.number} • ${kuralItem.chapter}`,
+      author: 'திருவள்ளுவர்',
+      quote: kuralItem.verse,
+      slideUrls,
+      imageUrl: slideUrls[0],
+      caption: fullCaption,
+      publishResult,
+    };
+  } else if (category === 'tamil') {
+    // 2. Tamil Single Post (Bharathiyar, Kalam, Avvaiyar, Vivekananda, Leaders, Cinema motivation)
     // Filter to ensure NO Thirukkural appears in single posts!
     const singleTamilPool = TAMIL_PRESET_QUOTES.filter(
       (q) => q.category !== 'thirukkural' && !q.categoryTamil.includes('திருக்குறள்')
@@ -175,19 +215,26 @@ export async function GET(req: NextRequest) {
     const dayOfWeek = istDate.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
     const hourIst = istDate.getUTCHours(); // 0 to 23
 
-    let category: CategoryType = 'tamil';
+    let category: CategoryType = 'carousel';
     const isMultiAll = requestedType === 'all';
 
-    if (requestedType === 'tamil' || requestedType === 'tamil_quote' || requestedType === 'kural' || requestedType === 'thirukkural') {
-      // Per user rule: Single posts only post Tamil quotes (Bharathiyar, Kalam, Avvaiyar, Vivekananda)
+    if (requestedType === 'carousel' || requestedType === 'kural' || requestedType === 'thirukkural') {
+      // 5-Slide Thirukkural Carousel
+      category = 'carousel';
+    } else if (requestedType === 'tamil' || requestedType === 'tamil_quote') {
+      // Tamil Single Post (Bharathiyar, Kalam, Avvaiyar, Vivekananda)
       category = 'tamil';
     } else if (requestedType === 'english' || requestedType === 'english_quote') {
+      // English Single Post (Marcus Aurelius, Steve Jobs, Seneca)
       category = 'english';
     } else if (!isMultiAll) {
       // Intelligent Auto-Schedule based on IST time:
-      // - Morning & Afternoon (5:00 - 15:59 IST): Tamil Wisdom
-      // - Evening (16:00 - 23:59 IST): English Mindset
-      if (hourIst < 16) {
+      // - 🌅 Morning (05:00 - 09:59 IST): 5-Slide Thirukkural Carousel
+      // - ☀️ Afternoon (10:00 - 15:59 IST): Tamil Quotes Single Post
+      // - 🌙 Evening (16:00 - 23:59 IST): English Mindset Single Post
+      if (hourIst < 10) {
+        category = 'carousel';
+      } else if (hourIst < 16) {
         category = 'tamil';
       } else {
         category = 'english';
@@ -205,7 +252,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (isMultiAll) {
-      const categoriesToPublish: CategoryType[] = ['tamil', 'english'];
+      const categoriesToPublish: CategoryType[] = ['carousel', 'tamil', 'english'];
       const results: PublishCategoryResult[] = [];
 
       for (const cat of categoriesToPublish) {
