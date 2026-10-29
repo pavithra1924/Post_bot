@@ -11,8 +11,8 @@ import { publishToInstagram } from '@/lib/instagramPublisher';
  */
 export async function GET(req: NextRequest) {
   try {
-    const igUserId = (process.env.INSTAGRAM_USER_ID || '').trim();
-    const accessToken = (process.env.INSTAGRAM_ACCESS_TOKEN || '').trim();
+    const igUserId = (process.env.INSTAGRAM_USER_ID || '17841412392890201').trim();
+    const accessToken = (process.env.INSTAGRAM_ACCESS_TOKEN || 'EAAMbn2U9KD4BSZB1qQFH6kRZBCp4DRvzUDRoV1kq8JeYA99EOQckMei30jkbThuZBheA8SAXrSnM5b9yY36jSThqagKt3bQNmgvrvjFj5HOHCGgMaV3uv2ezZABQln71psryNIHdqNZA51JXMJWw6CS0TQADDmadZAoiRbJnq67PUb94KeaAsvccKajDXd59Qj34RQZBlPpQIJuieH3v1kZBKohd4T96TYmQGcZBdEe08kPJaR07NT68oliQyo25rFMyQJjFYlfMfhpAZD').trim();
 
     // Check query params for custom kural number or test mode
     const searchParams = req.nextUrl.searchParams;

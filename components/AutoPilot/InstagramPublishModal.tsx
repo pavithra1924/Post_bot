@@ -36,12 +36,12 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
 
   // Meta Graph API State
   const [igUserId, setIgUserId] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('ig_user_id') || '';
-    return '';
+    if (typeof window !== 'undefined') return localStorage.getItem('ig_user_id') || '17841412392890201';
+    return '17841412392890201';
   });
   const [accessToken, setAccessToken] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('ig_access_token') || '';
-    return '';
+    if (typeof window !== 'undefined') return localStorage.getItem('ig_access_token') || 'EAAMbn2U9KD4BSZB1qQFH6kRZBCp4DRvzUDRoV1kq8JeYA99EOQckMei30jkbThuZBheA8SAXrSnM5b9yY36jSThqagKt3bQNmgvrvjFj5HOHCGgMaV3uv2ezZABQln71psryNIHdqNZA51JXMJWw6CS0TQADDmadZAoiRbJnq67PUb94KeaAsvccKajDXd59Qj34RQZBlPpQIJuieH3v1kZBKohd4T96TYmQGcZBdEe08kPJaR07NT68oliQyo25rFMyQJjFYlfMfhpAZD';
+    return 'EAAMbn2U9KD4BSZB1qQFH6kRZBCp4DRvzUDRoV1kq8JeYA99EOQckMei30jkbThuZBheA8SAXrSnM5b9yY36jSThqagKt3bQNmgvrvjFj5HOHCGgMaV3uv2ezZABQln71psryNIHdqNZA51JXMJWw6CS0TQADDmadZAoiRbJnq67PUb94KeaAsvccKajDXd59Qj34RQZBlPpQIJuieH3v1kZBKohd4T96TYmQGcZBdEe08kPJaR07NT68oliQyo25rFMyQJjFYlfMfhpAZD';
   });
 
   const [isVerifying, setIsVerifying] = useState(false);
@@ -51,7 +51,7 @@ export const InstagramPublishModal: React.FC<InstagramPublishModalProps> = ({
   const [appSecret, setAppSecret] = useState('');
   const [showPermanentHelper, setShowPermanentHelper] = useState(false);
   const [isExtending, setIsExtending] = useState(false);
-  const [verifiedAccount, setVerifiedAccount] = useState<{ username: string } | null>(null);
+  const [verifiedAccount, setVerifiedAccount] = useState<{ username: string } | null>({ username: '_sparkwithin_hub_' });
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
