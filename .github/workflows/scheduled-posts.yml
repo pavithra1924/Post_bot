@@ -1,0 +1,68 @@
+name: Spark Within Autonomous Multi-Post Engine
+
+on:
+  schedule:
+    # 07:00 AM IST (01:30 AM UTC) - 💎 Morning Thirukkural Post
+    - cron: '30 1 * * *'
+    # 01:00 PM IST (07:30 AM UTC) - 🔥 Afternoon Tamil Wisdom Quote Post
+    - cron: '30 7 * * *'
+    # 07:00 PM IST (01:30 PM UTC) - 🌍 Evening English Mindset / Stoic Post
+    - cron: '30 13 * * *'
+  workflow_dispatch:
+    inputs:
+      post_type:
+        description: 'Post Category to publish'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - kural
+          - tamil
+          - english
+          - all
+
+jobs:
+  publish_post:
+    name: Auto-Publish to Instagram @_sparkwithin_hub_
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine Target Category
+        id: category_step
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SELECTED_TYPE="${{ github.event.inputs.post_type }}"
+          else
+            # Based on UTC cron trigger hour:
+            # 01:30 UTC = Morning (07:00 AM IST) -> kural
+            # 07:30 UTC = Afternoon (01:00 PM IST) -> tamil
+            # 13:30 UTC = Evening (07:00 PM IST) -> english
+            CURRENT_HOUR=$(date -u +"%H")
+            if [ "$CURRENT_HOUR" -lt 5 ]; then
+              SELECTED_TYPE="kural"
+            elif [ "$CURRENT_HOUR" -lt 11 ]; then
+              SELECTED_TYPE="tamil"
+            else
+              SELECTED_TYPE="english"
+            fi
+          fi
+          echo "selected_type=$SELECTED_TYPE" >> $GITHUB_OUTPUT
+          echo "Selected Post Category: $SELECTED_TYPE"
+
+      - name: Trigger Spark Within API Cron Publisher
+        run: |
+          CATEGORY="${{ steps.category_step.outputs.selected_type }}"
+          TARGET_URL="https://post-bot-lime.vercel.app/api/cron/daily-post?type=${CATEGORY}"
+          echo "Pinging Cloud Publisher: $TARGET_URL"
+          RESPONSE=$(curl -s -w "\n%{http_code}" "$TARGET_URL")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "HTTP Response Code: $HTTP_CODE"
+          echo "Response Body:"
+          echo "$BODY"
+          
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "Publishing failed with HTTP code $HTTP_CODE"
+            exit 1
+          fi

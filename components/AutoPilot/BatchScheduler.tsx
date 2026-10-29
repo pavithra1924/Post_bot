@@ -3,10 +3,29 @@
 import React, { useState } from 'react';
 import { getNonRepeatingWeek, PRESET_QUOTES } from '@/lib/presets';
 import { getNonRepeatingTamilWeek, TAMIL_PRESET_QUOTES } from '@/lib/tamilPresets';
+import { ALL_1330_KURALS } from '@/lib/thirukkural1330';
 import { generateTamilViralCaption, TamilCaptionResult } from '@/lib/tamilCaptionGenerator';
 import { THEMES, ThemeId } from '@/lib/themes';
 import { LayoutStyle, AspectRatio, renderQuoteToCanvas } from '@/lib/canvasRenderer';
-import { Calendar, Sparkles, ArrowRight, Dices, Send, RefreshCw, Flame, Check, ShieldCheck, UserCheck, Film } from 'lucide-react';
+import {
+  Calendar,
+  Sparkles,
+  ArrowRight,
+  Dices,
+  Send,
+  RefreshCw,
+  Flame,
+  Check,
+  ShieldCheck,
+  Film,
+  Clock,
+  Radio,
+  ExternalLink,
+  Zap,
+  Globe,
+  BookOpen,
+  Copy
+} from 'lucide-react';
 import { generateViralCaption, ViralCaptionResult } from '@/lib/captionGenerator';
 import { BatchCardCanvas } from './BatchCardCanvas';
 
@@ -23,6 +42,7 @@ export interface ScheduledDayPost {
   tamilCaption?: TamilCaptionResult | null;
   language?: 'en' | 'ta';
   explanationTamil?: string;
+  kuralNumber?: number;
 }
 
 interface BatchSchedulerProps {
@@ -36,14 +56,67 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
   onOpenPublishModal,
   onSendToVideoStudio,
 }) => {
-  const [scheduleLang, setScheduleLang] = useState<'ta' | 'en'>('ta');
+  const [scheduleLang, setScheduleLang] = useState<'ta' | 'en' | 'kural'>('kural');
   const [seedOffset, setSeedOffset] = useState(0);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('4:5');
   const [showAuthorAttribution, setShowAuthorAttribution] = useState(true);
 
-  // Helper to build schedule for either Tamil or English
-  const buildSchedule = (lang: 'ta' | 'en', offset: number): ScheduledDayPost[] => {
-    if (lang === 'ta') {
+  // Instant Cloud Test Posting state
+  const [isTestingCron, setIsTestingCron] = useState(false);
+  const [cronStatusMsg, setCronStatusMsg] = useState<{
+    type: 'success' | 'error' | 'info';
+    text: string;
+    details?: string;
+  } | null>(null);
+
+  // Webhook copy feedback
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
+
+  // Helper to build schedule for Thirukkural, Tamil Quotes, or English
+  const buildSchedule = (lang: 'ta' | 'en' | 'kural', offset: number): ScheduledDayPost[] => {
+    const days = [
+      'திங்கள் (Monday)',
+      'செவ்வாய் (Tuesday)',
+      'புதன் (Wednesday)',
+      'வியாழன் (Thursday)',
+      'வெள்ளி (Friday)',
+      'சனி (Saturday)',
+      'ஞாயிறு (Sunday)'
+    ];
+
+    if (lang === 'kural') {
+      const themeSequence: ThemeId[] = [
+        'stoic_marble',
+        'fire_sunset',
+        'minimal_linen',
+        'vintage_journal',
+        'stoic_marble',
+        'fire_sunset',
+        'minimal_linen'
+      ];
+      return days.map((day, idx) => {
+        const kuralIndex = (offset * 7 + idx) % ALL_1330_KURALS.length;
+        const kural = ALL_1330_KURALS[kuralIndex];
+        const tId = themeSequence[idx % themeSequence.length];
+        const theme = THEMES[tId];
+        const bg = theme.fallbackImages[(offset + idx) % theme.fallbackImages.length] || theme.fallbackImages[0];
+
+        return {
+          day,
+          quote: kural.verse,
+          author: 'திருவள்ளுவர்',
+          isOriginalSpark: false,
+          theme: tId,
+          badge: `💎 குறள் #${kural.number} • ${kural.chapter}`,
+          layoutStyle: 'pinterest-luxury',
+          backgroundImage: bg,
+          caption: null,
+          language: 'ta',
+          explanationTamil: kural.simpleExplanation,
+          kuralNumber: kural.number,
+        };
+      });
+    } else if (lang === 'ta') {
       const tamilWeek = getNonRepeatingTamilWeek(offset);
       const themeSequence: ThemeId[] = [
         'fire_sunset',
@@ -94,17 +167,17 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
     }
   };
 
-  // Initialize schedule with Tamil as default
-  const [schedule, setSchedule] = useState<ScheduledDayPost[]>(() => buildSchedule('ta', 0));
+  // Initialize schedule with Thirukkural as default
+  const [schedule, setSchedule] = useState<ScheduledDayPost[]>(() => buildSchedule('kural', 0));
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
 
-  // Switch language mode
-  const handleSwitchLanguage = (newLang: 'ta' | 'en') => {
-    setScheduleLang(newLang);
-    setSchedule(buildSchedule(newLang, seedOffset));
+  // Switch category mode
+  const handleSwitchCategory = (newCat: 'kural' | 'ta' | 'en') => {
+    setScheduleLang(newCat);
+    setSchedule(buildSchedule(newCat, seedOffset));
   };
 
-  // Shuffle entire week: advances seed offset and picks 7 completely fresh non-repeating quotes
+  // Shuffle entire week
   const handleShuffleEntireWeek = () => {
     const nextOffset = seedOffset + 1;
     setSeedOffset(nextOffset);
@@ -117,7 +190,42 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
     try {
       const updated = await Promise.all(
         schedule.map(async (item) => {
-          if (item.language === 'ta') {
+          if (item.kuralNumber) {
+            // Thirukkural specific rich caption
+            const kuralItem = ALL_1330_KURALS[item.kuralNumber - 1];
+            const fullCap = `💎 வாழ்வியல் தத்துவம் • குறள் #${kuralItem.number}
+
+${kuralItem.verse}
+
+— ஆசிரியர்: திருவள்ளுவர்
+வழங்குபவர்: Spark Within (@_sparkwithin_hub_)
+
+📌 எளிய விளக்கம்:
+${kuralItem.simpleExplanation}
+
+💡 வாழ்க்கையில் ஓர் உதாரணம்:
+${kuralItem.lifeExample}
+
+✨ இன்றைய சிந்தனை:
+${kuralItem.dailyThought}
+
+#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom #dailyquotes #kural #tamilnadu #inspiration #tamilstatus #mindset #motivation #tamilliterature`;
+
+            const viralCap: ViralCaptionResult = {
+              hook: `💎 வாழ்வியல் தத்துவம் • குறள் #${kuralItem.number}`,
+              explanation: kuralItem.simpleExplanation,
+              insight: kuralItem.simpleExplanation,
+              actionChallenge: kuralItem.dailyThought,
+              cta: '📌 தினசரி வாழ்வியல் சிந்தனைகளுக்கு பின்தொடரவும்: @_sparkwithin_hub_',
+              captionHashtags: ['#sparkwithin', '#thirukkural', '#thiruvalluvar', '#tamilquotes', '#kural'],
+              hashtags: ['#sparkwithin', '#thirukkural', '#thiruvalluvar', '#tamilquotes', '#kural'],
+              firstCommentHashtags: ['#tamilstatus', '#mindset', '#dailywisdom', '#tamilnadu'],
+              totalHashtagsCount: 9,
+              fullCaption: fullCap,
+              firstComment: '🚀 பின்தொடருங்கள் @_sparkwithin_hub_',
+            };
+            return { ...item, caption: viralCap };
+          } else if (item.language === 'ta') {
             const tamResult = generateTamilViralCaption({
               id: `sched-${item.day}`,
               quote: item.quote,
@@ -161,7 +269,23 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
       const copy = [...prev];
       const current = copy[index];
 
-      if (current.language === 'ta') {
+      if (scheduleLang === 'kural') {
+        const randomKural = ALL_1330_KURALS[Math.floor(Math.random() * ALL_1330_KURALS.length)];
+        const theme = THEMES[current.theme];
+        const otherBgs = theme.fallbackImages.filter((bg) => bg !== current.backgroundImage);
+        const chosenBg = otherBgs.length > 0 ? otherBgs[Math.floor(Math.random() * otherBgs.length)] : theme.fallbackImages[0];
+
+        copy[index] = {
+          ...current,
+          quote: randomKural.verse,
+          author: 'திருவள்ளுவர்',
+          badge: `💎 குறள் #${randomKural.number} • ${randomKural.chapter}`,
+          explanationTamil: randomKural.simpleExplanation,
+          backgroundImage: chosenBg,
+          caption: null,
+          kuralNumber: randomKural.number,
+        };
+      } else if (current.language === 'ta') {
         const pool = TAMIL_PRESET_QUOTES.filter((q) => q.quote !== current.quote);
         const chosen = pool[Math.floor(Math.random() * pool.length)] || TAMIL_PRESET_QUOTES[0];
         const theme = THEMES[current.theme];
@@ -211,11 +335,11 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
       const offscreen = document.createElement('canvas');
       const theme = THEMES[item.theme];
       const isTamil = item.language === 'ta' || /[\u0B80-\u0BFF]/.test(item.quote);
-      const isKural = item.badge?.includes('வாழ்வியல்') || item.badge?.includes('திருக்குறள்');
+      const isKural = item.kuralNumber || item.badge?.includes('குறள்') || item.badge?.includes('வாழ்வியல்');
       const authorClean = isKural 
         ? 'திருவள்ளுவர்' 
         : (item.author && item.author !== 'Spark Within' ? item.author.replace(/\(?உள்\s*ஒளி\)?/g, '').trim() : '');
-      const badgeClean = isKural ? '💎 வாழ்வியல் தத்துவம்' : item.badge;
+      const badgeClean = isKural ? `💎 குறள் #${item.kuralNumber || ''}` : item.badge;
 
       await renderQuoteToCanvas(offscreen, {
         quote: item.quote,
@@ -251,55 +375,272 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
     }
   };
 
+  // Instant Cloud Test Trigger for Thirukkural, Tamil Quotes, or English Mindset
+  const handleTriggerCloudPost = async (type: 'kural' | 'tamil' | 'english' | 'all') => {
+    setIsTestingCron(true);
+    setCronStatusMsg({
+      type: 'info',
+      text: `Connecting to Meta Graph API for @_sparkwithin_hub_ (${type.toUpperCase()})...`,
+    });
+
+    try {
+      const res = await fetch(`/api/cron/daily-post?type=${type}`, { method: 'GET' });
+      const data = await res.json();
+
+      if (res.ok && data.status === 'success') {
+        const info = data.mode === 'all_categories'
+          ? `Successfully published all 3 categories (Thirukkural, Tamil Wisdom, and English Mindset) to @_sparkwithin_hub_!`
+          : `Successfully published ${data.title} (${data.author}) to @_sparkwithin_hub_!`;
+        setCronStatusMsg({
+          type: 'success',
+          text: '🎉 Instagram Auto-Publish Successful!',
+          details: info,
+        });
+      } else {
+        setCronStatusMsg({
+          type: 'error',
+          text: '⚠️ Automated Publishing Notice',
+          details: data.error || data.message || 'Check connected account credentials.',
+        });
+      }
+    } catch (err: any) {
+      setCronStatusMsg({
+        type: 'error',
+        text: 'Connection Error',
+        details: err.message || 'Failed to ping automated publisher.',
+      });
+    } finally {
+      setIsTestingCron(false);
+    }
+  };
+
+  const handleCopyWebhook = () => {
+    if (typeof window !== 'undefined') {
+      const url = `${window.location.origin}/api/cron/daily-post`;
+      navigator.clipboard.writeText(url);
+      setCopiedWebhook(true);
+      setTimeout(() => setCopiedWebhook(false), 2500);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
+      {/* 🚀 Spark Within Autonomous Automation Status & Schedule Hub */}
+      <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-800/40 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-radial from-indigo-500/10 via-transparent to-transparent pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+          <div>
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold tracking-wider uppercase border border-emerald-500/30 flex items-center gap-1.5 shadow-xs">
+                <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                Live Automation Active
+              </span>
+              <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 text-xs font-medium border border-indigo-500/30 flex items-center gap-1">
+                @_sparkwithin_hub_
+              </span>
+              <span className="text-xs text-slate-400 font-mono">
+                ID: 17841412392890201
+              </span>
+            </div>
+
+            <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+              <span>⚡ Spark Within 3-Slot Daily Automation Engine</span>
+            </h2>
+            <p className="text-xs text-indigo-200/80 mt-1.5 max-w-2xl leading-relaxed">
+              Fully hands-free autonomous posting schedule for <strong>திருக்குறள்</strong>, <strong>தமிழ் பொன்மொழிகள்</strong>, மற்றும் <strong>English Mindset</strong> directly to your Instagram account.
+            </p>
+
+            {/* 3 Scheduled Daily Slots */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>🌅 07:00 AM IST</span>
+                </div>
+                <div className="text-sm font-bold text-white flex items-center gap-1">
+                  <span>💎 திருக்குறள் (Thirukkural)</span>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-0.5">Couplet + எளிய விளக்கம் + உதாரணம்</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <div className="flex items-center gap-1.5 text-rose-400 text-xs font-bold mb-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>☀️ 01:00 PM IST</span>
+                </div>
+                <div className="text-sm font-bold text-white flex items-center gap-1">
+                  <span>🔥 தமிழ் பொன்மொழிகள்</span>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-0.5">பாரதியார், கலாம், ஔவையார் வரிகள்</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <div className="flex items-center gap-1.5 text-cyan-400 text-xs font-bold mb-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>🌙 07:00 PM IST</span>
+                </div>
+                <div className="text-sm font-bold text-white flex items-center gap-1">
+                  <span>🌍 English Mindset Quotes</span>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-0.5">Marcus Aurelius, Steve Jobs, Stoicism</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Instant Test Buttons */}
+          <div className="flex flex-col gap-2.5 shrink-0 w-full lg:w-auto">
+            <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              Instant 1-Click Trigger:
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleTriggerCloudPost('kural')}
+                disabled={isTestingCron}
+                className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+              >
+                💎 Post Kural Now
+              </button>
+              <button
+                onClick={() => handleTriggerCloudPost('tamil')}
+                disabled={isTestingCron}
+                className="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+              >
+                🔥 Post Tamil Now
+              </button>
+              <button
+                onClick={() => handleTriggerCloudPost('english')}
+                disabled={isTestingCron}
+                className="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+              >
+                🌍 Post English Now
+              </button>
+              <button
+                onClick={() => handleTriggerCloudPost('all')}
+                disabled={isTestingCron}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-md"
+              >
+                🚀 Post All 3 Now
+              </button>
+            </div>
+
+            {/* Webhook URL Copy */}
+            <div className="flex items-center gap-1 mt-1">
+              <button
+                onClick={handleCopyWebhook}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[11px] text-slate-300 font-mono transition-colors cursor-pointer border border-white/10"
+                title="Copy Webhook endpoint URL for cron-job.org / GitHub Actions"
+              >
+                <Copy className="w-3 h-3 text-slate-400" />
+                <span>{copiedWebhook ? 'Copied Webhook URL!' : 'Copy Automated Cron Webhook URL'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Feedback Toast Banner */}
+        {cronStatusMsg && (
+          <div
+            className={`mt-4 p-3 rounded-xl text-xs flex items-start gap-2 border ${
+              cronStatusMsg.type === 'success'
+                ? 'bg-emerald-950/80 text-emerald-200 border-emerald-500/40'
+                : cronStatusMsg.type === 'error'
+                ? 'bg-rose-950/80 text-rose-200 border-rose-500/40'
+                : 'bg-indigo-950/80 text-indigo-200 border-indigo-500/40'
+            }`}
+          >
+            {isTestingCron ? (
+              <RefreshCw className="w-4 h-4 animate-spin shrink-0 mt-0.5 text-amber-400" />
+            ) : cronStatusMsg.type === 'success' ? (
+              <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            ) : (
+              <Zap className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            )}
+            <div>
+              <p className="font-bold">{cronStatusMsg.text}</p>
+              {cronStatusMsg.details && (
+                <p className="text-[11px] opacity-90 mt-0.5">{cronStatusMsg.details}</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Header Banner & Mode Selector */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/10 via-rose-500/10 to-indigo-500/10 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold tracking-wider uppercase border border-rose-200 flex items-center gap-1 shadow-xs">
               <Flame className="w-3 h-3 text-rose-500" />
-              {scheduleLang === 'ta' ? 'தமிழ் ஆட்டோ-பைலட்' : 'Spark Within Auto-Pilot'}
+              {scheduleLang === 'kural'
+                ? '💎 திருக்குறள் 1,330 ஆட்டோ-பைலட்'
+                : scheduleLang === 'ta'
+                ? '🔥 தமிழ் பொன்மொழிகள் ஆட்டோ-பைலட்'
+                : '🇺🇸 English Mindset Auto-Pilot'}
             </span>
             <span className="text-xs text-slate-500">
-              {scheduleLang === 'ta' ? '• 40+ திருக்குறள், பாரதியார், கலாம் வரிகள்' : '• 35+ Curated Quotes'}
+              {scheduleLang === 'kural'
+                ? '• முழுமையான 1,330 திருக்குறள் கருவூலம்'
+                : scheduleLang === 'ta'
+                ? '• பாரதியார், கலாம், ஔவையார், விவேகானந்தர்'
+                : '• Stoic & Success Masterpieces'}
             </span>
             <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              {scheduleLang === 'ta' ? '100% மீண்டும் வராத உத்தரவாதம்' : '100% Non-Repeating Guarantee'}
+              100% Non-Repeating Guarantee
             </span>
           </div>
 
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            {scheduleLang === 'ta' ? '7-நாள் தமிழ் மோட்டிவேஷன் ஆட்டோ-பைலட்' : '7-Day Inspiring Content Queue'}
+            {scheduleLang === 'kural'
+              ? '7-நாள் திருக்குறள் வாழ்வியல் வரிசை'
+              : scheduleLang === 'ta'
+              ? '7-நாள் தமிழ் பொன்மொழிகள் வரிசை'
+              : '7-Day English Mindset Queue'}
           </h2>
           <p className="text-xs text-slate-600 mt-1 max-w-xl">
-            {scheduleLang === 'ta'
-              ? 'திங்கள் முதல் ஞாயிறு வரை 7 தனித்துவமான Canva/Pinterest போஸ்ட்கள், 52 வைரல் ஹேஷ்டேக்குகள் மற்றும் ஆட்டோ-போஸ்டிங் @_sparkwithin_hub_ க்காக.'
-              : '7 distinct visual environments, Canva & Pinterest layouts, and verified attributions engineered for @_sparkwithin_hub_.'}
+            {scheduleLang === 'kural'
+              ? 'தினசரி குறள், ஆசிரியர் திருவள்ளுவர், எளிய விளக்கம் மற்றும் வாழ்க்கையில் ஓர் உதாரணம் கொண்ட பிரத்யேக வரிசை.'
+              : scheduleLang === 'ta'
+              ? 'மகாகவி பாரதியார், டாக்டர் அப்துல் கலாம், ஔவையார் மற்றும் விவேகானந்தரின் உன்னத வரிகள்.'
+              : 'High-leverage stoic, philosophical, and leadership quotes for daily execution.'}
           </p>
 
-          {/* Language Toggle Pills */}
-          <div className="flex items-center gap-2 mt-3">
+          {/* Category Toggle Pills */}
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
             <button
-              onClick={() => handleSwitchLanguage('ta')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                scheduleLang === 'ta'
+              onClick={() => handleSwitchCategory('kural')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                scheduleLang === 'kural'
                   ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
               }`}
             >
-              🌾 தமிழ் ஆட்டோ-பைலட் (Tamil)
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>💎 திருக்குறள் (Thirukkural)</span>
             </button>
             <button
-              onClick={() => handleSwitchLanguage('en')}
-              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                scheduleLang === 'en'
-                  ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
+              onClick={() => handleSwitchCategory('ta')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                scheduleLang === 'ta'
+                  ? 'bg-gradient-to-r from-rose-500 to-amber-500 text-white border-transparent shadow-xs'
                   : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
               }`}
             >
-              🇺🇸 English Auto-Pilot
+              <Flame className="w-3.5 h-3.5 text-rose-400" />
+              <span>🔥 தமிழ் பொன்மொழிகள் (Tamil Quotes)</span>
+            </button>
+            <button
+              onClick={() => handleSwitchCategory('en')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                scheduleLang === 'en'
+                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-transparent shadow-xs'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>🇺🇸 English Mindset</span>
             </button>
           </div>
         </div>
@@ -312,7 +653,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
             title="Rotate to 7 completely fresh, non-repeating quotes and photos"
           >
             <Dices className="w-4 h-4 text-amber-500" />
-            <span>{scheduleLang === 'ta' ? 'வாரத்தை கலக்கு (Shuffle)' : 'Shuffle Week (No Repeats)'}</span>
+            <span>Shuffle Week (No Repeats)</span>
           </button>
 
           {/* Auto-generate all captions */}
@@ -329,82 +670,71 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
             <span>
               {isGeneratingAll
                 ? 'Generating Captions...'
-                : scheduleLang === 'ta'
-                ? '✨ 7 கேப்ஷன்களையும் உருவாக்கு (52 Tags)'
-                : '1-Click Write All 7 Captions'}
+                : '✨ 1-Click Write All 7 Captions'}
             </span>
           </button>
         </div>
       </div>
 
       {/* Control Bar: Aspect Ratio & Attribution Style */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm text-xs">
-        <div className="flex items-center gap-3">
-          <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Feed Format:</span>
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+      <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200 text-xs shadow-xs flex-wrap gap-3">
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-700">Display Ratio:</span>
+          {(['1:1', '4:5', '9:16'] as AspectRatio[]).map((ratio) => (
             <button
-              onClick={() => setAspectRatio('4:5')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                aspectRatio === '4:5' ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              key={ratio}
+              onClick={() => setAspectRatio(ratio)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                aspectRatio === ratio
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
               }`}
             >
-              4:5 Portrait (Recommended for IG)
+              {ratio === '4:5' ? '4:5 (Instagram Feed)' : ratio === '9:16' ? '9:16 (Story/Reel)' : '1:1 (Square)'}
             </button>
-            <button
-              onClick={() => setAspectRatio('1:1')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                aspectRatio === '1:1' ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              1:1 Square
-            </button>
-          </div>
+          ))}
         </div>
 
-        {/* Attribution Toggle */}
-        <div className="flex items-center gap-3">
-          <span className="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Attribution Style:</span>
-          <button
-            onClick={() => setShowAuthorAttribution(!showAuthorAttribution)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all cursor-pointer shadow-xs ${
-              showAuthorAttribution
-                ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
-            title="Toggle between verified author attribution line and clean Pinterest page signature only"
-          >
-            <UserCheck className="w-3.5 h-3.5 text-amber-600" />
-            <span>{showAuthorAttribution ? 'Author Line: ON (Verified Thinkers)' : 'Pinterest Clean: Page Signature Only'}</span>
-          </button>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+            <input
+              type="checkbox"
+              checked={showAuthorAttribution}
+              onChange={(e) => setShowAuthorAttribution(e.target.checked)}
+              className="rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+            />
+            <span>Show Author Attribution</span>
+          </label>
         </div>
       </div>
 
-      {/* 7 Days Grid with Real Canva Canvas Rendering */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* 7-Day Visual Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {schedule.map((item, idx) => {
           const theme = THEMES[item.theme];
+          const isKural = item.kuralNumber || item.badge?.includes('குறள்');
+          const authorClean = isKural ? 'திருவள்ளுவர்' : item.author;
 
           return (
             <div
-              key={item.day}
-              className="p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-slate-300 transition-all flex flex-col justify-between group shadow-sm hover:shadow-md relative overflow-hidden"
+              key={idx}
+              className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
             >
-              {/* Day Header */}
               <div>
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-rose-500" />
+                {/* Day Header Badge */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold text-[11px] border border-indigo-100">
                     {item.day}
                   </span>
-                  <span className="text-[9px] uppercase font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">
                     {theme.environment}
                   </span>
                 </div>
 
-                {/* Real Dynamic Canva Canvas Thumbnail Preview */}
+                {/* Real Dynamic Canvas Thumbnail Preview */}
                 <div className="relative mb-3">
-                  <BatchCardCanvas 
-                    post={item} 
+                  <BatchCardCanvas
+                    post={item}
                     aspectRatio={aspectRatio}
                     showAuthor={showAuthorAttribution}
                   />
@@ -412,7 +742,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
                   {/* Re-roll Day Button */}
                   <button
                     onClick={() => handleRerollDay(idx)}
-                    title="Swap to another non-repeating quote & photo in this theme"
+                    title="Swap to another non-repeating quote in this category"
                     className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/85 backdrop-blur-md border border-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer z-10 flex items-center gap-1 text-[10px] font-bold shadow-xs"
                   >
                     <Dices className="w-3.5 h-3.5 text-amber-600" />
@@ -424,7 +754,9 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
                 {item.caption ? (
                   <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px] text-slate-700 mb-3 space-y-1">
                     <p className="font-bold text-amber-800 line-clamp-1">{item.caption.hook}</p>
-                    <p className="text-slate-500 text-[10px] line-clamp-2 leading-relaxed">{item.caption.insight || (item.caption as any).story || item.explanationTamil}</p>
+                    <p className="text-slate-500 text-[10px] line-clamp-2 leading-relaxed">
+                      {item.caption.insight || (item.caption as any).story || item.explanationTamil}
+                    </p>
                     <p className="text-[9px] text-rose-600 font-mono font-bold line-clamp-1 mt-1">
                       {item.caption.hashtags.slice(0, 4).join(' ')}
                     </p>
@@ -441,7 +773,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
                 <button
                   onClick={() => onLoadPostToStudio(item)}
                   className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 border border-slate-200 text-xs font-bold text-slate-800 transition-colors cursor-pointer shadow-xs"
-                  title={item.language === 'ta' ? 'Open in Tamil Studio' : 'Open in English Studio'}
+                  title="Open in Studio"
                 >
                   <span>{item.language === 'ta' ? '🌾 தமிழ் Studio' : '🇺🇸 English Studio'}</span>
                   <ArrowRight className="w-3 h-3" />
@@ -449,7 +781,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
 
                 {onSendToVideoStudio && (
                   <button
-                    onClick={() => onSendToVideoStudio(item.quote, item.author)}
+                    onClick={() => onSendToVideoStudio(item.quote, authorClean)}
                     className="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 transition-colors cursor-pointer shadow-xs"
                     title="Convert this quote into an animated 9:16 Video Reel"
                   >
