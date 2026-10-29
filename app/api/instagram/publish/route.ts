@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     const action = body.action || 'publish';
 
     // Support payload or server environment variables
-    const accessToken = (body.accessToken || process.env.INSTAGRAM_ACCESS_TOKEN || 'EAAMbn2U9KD4BSZB1qQFH6kRZBCp4DRvzUDRoV1kq8JeYA99EOQckMei30jkbThuZBheA8SAXrSnM5b9yY36jSThqagKt3bQNmgvrvjFj5HOHCGgMaV3uv2ezZABQln71psryNIHdqNZA51JXMJWw6CS0TQADDmadZAoiRbJnq67PUb94KeaAsvccKajDXd59Qj34RQZBlPpQIJuieH3v1kZBKohd4T96TYmQGcZBdEe08kPJaR07NT68oliQyo25rFMyQJjFYlfMfhpAZD').trim();
+    const accessToken = (body.accessToken || process.env.INSTAGRAM_ACCESS_TOKEN || 'EAAMbn2U9KD4BS0gR3l1bC7YoqWgzwqU6LaSf66aSaWq5KlJzF0Bi2eMIwOwf7DGiLpfasTHEUcIa9byjuNZAAsfaRP2Y3hPlZBPAAZCWdoGeuF5IqCTPYqD3tzSSJs5MB7ICyXicBL5jusRxeqPXaobHSjmmFnj4W1HI5M2jThZAxNbZAXs2rZASARQz0BLkVBJ9ZA4Hkw9ZAZBd37y95aN9THZAjtKyRYQ0YghKJXv5hlzCqdn8i7NZCSxVZCINLBKv88LoX36iZB0j4cowZD').trim();
     let igUserId = (body.igUserId || process.env.INSTAGRAM_USER_ID || '17841412392890201').trim();
     const imageUrl = body.imageUrl || body.imageBase64 || '';
     const caption = body.caption || '';
