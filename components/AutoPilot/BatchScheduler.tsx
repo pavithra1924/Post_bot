@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { getNonRepeatingWeek, PRESET_QUOTES } from '@/lib/presets';
 import { getNonRepeatingTamilWeek, TAMIL_PRESET_QUOTES } from '@/lib/tamilPresets';
-import { ALL_1330_KURALS } from '@/lib/thirukkural1330';
 import { generateTamilViralCaption, TamilCaptionResult } from '@/lib/tamilCaptionGenerator';
 import { THEMES, ThemeId } from '@/lib/themes';
 import { LayoutStyle, AspectRatio, renderQuoteToCanvas } from '@/lib/canvasRenderer';
@@ -56,7 +55,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
   onOpenPublishModal,
   onSendToVideoStudio,
 }) => {
-  const [scheduleLang, setScheduleLang] = useState<'ta' | 'en' | 'kural'>('kural');
+  const [scheduleLang, setScheduleLang] = useState<'ta' | 'en'>('ta');
   const [seedOffset, setSeedOffset] = useState(0);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('4:5');
   const [showAuthorAttribution, setShowAuthorAttribution] = useState(true);
@@ -72,51 +71,9 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
   // Webhook copy feedback
   const [copiedWebhook, setCopiedWebhook] = useState(false);
 
-  // Helper to build schedule for Thirukkural, Tamil Quotes, or English
-  const buildSchedule = (lang: 'ta' | 'en' | 'kural', offset: number): ScheduledDayPost[] => {
-    const days = [
-      'திங்கள் (Monday)',
-      'செவ்வாய் (Tuesday)',
-      'புதன் (Wednesday)',
-      'வியாழன் (Thursday)',
-      'வெள்ளி (Friday)',
-      'சனி (Saturday)',
-      'ஞாயிறு (Sunday)'
-    ];
-
-    if (lang === 'kural') {
-      const themeSequence: ThemeId[] = [
-        'stoic_marble',
-        'fire_sunset',
-        'minimal_linen',
-        'vintage_journal',
-        'stoic_marble',
-        'fire_sunset',
-        'minimal_linen'
-      ];
-      return days.map((day, idx) => {
-        const kuralIndex = (offset * 7 + idx) % ALL_1330_KURALS.length;
-        const kural = ALL_1330_KURALS[kuralIndex];
-        const tId = themeSequence[idx % themeSequence.length];
-        const theme = THEMES[tId];
-        const bg = theme.fallbackImages[(offset + idx) % theme.fallbackImages.length] || theme.fallbackImages[0];
-
-        return {
-          day,
-          quote: kural.verse,
-          author: 'திருவள்ளுவர்',
-          isOriginalSpark: false,
-          theme: tId,
-          badge: `💎 குறள் #${kural.number} • ${kural.chapter}`,
-          layoutStyle: 'pinterest-luxury',
-          backgroundImage: bg,
-          caption: null,
-          language: 'ta',
-          explanationTamil: kural.simpleExplanation,
-          kuralNumber: kural.number,
-        };
-      });
-    } else if (lang === 'ta') {
+  // Helper to build schedule for Tamil Quotes or English Mindset
+  const buildSchedule = (lang: 'ta' | 'en', offset: number): ScheduledDayPost[] => {
+    if (lang === 'ta') {
       const tamilWeek = getNonRepeatingTamilWeek(offset);
       const themeSequence: ThemeId[] = [
         'fire_sunset',
@@ -167,12 +124,12 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
     }
   };
 
-  // Initialize schedule with Thirukkural as default
-  const [schedule, setSchedule] = useState<ScheduledDayPost[]>(() => buildSchedule('kural', 0));
+  // Initialize schedule with Tamil as default
+  const [schedule, setSchedule] = useState<ScheduledDayPost[]>(() => buildSchedule('ta', 0));
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
 
   // Switch category mode
-  const handleSwitchCategory = (newCat: 'kural' | 'ta' | 'en') => {
+  const handleSwitchCategory = (newCat: 'ta' | 'en') => {
     setScheduleLang(newCat);
     setSchedule(buildSchedule(newCat, seedOffset));
   };
@@ -190,42 +147,7 @@ export const BatchScheduler: React.FC<BatchSchedulerProps> = ({
     try {
       const updated = await Promise.all(
         schedule.map(async (item) => {
-          if (item.kuralNumber) {
-            // Thirukkural specific rich caption
-            const kuralItem = ALL_1330_KURALS[item.kuralNumber - 1];
-            const fullCap = `💎 வாழ்வியல் தத்துவம் • குறள் #${kuralItem.number}
-
-${kuralItem.verse}
-
-— ஆசிரியர்: திருவள்ளுவர்
-வழங்குபவர்: Spark Within (@_sparkwithin_hub_)
-
-📌 எளிய விளக்கம்:
-${kuralItem.simpleExplanation}
-
-💡 வாழ்க்கையில் ஓர் உதாரணம்:
-${kuralItem.lifeExample}
-
-✨ இன்றைய சிந்தனை:
-${kuralItem.dailyThought}
-
-#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #tamilmotivation #wisdom #dailyquotes #kural #tamilnadu #inspiration #tamilstatus #mindset #motivation #tamilliterature`;
-
-            const viralCap: ViralCaptionResult = {
-              hook: `💎 வாழ்வியல் தத்துவம் • குறள் #${kuralItem.number}`,
-              explanation: kuralItem.simpleExplanation,
-              insight: kuralItem.simpleExplanation,
-              actionChallenge: kuralItem.dailyThought,
-              cta: '📌 தினசரி வாழ்வியல் சிந்தனைகளுக்கு பின்தொடரவும்: @_sparkwithin_hub_',
-              captionHashtags: ['#sparkwithin', '#thirukkural', '#thiruvalluvar', '#tamilquotes', '#kural'],
-              hashtags: ['#sparkwithin', '#thirukkural', '#thiruvalluvar', '#tamilquotes', '#kural'],
-              firstCommentHashtags: ['#tamilstatus', '#mindset', '#dailywisdom', '#tamilnadu'],
-              totalHashtagsCount: 9,
-              fullCaption: fullCap,
-              firstComment: '🚀 பின்தொடருங்கள் @_sparkwithin_hub_',
-            };
-            return { ...item, caption: viralCap };
-          } else if (item.language === 'ta') {
+          if (item.language === 'ta') {
             const tamResult = generateTamilViralCaption({
               id: `sched-${item.day}`,
               quote: item.quote,
@@ -269,25 +191,11 @@ ${kuralItem.dailyThought}
       const copy = [...prev];
       const current = copy[index];
 
-      if (scheduleLang === 'kural') {
-        const randomKural = ALL_1330_KURALS[Math.floor(Math.random() * ALL_1330_KURALS.length)];
-        const theme = THEMES[current.theme];
-        const otherBgs = theme.fallbackImages.filter((bg) => bg !== current.backgroundImage);
-        const chosenBg = otherBgs.length > 0 ? otherBgs[Math.floor(Math.random() * otherBgs.length)] : theme.fallbackImages[0];
-
-        copy[index] = {
-          ...current,
-          quote: randomKural.verse,
-          author: 'திருவள்ளுவர்',
-          badge: `💎 குறள் #${randomKural.number} • ${randomKural.chapter}`,
-          explanationTamil: randomKural.simpleExplanation,
-          backgroundImage: chosenBg,
-          caption: null,
-          kuralNumber: randomKural.number,
-        };
-      } else if (current.language === 'ta') {
-        const pool = TAMIL_PRESET_QUOTES.filter((q) => q.quote !== current.quote);
-        const chosen = pool[Math.floor(Math.random() * pool.length)] || TAMIL_PRESET_QUOTES[0];
+      if (current.language === 'ta') {
+        const pool = TAMIL_PRESET_QUOTES.filter(
+          (q) => q.quote !== current.quote && q.category !== 'thirukkural' && !q.categoryTamil.includes('திருக்குறள்')
+        );
+        const chosen = pool[Math.floor(Math.random() * pool.length)] || pool[0];
         const theme = THEMES[current.theme];
         const otherBgs = theme.fallbackImages.filter((bg) => bg !== current.backgroundImage);
         const chosenBg = otherBgs.length > 0 ? otherBgs[Math.floor(Math.random() * otherBgs.length)] : theme.fallbackImages[0];
@@ -445,34 +353,23 @@ ${kuralItem.dailyThought}
             </div>
 
             <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-              <span>⚡ Spark Within 3-Slot Daily Automation Engine</span>
+              <span>⚡ Spark Within Daily Automation Engine</span>
             </h2>
             <p className="text-xs text-indigo-200/80 mt-1.5 max-w-2xl leading-relaxed">
-              Fully hands-free autonomous posting schedule for <strong>திருக்குறள்</strong>, <strong>தமிழ் பொன்மொழிகள்</strong>, மற்றும் <strong>English Mindset</strong> directly to your Instagram account.
+              Fully hands-free autonomous posting schedule for <strong>தமிழ் பொன்மொழிகள் (Tamil Quotes)</strong> மற்றும் <strong>English Mindset</strong> directly to your Instagram account.
             </p>
 
-            {/* 3 Scheduled Daily Slots */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
-                <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold mb-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>🌅 07:00 AM IST</span>
-                </div>
-                <div className="text-sm font-bold text-white flex items-center gap-1">
-                  <span>💎 திருக்குறள் (Thirukkural)</span>
-                </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">Couplet + எளிய விளக்கம் + உதாரணம்</p>
-              </div>
-
+            {/* 2 Scheduled Daily Slots for Single Posts */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
                 <div className="flex items-center gap-1.5 text-rose-400 text-xs font-bold mb-1">
                   <Clock className="w-3.5 h-3.5" />
-                  <span>☀️ 01:00 PM IST</span>
+                  <span>☀️ 09:00 AM IST</span>
                 </div>
                 <div className="text-sm font-bold text-white flex items-center gap-1">
-                  <span>🔥 தமிழ் பொன்மொழிகள்</span>
+                  <span>🔥 தமிழ் பொன்மொழிகள் (Single Post)</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">பாரதியார், கலாம், ஔவையார் வரிகள்</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">பாரதியார், கலாம், ஔவையார், விவேகானந்தர், சினிமா வரிகள்</p>
               </div>
 
               <div className="p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
@@ -481,10 +378,18 @@ ${kuralItem.dailyThought}
                   <span>🌙 07:00 PM IST</span>
                 </div>
                 <div className="text-sm font-bold text-white flex items-center gap-1">
-                  <span>🌍 English Mindset Quotes</span>
+                  <span>🌍 English Mindset Quotes (Single Post)</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-0.5">Marcus Aurelius, Steve Jobs, Stoicism</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">Marcus Aurelius, Steve Jobs, Seneca, Bruce Lee</p>
               </div>
+            </div>
+
+            {/* Carousel Clarification Note */}
+            <div className="mt-3 p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-[11px] text-amber-200 flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>
+                <strong>திருக்குறள் (5-Slide Carousels)</strong>: திருக்குறள் ஸ்லைடுகள் 5-Slide Carousel Studio பக்கத்தில் மட்டுமே உருவாக்கப்பட்டு பகிரப்படும்.
+              </span>
             </div>
           </div>
 
@@ -494,34 +399,27 @@ ${kuralItem.dailyThought}
               <Zap className="w-3.5 h-3.5 text-amber-400" />
               Instant 1-Click Trigger:
             </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => handleTriggerCloudPost('kural')}
-                disabled={isTestingCron}
-                className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
-              >
-                💎 Post Kural Now
-              </button>
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => handleTriggerCloudPost('tamil')}
                 disabled={isTestingCron}
-                className="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                className="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
               >
-                🔥 Post Tamil Now
+                🔥 Post Tamil Quote Now
               </button>
               <button
                 onClick={() => handleTriggerCloudPost('english')}
                 disabled={isTestingCron}
-                className="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
+                className="px-4 py-2.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-xs"
               >
-                🌍 Post English Now
+                🌍 Post English Mindset Now
               </button>
               <button
                 onClick={() => handleTriggerCloudPost('all')}
                 disabled={isTestingCron}
-                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-md"
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:opacity-90 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-md"
               >
-                🚀 Post All 3 Now
+                🚀 Post Both Categories
               </button>
             </div>
 
@@ -573,17 +471,13 @@ ${kuralItem.dailyThought}
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-[10px] font-bold tracking-wider uppercase border border-rose-200 flex items-center gap-1 shadow-xs">
               <Flame className="w-3 h-3 text-rose-500" />
-              {scheduleLang === 'kural'
-                ? '💎 திருக்குறள் 1,330 ஆட்டோ-பைலட்'
-                : scheduleLang === 'ta'
+              {scheduleLang === 'ta'
                 ? '🔥 தமிழ் பொன்மொழிகள் ஆட்டோ-பைலட்'
                 : '🇺🇸 English Mindset Auto-Pilot'}
             </span>
             <span className="text-xs text-slate-500">
-              {scheduleLang === 'kural'
-                ? '• முழுமையான 1,330 திருக்குறள் கருவூலம்'
-                : scheduleLang === 'ta'
-                ? '• பாரதியார், கலாம், ஔவையார், விவேகானந்தர்'
+              {scheduleLang === 'ta'
+                ? '• பாரதியார், கலாம், ஔவையார், விவேகானந்தர், சினிமா வரிகள்'
                 : '• Stoic & Success Masterpieces'}
             </span>
             <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
@@ -593,33 +487,18 @@ ${kuralItem.dailyThought}
           </div>
 
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-            {scheduleLang === 'kural'
-              ? '7-நாள் திருக்குறள் வாழ்வியல் வரிசை'
-              : scheduleLang === 'ta'
+            {scheduleLang === 'ta'
               ? '7-நாள் தமிழ் பொன்மொழிகள் வரிசை'
               : '7-Day English Mindset Queue'}
           </h2>
           <p className="text-xs text-slate-600 mt-1 max-w-xl">
-            {scheduleLang === 'kural'
-              ? 'தினசரி குறள், ஆசிரியர் திருவள்ளுவர், எளிய விளக்கம் மற்றும் வாழ்க்கையில் ஓர் உதாரணம் கொண்ட பிரத்யேக வரிசை.'
-              : scheduleLang === 'ta'
-              ? 'மகாகவி பாரதியார், டாக்டர் அப்துல் கலாம், ஔவையார் மற்றும் விவேகானந்தரின் உன்னத வரிகள்.'
+            {scheduleLang === 'ta'
+              ? 'மகாகவி பாரதியார், டாக்டர் அப்துல் கலாம், ஔவையார், விவேகானந்தர், மற்றும் தன்னம்பிக்கை வரிகள்.'
               : 'High-leverage stoic, philosophical, and leadership quotes for daily execution.'}
           </p>
 
           {/* Category Toggle Pills */}
           <div className="flex items-center gap-2 mt-3 flex-wrap">
-            <button
-              onClick={() => handleSwitchCategory('kural')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                scheduleLang === 'kural'
-                  ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white border-transparent shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
-              }`}
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>💎 திருக்குறள் (Thirukkural)</span>
-            </button>
             <button
               onClick={() => handleSwitchCategory('ta')}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
@@ -629,7 +508,7 @@ ${kuralItem.dailyThought}
               }`}
             >
               <Flame className="w-3.5 h-3.5 text-rose-400" />
-              <span>🔥 தமிழ் பொன்மொழிகள் (Tamil Quotes)</span>
+              <span>🔥 தமிழ் பொன்மொழிகள் (Tamil Single Quotes)</span>
             </button>
             <button
               onClick={() => handleSwitchCategory('en')}

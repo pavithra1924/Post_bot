@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@google/genai": "^2.3.0",
+    "@napi-rs/canvas": "^1.0.13",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
