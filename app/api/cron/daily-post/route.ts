@@ -267,7 +267,7 @@ export async function GET(req: NextRequest) {
     const accessToken = (process.env.INSTAGRAM_ACCESS_TOKEN || 'EAAMbn2U9KD4BSyaOjKRm33WyCaosjodaa3BG4kvq74Lcy4zW4DcSBurGZCsKScwQ5ilwNygtAEYZBZA6FqN7DDbZAoBxCpFL4ZA1sixmDcAr8Nf4KP26wZBELxFFM6inqQWkcwkdfYLQ6EADCtYel1Tp8qUK4IXqN4ptH0OHxkZBc1bW860bFEOVegYA3ZBZATjDl').trim();
 
     const searchParams = req.nextUrl.searchParams;
-    const requestedType = searchParams.get('type')?.toLowerCase();
+    const requestedType = (searchParams.get('type') || searchParams.get('category'))?.toLowerCase();
 
     // Indian Standard Time (IST = UTC + 5:30)
     const nowUtc = Date.now();
