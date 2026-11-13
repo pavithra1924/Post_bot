@@ -39,6 +39,26 @@ const ENGLISH_IMAGES = [
   'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1080&auto=format&fit=crop&q=85',
 ];
 
+interface RecentMediaItem {
+  id: string;
+  caption: string;
+  timestamp: string;
+}
+
+async function fetchRecentInstagramMedia(igUserId: string, accessToken: string): Promise<RecentMediaItem[]> {
+  try {
+    const url = `https://graph.facebook.com/v21.0/${igUserId}/media?fields=id,caption,timestamp,media_type&limit=40&access_token=${accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data && Array.isArray(data.data)) {
+      return data.data;
+    }
+  } catch (e) {
+    console.warn('Failed to fetch recent Instagram media for deduplication:', e);
+  }
+  return [];
+}
+
 /**
  * Publishes a category post to Instagram:
  * - 'carousel': 5-Slide Thirukkural Carousel Pack (Couplet + Explanation + Meaning + Example + Daily Thought)
@@ -51,13 +71,17 @@ async function executeCategoryPost({
   accessToken,
   searchParams,
   dayOfYear,
+  recentMedia = [],
 }: {
   category: CategoryType;
   igUserId: string;
   accessToken: string;
   searchParams: URLSearchParams;
   dayOfYear: number;
+  recentMedia?: RecentMediaItem[];
 }): Promise<PublishCategoryResult> {
+  const recentCaptions = recentMedia.map((m) => (m.caption || '').toLowerCase());
+
   if (category === 'carousel') {
     // 1. Thirukkural 5-Slide Carousel Pack
     const requestedIndex = searchParams.get('index') || searchParams.get('kural');
@@ -68,12 +92,28 @@ async function executeCategoryPost({
       if (!isNaN(parsed) && parsed >= 1 && parsed <= ALL_1330_KURALS.length) {
         kuralItem = ALL_1330_KURALS[parsed - 1];
       }
+    } else if (recentCaptions.length > 0) {
+      // Find the first Kural in rotation that hasn't been posted in the last 40 posts
+      for (let offset = 0; offset < ALL_1330_KURALS.length; offset++) {
+        const candidate = ALL_1330_KURALS[(dayOfYear + offset) % ALL_1330_KURALS.length];
+        const kuralTag = `குறள் #${candidate.number}`.toLowerCase();
+        const isDuplicate = recentCaptions.some((cap) => cap.includes(kuralTag));
+        if (!isDuplicate) {
+          kuralItem = candidate;
+          break;
+        }
+      }
     }
 
     // Render all 5 high-resolution slides with HarfBuzz Tamil typography
     const slideUrls = await renderThirukkuralCarouselSlides(kuralItem);
 
-    const fullCaption = `💎 வாழ்வியல் தத்துவம் • குறள் #${kuralItem.number} (${kuralItem.chapter})\n\n"${kuralItem.verse.replace(/\n/g, ' ')}"\n— ஆசிரியர்: திருவள்ளுவர்\nவழங்குபவர்: Spark Within (@_sparkwithin_hub_)\n\n📌 5-ஸ்லைடு வழிகாட்டி:\n1️⃣ குறள் & அதிகாரம்\n2️⃣ எளிய விளக்கம்: ${kuralItem.simpleExplanation}\n3️⃣ ஆழமான தத்துவம்: ${kuralItem.deepMeaning}\n4️⃣ வாழ்வில் ஓர் உதாரணம்: ${kuralItem.lifeExample}\n5️⃣ இன்றைய சிந்தனை: ${kuralItem.dailyThought}\n\n💬 உங்கள் நண்பர்களுக்கும் பயனுள்ளதாக இருக்க பகிருங்கள் (Share).\n📌 எதிர்கால சிந்தனைக்கு சேமித்து (Save) கொள்ளுங்கள்!\n\n.\n.\n.\n#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #kural #tamilnadu #dailyquotes #tamilliterature #mindset #tamillanguage #wisdom`;
+    const cleanThought = kuralItem.dailyThought
+      .replace(/தினசரி\s*வாழ்வியல்.*$/s, '')
+      .replace(/பின்தொடரவும்.*$/s, '')
+      .trim();
+
+    const fullCaption = `💎 வாழ்வியல் தத்துவம் • குறள் #${kuralItem.number} (${kuralItem.chapter})\n\n"${kuralItem.verse.replace(/\n/g, ' ')}"\n— ஆசிரியர்: திருவள்ளுவர்\nவழங்குபவர்: Spark Within (@_sparkwithin_hub_)\n\n📌 5-ஸ்லைடு வழிகாட்டி:\n1️⃣ குறள் & அதிகாரம்\n2️⃣ எளிய விளக்கம்: ${kuralItem.simpleExplanation}\n3️⃣ ஆழமான தத்துவம்: ${kuralItem.deepMeaning}\n4️⃣ வாழ்வில் ஓர் உதாரணம்: ${kuralItem.lifeExample}\n5️⃣ இன்றைய சிந்தனை: ${cleanThought}\n\n💬 உங்கள் நண்பர்களுக்கும் பயனுள்ளதாக இருக்க பகிருங்கள் (Share).\n📌 எதிர்கால சிந்தனைக்கு சேமித்து (Save) கொள்ளுங்கள்!\n\n.\n.\n.\n#sparkwithin #thirukkural #thiruvalluvar #tamilquotes #kural #tamilnadu #dailyquotes #tamilliterature #mindset #tamillanguage #wisdom`;
 
     const publishResult = await publishCarouselToInstagram({
       igUserId,
@@ -106,6 +146,17 @@ async function executeCategoryPost({
       const parsed = parseInt(requestedIndex, 10);
       if (!isNaN(parsed) && parsed >= 0 && parsed < singleTamilPool.length) {
         quoteItem = singleTamilPool[parsed];
+      }
+    } else if (recentCaptions.length > 0) {
+      // Find the first candidate whose quote snippet has NOT appeared in recent posts
+      for (let offset = 0; offset < singleTamilPool.length; offset++) {
+        const candidate = singleTamilPool[(dayOfYear + offset) % singleTamilPool.length];
+        const snippet = candidate.quote.slice(0, 18).toLowerCase();
+        const isDuplicate = recentCaptions.some((cap) => cap.includes(snippet));
+        if (!isDuplicate) {
+          quoteItem = candidate;
+          break;
+        }
       }
     } else {
       quoteItem = singleTamilPool[dayOfYear % singleTamilPool.length];
@@ -144,7 +195,7 @@ async function executeCategoryPost({
       publishResult,
     };
   } else {
-    // 2. English Mindset & Stoic Quotes (Marcus Aurelius, Steve Jobs, Seneca, Bruce Lee)
+    // 3. English Mindset & Stoic Quotes (Marcus Aurelius, Steve Jobs, Seneca, Bruce Lee)
     const requestedIndex = searchParams.get('index');
     let quoteItem: QuotePreset = PRESET_QUOTES[0];
 
@@ -152,6 +203,17 @@ async function executeCategoryPost({
       const parsed = parseInt(requestedIndex, 10);
       if (!isNaN(parsed) && parsed >= 0 && parsed < PRESET_QUOTES.length) {
         quoteItem = PRESET_QUOTES[parsed];
+      }
+    } else if (recentCaptions.length > 0) {
+      // Find the first candidate whose quote has NOT appeared in recent Instagram posts
+      for (let offset = 0; offset < PRESET_QUOTES.length; offset++) {
+        const candidate = PRESET_QUOTES[(dayOfYear + offset) % PRESET_QUOTES.length];
+        const snippet = candidate.quote.slice(0, 25).toLowerCase();
+        const isDuplicate = recentCaptions.some((cap) => cap.includes(snippet));
+        if (!isDuplicate) {
+          quoteItem = candidate;
+          break;
+        }
       }
     } else {
       quoteItem = PRESET_QUOTES[dayOfYear % PRESET_QUOTES.length];
@@ -251,6 +313,28 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    // Fetch recent 40 media items directly from Instagram for live deduplication
+    const recentMedia = await fetchRecentInstagramMedia(igUserId, accessToken);
+
+    // Spam / Cooldown Protection:
+    // If a post was published less than 45 minutes ago, prevent accidental double-triggers
+    const isForce = searchParams.get('force') === 'true';
+    const isManualIndex = Boolean(searchParams.get('index') || searchParams.get('kural'));
+
+    if (!isForce && !isManualIndex && !isMultiAll && recentMedia.length > 0) {
+      const latestPostTime = new Date(recentMedia[0].timestamp).getTime();
+      const minsSinceLastPost = (Date.now() - latestPostTime) / (1000 * 60);
+
+      if (minsSinceLastPost < 45) {
+        return NextResponse.json({
+          status: 'skipped',
+          message: `A post was already published ${Math.round(minsSinceLastPost)} minutes ago. Skipping to prevent duplicates. Pass ?force=true to override.`,
+          latestPost: recentMedia[0].timestamp,
+          resolvedCategory: category,
+        });
+      }
+    }
+
     if (isMultiAll) {
       const categoriesToPublish: CategoryType[] = ['carousel', 'tamil', 'english'];
       const results: PublishCategoryResult[] = [];
@@ -262,6 +346,7 @@ export async function GET(req: NextRequest) {
           accessToken,
           searchParams,
           dayOfYear,
+          recentMedia,
         });
         results.push(res);
         await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -282,6 +367,7 @@ export async function GET(req: NextRequest) {
       accessToken,
       searchParams,
       dayOfYear,
+      recentMedia,
     });
 
     return NextResponse.json({

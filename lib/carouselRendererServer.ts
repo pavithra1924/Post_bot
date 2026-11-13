@@ -209,7 +209,7 @@ function createBaseSlideCanvas(slideNumber: number, categoryBadge: string): { ca
 /**
  * Slide 1: Cover Slide with Kural Couplet
  */
-function renderSlide1(kural: Thirukkural1330Item): any {
+export function renderSlide1(kural: Thirukkural1330Item): any {
   const { canvas, ctx, width, height } = createBaseSlideCanvas(1, 'திருக்குறள் கருவூலம்');
 
   // Chapter & Kural Number Subheading
@@ -228,11 +228,11 @@ function renderSlide1(kural: Thirukkural1330Item): any {
   ctx.lineTo(width / 2 + 130, subheadY + 36);
   ctx.stroke();
 
-  // Central Card Framing the Couplet (Y: 340 to 860)
-  const cardX = 80;
-  const cardY = 340;
+  // Central Card Framing the Couplet (Y: 320 to 880, Width: 960px)
+  const cardX = 60;
+  const cardY = 320;
   const cardW = width - (cardX * 2);
-  const cardH = 530;
+  const cardH = 550;
   const cardRadius = 28;
 
   ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
@@ -273,26 +273,60 @@ function renderSlide1(kural: Thirukkural1330Item): any {
   ctx.lineTo(cardX + cardW - 16, cardY + cardH - 16 - innerCorner);
   ctx.stroke();
 
-  // Main Kural Verse (Centered inside card)
-  ctx.font = 'bold 50px NotoSansTamil';
+  // Kural Venba Poetic Rule (குறள் வெண்பா இலக்கணம்):
+  // முதலடி: STRICTLY 4 சீர்மொழிகள் (4 words on Line 1)
+  // இரண்டாமடி: STRICTLY 3 சீர்மொழிகள் (3 words on Line 2)
+  const rawVerse = (kural.verse || `${kural.line1 || ''} ${kural.line2 || ''}`).trim();
+  const allWords = rawVerse.replace(/\n+/g, ' ').split(/\s+/).filter(Boolean);
+
+  let line1 = '';
+  let line2 = '';
+
+  if (allWords.length >= 7) {
+    line1 = allWords.slice(0, 4).join(' ');
+    line2 = allWords.slice(4).join(' ');
+  } else if (kural.line1 && kural.line2) {
+    line1 = kural.line1.trim();
+    line2 = kural.line2.trim();
+  } else {
+    const rawLines = rawVerse.split('\n').map((l) => l.trim()).filter(Boolean);
+    line1 = rawLines[0] || '';
+    line2 = rawLines[1] || '';
+  }
+
+  // Dynamically calculate font size so line 1 (4 words) and line 2 (3 words) NEVER wrap
+  const maxVerseWidth = 880;
+  let verseFontSize = 46;
+  ctx.font = `bold ${verseFontSize}px NotoSansTamil`;
+
+  while (
+    (ctx.measureText(line1).width > maxVerseWidth || ctx.measureText(line2).width > maxVerseWidth) &&
+    verseFontSize > 24
+  ) {
+    verseFontSize -= 1;
+    ctx.font = `bold ${verseFontSize}px NotoSansTamil`;
+  }
+
+  const lineHeight = Math.round(verseFontSize * 2.1);
+  const totalVerseH = lineHeight * 2;
+  const line1Y = cardY + ((cardH - totalVerseH) / 2) + (lineHeight / 2) - 12;
+  const line2Y = line1Y + lineHeight;
+
   ctx.fillStyle = '#FFFFFF';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
   ctx.shadowBlur = 18;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  const lines = wrapText(ctx, kural.verse, 800);
-  const lineHeight = 88;
-  const totalH = lines.length * lineHeight;
-  const verseStartY = cardY + ((cardH - totalH) / 2) + (lineHeight / 2);
+  // Draw Line 1 (Strictly 4 words)
+  ctx.fillText(line1, width / 2, line1Y);
 
-  lines.forEach((line, idx) => {
-    ctx.fillText(line, width / 2, verseStartY + (idx * lineHeight));
-  });
+  // Draw Line 2 (Strictly 3 words)
+  ctx.fillText(line2, width / 2, line2Y);
 
   ctx.shadowColor = 'transparent';
 
-  // Author Attribution
+  // Author Attribution below card
   const authorY = cardY + cardH + 75;
   ctx.font = 'bold 36px NotoSansTamil';
   ctx.fillStyle = '#F59E0B';
@@ -397,7 +431,7 @@ function renderContentSlide({
 /**
  * Slide 2: Simple Meaning (எளிய தமிழ் விளக்கம்)
  */
-function renderSlide2(kural: Thirukkural1330Item): any {
+export function renderSlide2(kural: Thirukkural1330Item): any {
   return renderContentSlide({
     slideNumber: 2,
     categoryBadge: 'எளிய விளக்கம்',
@@ -410,7 +444,7 @@ function renderSlide2(kural: Thirukkural1330Item): any {
 /**
  * Slide 3: Deep Meaning (ஆழமான வாழ்வியல் தத்துவம்)
  */
-function renderSlide3(kural: Thirukkural1330Item): any {
+export function renderSlide3(kural: Thirukkural1330Item): any {
   return renderContentSlide({
     slideNumber: 3,
     categoryBadge: 'ஆழமான தத்துவம்',
@@ -423,7 +457,7 @@ function renderSlide3(kural: Thirukkural1330Item): any {
 /**
  * Slide 4: Real-Life Example (வாழ்க்கையில் ஓர் உதாரணம்)
  */
-function renderSlide4(kural: Thirukkural1330Item): any {
+export function renderSlide4(kural: Thirukkural1330Item): any {
   return renderContentSlide({
     slideNumber: 4,
     categoryBadge: 'நடைமுறை உதாரணம்',
@@ -436,7 +470,7 @@ function renderSlide4(kural: Thirukkural1330Item): any {
 /**
  * Slide 5: Daily Action Thought & Follow Community CTA
  */
-function renderSlide5(kural: Thirukkural1330Item): any {
+export function renderSlide5(kural: Thirukkural1330Item): any {
   const { canvas, ctx, width, height } = createBaseSlideCanvas(5, 'இன்றைய சிந்தனை');
 
   // Clean daily thought so duplicate handle / hashtags are not included in thought card
