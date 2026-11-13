@@ -93,15 +93,48 @@ async function executeCategoryPost({
         kuralItem = ALL_1330_KURALS[parsed - 1];
       }
     } else if (recentCaptions.length > 0) {
-      // Find the first Kural in rotation that hasn't been posted in the last 40 posts
+      // Extract recently posted chapters from recent carousel posts to guarantee chapter diversity
+      const recentChapters = recentCaptions
+        .slice(0, 10)
+        .map((cap) => {
+          const match = cap.match(/குறள்\s*#\d+\s*\(([^)]+)\)/);
+          return match ? match[1].toLowerCase().trim() : '';
+        })
+        .filter(Boolean);
+
+      // Find a Kural whose number hasn't been posted recently AND whose chapter is fresh
+      let foundKural: Thirukkural1330Item | null = null;
+
+      // Pass 1: Stride across chapters so each day features a completely different chapter & theme
       for (let offset = 0; offset < ALL_1330_KURALS.length; offset++) {
-        const candidate = ALL_1330_KURALS[(dayOfYear + offset) % ALL_1330_KURALS.length];
+        const index = (dayOfYear * 37 + offset * 13) % ALL_1330_KURALS.length;
+        const candidate = ALL_1330_KURALS[index];
         const kuralTag = `குறள் #${candidate.number}`.toLowerCase();
-        const isDuplicate = recentCaptions.some((cap) => cap.includes(kuralTag));
-        if (!isDuplicate) {
-          kuralItem = candidate;
+        const candidateChapter = candidate.chapter.toLowerCase().trim();
+
+        const isDuplicateKural = recentCaptions.some((cap) => cap.includes(kuralTag));
+        const isDuplicateChapter = recentChapters.includes(candidateChapter);
+
+        if (!isDuplicateKural && !isDuplicateChapter) {
+          foundKural = candidate;
           break;
         }
+      }
+
+      // Pass 2 fallback: Any non-duplicate Kural
+      if (!foundKural) {
+        for (let offset = 0; offset < ALL_1330_KURALS.length; offset++) {
+          const candidate = ALL_1330_KURALS[(dayOfYear + offset) % ALL_1330_KURALS.length];
+          const kuralTag = `குறள் #${candidate.number}`.toLowerCase();
+          if (!recentCaptions.some((cap) => cap.includes(kuralTag))) {
+            foundKural = candidate;
+            break;
+          }
+        }
+      }
+
+      if (foundKural) {
+        kuralItem = foundKural;
       }
     }
 
@@ -150,7 +183,7 @@ async function executeCategoryPost({
     } else if (recentCaptions.length > 0) {
       // Find the first candidate whose quote snippet has NOT appeared in recent posts
       for (let offset = 0; offset < singleTamilPool.length; offset++) {
-        const candidate = singleTamilPool[(dayOfYear + offset) % singleTamilPool.length];
+        const candidate = singleTamilPool[(dayOfYear * 7 + offset) % singleTamilPool.length];
         const snippet = candidate.quote.slice(0, 18).toLowerCase();
         const isDuplicate = recentCaptions.some((cap) => cap.includes(snippet));
         if (!isDuplicate) {
@@ -159,7 +192,7 @@ async function executeCategoryPost({
         }
       }
     } else {
-      quoteItem = singleTamilPool[dayOfYear % singleTamilPool.length];
+      quoteItem = singleTamilPool[(dayOfYear * 7) % singleTamilPool.length];
     }
 
     const bgUrl = TAMIL_IMAGES[dayOfYear % TAMIL_IMAGES.length];
@@ -207,7 +240,7 @@ async function executeCategoryPost({
     } else if (recentCaptions.length > 0) {
       // Find the first candidate whose quote has NOT appeared in recent Instagram posts
       for (let offset = 0; offset < PRESET_QUOTES.length; offset++) {
-        const candidate = PRESET_QUOTES[(dayOfYear + offset) % PRESET_QUOTES.length];
+        const candidate = PRESET_QUOTES[(dayOfYear * 7 + offset) % PRESET_QUOTES.length];
         const snippet = candidate.quote.slice(0, 25).toLowerCase();
         const isDuplicate = recentCaptions.some((cap) => cap.includes(snippet));
         if (!isDuplicate) {
@@ -216,7 +249,7 @@ async function executeCategoryPost({
         }
       }
     } else {
-      quoteItem = PRESET_QUOTES[dayOfYear % PRESET_QUOTES.length];
+      quoteItem = PRESET_QUOTES[(dayOfYear * 7) % PRESET_QUOTES.length];
     }
 
     const bgUrl = ENGLISH_IMAGES[dayOfYear % ENGLISH_IMAGES.length];

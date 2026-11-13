@@ -212,35 +212,19 @@ function createBaseSlideCanvas(slideNumber: number, categoryBadge: string): { ca
 export function renderSlide1(kural: Thirukkural1330Item): any {
   const { canvas, ctx, width, height } = createBaseSlideCanvas(1, 'திருக்குறள் கருவூலம்');
 
-  // Chapter & Kural Number Subheading
-  ctx.font = 'bold 32px NotoSansTamil';
-  ctx.fillStyle = '#FBBF24';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const subheadY = 250;
-  ctx.fillText(`அதிகாரம்: ${kural.chapter} • குறள் #${kural.number}`, width / 2, subheadY);
-
-  // Decorative Golden Divider Line
-  ctx.strokeStyle = 'rgba(245, 158, 11, 0.45)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(width / 2 - 130, subheadY + 36);
-  ctx.lineTo(width / 2 + 130, subheadY + 36);
-  ctx.stroke();
-
-  // Central Card Framing the Couplet (Y: 320 to 880, Width: 960px)
-  const cardX = 60;
-  const cardY = 320;
+  // Central Card Framing
+  const cardX = 70;
+  const cardY = 250;
   const cardW = width - (cardX * 2);
-  const cardH = 550;
-  const cardRadius = 28;
+  const cardH = 740;
+  const cardRadius = 26;
 
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.035)';
   ctx.beginPath();
   ctx.roundRect(cardX, cardY, cardW, cardH, cardRadius);
   ctx.fill();
 
-  ctx.strokeStyle = 'rgba(245, 158, 11, 0.32)';
+  ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -249,33 +233,55 @@ export function renderSlide1(kural: Thirukkural1330Item): any {
   ctx.strokeStyle = '#F59E0B';
   ctx.lineWidth = 3;
 
+  // Top-Left
   ctx.beginPath();
   ctx.moveTo(cardX + 16, cardY + 16 + innerCorner);
   ctx.lineTo(cardX + 16, cardY + 16);
   ctx.lineTo(cardX + 16 + innerCorner, cardY + 16);
   ctx.stroke();
 
+  // Top-Right
   ctx.beginPath();
   ctx.moveTo(cardX + cardW - 16 - innerCorner, cardY + 16);
   ctx.lineTo(cardX + cardW - 16, cardY + 16);
   ctx.lineTo(cardX + cardW - 16, cardY + 16 + innerCorner);
   ctx.stroke();
 
+  // Bottom-Left
   ctx.beginPath();
   ctx.moveTo(cardX + 16, cardY + cardH - 16 - innerCorner);
   ctx.lineTo(cardX + 16, cardY + cardH - 16);
   ctx.lineTo(cardX + 16 + innerCorner, cardY + cardH - 16);
   ctx.stroke();
 
+  // Bottom-Right
   ctx.beginPath();
   ctx.moveTo(cardX + cardW - 16 - innerCorner, cardY + cardH - 16);
   ctx.lineTo(cardX + cardW - 16, cardY + cardH - 16);
   ctx.lineTo(cardX + cardW - 16, cardY + cardH - 16 - innerCorner);
   ctx.stroke();
 
-  // Kural Venba Poetic Rule (குறள் வெண்பா இலக்கணம்):
-  // முதலடி: STRICTLY 4 சீர்மொழிகள் (4 words on Line 1)
-  // இரண்டாமடி: STRICTLY 3 சீர்மொழிகள் (3 words on Line 2)
+  // Left-aligned Content inside card (Matching user's preferred layout)
+  const textLeftX = cardX + 75; // 145px from canvas left edge
+  const headingY = cardY + 125;
+
+  // 1. Heading: குறள் #... • அதிகாரம்: ... (Left Aligned)
+  const headingText = `குறள் #${kural.number}  •  அதிகாரம்: ${kural.chapter}`;
+  ctx.font = 'bold 36px NotoSansTamil';
+  ctx.fillStyle = '#FBBF24';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(headingText, textLeftX, headingY);
+
+  // Underline below Heading (Accent line as in user design)
+  ctx.strokeStyle = '#F59E0B';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(textLeftX, headingY + 20);
+  ctx.lineTo(textLeftX + 180, headingY + 20);
+  ctx.stroke();
+
+  // 2. Kural Verse (Left Aligned, Strict 4 words / 3 words, Increased font size: 52px)
   const rawVerse = (kural.verse || `${kural.line1 || ''} ${kural.line2 || ''}`).trim();
   const allWords = rawVerse.replace(/\n+/g, ' ').split(/\s+/).filter(Boolean);
 
@@ -294,48 +300,46 @@ export function renderSlide1(kural: Thirukkural1330Item): any {
     line2 = rawLines[1] || '';
   }
 
-  // Dynamically calculate font size so line 1 (4 words) and line 2 (3 words) NEVER wrap
-  const maxVerseWidth = 880;
-  let verseFontSize = 46;
+  // Auto-scale font size: starts at 52px (increased for impact) and scales down if words are unusually long
+  let verseFontSize = 52;
+  const maxVerseWidth = cardW - 140; // 800px max line width
   ctx.font = `bold ${verseFontSize}px NotoSansTamil`;
 
   while (
     (ctx.measureText(line1).width > maxVerseWidth || ctx.measureText(line2).width > maxVerseWidth) &&
-    verseFontSize > 24
+    verseFontSize > 28
   ) {
     verseFontSize -= 1;
     ctx.font = `bold ${verseFontSize}px NotoSansTamil`;
   }
 
-  const lineHeight = Math.round(verseFontSize * 2.1);
-  const totalVerseH = lineHeight * 2;
-  const line1Y = cardY + ((cardH - totalVerseH) / 2) + (lineHeight / 2) - 12;
-  const line2Y = line1Y + lineHeight;
+  const verseLineHeight = Math.round(verseFontSize * 1.85);
+  const verseStartY = headingY + 155;
 
   ctx.fillStyle = '#FFFFFF';
   ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
   ctx.shadowBlur = 18;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
 
-  // Draw Line 1 (Strictly 4 words)
-  ctx.fillText(line1, width / 2, line1Y);
+  // Line 1: Strictly 4 words, Left-aligned
+  ctx.fillText(line1, textLeftX, verseStartY);
 
-  // Draw Line 2 (Strictly 3 words)
-  ctx.fillText(line2, width / 2, line2Y);
+  // Line 2: Strictly 3 words, Left-aligned
+  ctx.fillText(line2, textLeftX, verseStartY + verseLineHeight);
 
   ctx.shadowColor = 'transparent';
 
-  // Author Attribution below card
-  const authorY = cardY + cardH + 75;
+  // 3. Author Attribution: — ஆசிரியர்: திருவள்ளுவர் (Left Aligned, Gold)
+  const authorY = verseStartY + verseLineHeight + 120;
   ctx.font = 'bold 36px NotoSansTamil';
   ctx.fillStyle = '#F59E0B';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('— ஆசிரியர்: திருவள்ளுவர்', width / 2, authorY);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('— ஆசிரியர்: திருவள்ளுவர்', textLeftX, authorY);
 
-  // Swipe Navigation Prompt (clean text with >> to avoid missing glyphs)
-  const swipeY = height - 150;
+  // 4. Swipe Navigation Prompt (clean text with >> to avoid missing glyphs)
+  const swipeY = height - 135;
   ctx.font = 'bold 22px NotoSansTamil';
   ctx.fillStyle = 'rgba(251, 191, 36, 0.85)';
   ctx.textAlign = 'center';
